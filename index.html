@@ -1036,6 +1036,181 @@ body {
   to   { box-shadow: 0 0 120px rgba(34,68,170,1), 0 0 50px rgba(100,140,255,0.6); }
 }
 
+/* ── KÄSEBÄR WELCOME OVERLAY ── */
+#kaesebaer-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 9997;
+  background: rgba(0,0,0,0.82);
+  align-items: center; justify-content: center;
+}
+#kaesebaer-overlay.show { display: flex; }
+.kaesebaer-box {
+  background: linear-gradient(145deg, #1a1400, #2e2200);
+  border: 3px solid var(--gold);
+  border-radius: 24px;
+  padding: 32px 28px 24px;
+  max-width: 360px; width: 90%;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(255,215,0,0.3);
+  animation: popIn 0.45s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+}
+.kaesebaer-img {
+  width: 200px; height: 200px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid var(--gold);
+  margin-bottom: 18px;
+  box-shadow: 0 0 30px rgba(255,215,0,0.4);
+}
+.kaesebaer-msg {
+  font-size: 1.25em;
+  color: var(--gold);
+  font-style: italic;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+.kaesebaer-btn {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #000;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 12px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.kaesebaer-btn:hover { transform: scale(1.04); }
+
+/* ── BABYBEL SAUER BANNER ── */
+#sauer-banner {
+  display: none;
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9400;
+  text-align: center;
+  pointer-events: none;
+  animation: sauerPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+}
+#sauer-banner.show { display: block; }
+@keyframes sauerPop {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+  70%  { transform: translate(-50%, -50%) scale(1.06); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.sauer-img {
+  width: 180px; height: 180px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid var(--crimson);
+  box-shadow: 0 0 30px rgba(184,40,72,0.7);
+  display: block;
+  margin: 0 auto 10px;
+}
+.sauer-msg {
+  color: var(--crimson);
+  font-size: 1.1em;
+  font-weight: bold;
+  font-style: italic;
+  text-shadow: 0 0 12px rgba(184,40,72,0.8);
+  background: rgba(0,0,0,0.7);
+  border-radius: 10px;
+  padding: 6px 14px;
+}
+
+/* ── MITTELSAUER FULL OVERLAY (3× Babybel) ── */
+#mittelsauer-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 9600;
+  background: rgba(0,0,0,0.85);
+  align-items: center; justify-content: center;
+}
+#mittelsauer-overlay.show { display: flex; }
+.mittelsauer-box {
+  background: linear-gradient(145deg, #1a0008, #380010);
+  border: 3px solid var(--crimson);
+  border-radius: 24px;
+  padding: 32px 28px 24px;
+  max-width: 360px; width: 90%;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(184,40,72,0.4);
+  animation: popIn 0.45s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+}
+.mittelsauer-img {
+  width: 210px; height: 210px;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 3px solid var(--crimson);
+  margin-bottom: 16px;
+  box-shadow: 0 0 30px rgba(184,40,72,0.5);
+}
+.mittelsauer-msg {
+  font-size: 1.1em;
+  color: #ff9090;
+  font-style: italic;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+.mittelsauer-btn {
+  background: linear-gradient(135deg, var(--crimson), var(--dark-red));
+  color: #fff;
+  border: none;
+  padding: 11px 28px;
+  border-radius: 12px;
+  font-size: 0.95em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.mittelsauer-btn:hover { transform: scale(1.04); }
+
+/* ── KÄSEGESICHT OVERLAY (3× Mimolette) ── */
+#kaesegesicht-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 9600;
+  background: rgba(0,0,0,0.85);
+  align-items: center; justify-content: center;
+}
+#kaesegesicht-overlay.show { display: flex; }
+.kaesegesicht-box {
+  background: linear-gradient(145deg, #1a0d00, #3a1e00);
+  border: 3px solid #d45500;
+  border-radius: 24px;
+  padding: 32px 28px 24px;
+  max-width: 360px; width: 90%;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(212,85,0,0.4);
+  animation: popIn 0.45s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+}
+.kaesegesicht-img {
+  width: 210px; height: 210px;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 3px solid #d45500;
+  margin-bottom: 16px;
+  box-shadow: 0 0 30px rgba(212,85,0,0.5);
+}
+.kaesegesicht-msg {
+  font-size: 1.15em;
+  color: #ffb070;
+  font-style: italic;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+.kaesegesicht-btn {
+  background: linear-gradient(135deg, #d45500, #8a3000);
+  color: #fff;
+  border: none;
+  padding: 11px 28px;
+  border-radius: 12px;
+  font-size: 0.95em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.kaesegesicht-btn:hover { transform: scale(1.04); }
+
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: #252538; border-radius: 2px; }
@@ -1219,7 +1394,7 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
   <div class="game-header">
     <div class="brand-tag">⭐ Obatzda Oligarchen ⭐</div>
     <h1 class="casino-title">KÄSE CASINO</h1>
-    <p class="casino-subtitle">Wo Träume aus Käse werden — und Senf draufkommt. <span class="version-badge">v4.1</span></p>
+    <p class="casino-subtitle">Wo Träume aus Käse werden — und Senf draufkommt. <span class="version-badge">v4.3</span></p>
     <p class="player-tag">Spieler: <span id="player-display"></span></p>
     <div class="social-links">
       <a href="https://www.instagram.com/obatzda.oligarchen/" target="_blank" rel="noopener">📸 @obatzda.oligarchen</a>
@@ -1396,6 +1571,39 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
 
 <!-- Near-Miss Teaser -->
 <div class="near-miss-banner" id="near-miss-banner"></div>
+
+<!-- Käsebär Welcome Overlay -->
+<div id="kaesebaer-overlay">
+  <div class="kaesebaer-box">
+    <img class="kaesebaer-img" src="Käsebär.jpeg" alt="Käsebär">
+    <div class="kaesebaer-msg">Magst du mit mir ne Runde spielen?</div>
+    <button class="kaesebaer-btn" onclick="closeKaesebaer()">Ja, los geht's! 🧀</button>
+  </div>
+</div>
+
+<!-- Babybel Sauer Banner -->
+<div id="sauer-banner">
+  <img class="sauer-img" src="sauer.jpg" alt="Sauer">
+  <div class="sauer-msg">Man bin ich sauer!</div>
+</div>
+
+<!-- Mittelsauer Overlay (3× Babybel) -->
+<div id="mittelsauer-overlay">
+  <div class="mittelsauer-box">
+    <img class="mittelsauer-img" src="mittelsauer.jpg" alt="Mittelsauer">
+    <div class="mittelsauer-msg">Geht doch, ich war nur bisschen gestresst!</div>
+    <button class="mittelsauer-btn" onclick="closeMittelsauer()">Schon gut 🔴</button>
+  </div>
+</div>
+
+<!-- Käsegesicht Overlay (3× Mimolette) -->
+<div id="kaesegesicht-overlay">
+  <div class="kaesegesicht-box">
+    <img class="kaesegesicht-img" src="Käsegesicht.jpeg" alt="Käsegesicht">
+    <div class="kaesegesicht-msg">Mimolettenlecker approved!</div>
+    <button class="kaesegesicht-btn" onclick="closeKaesegesicht()">Lecker! 🟠</button>
+  </div>
+</div>
 
 <!-- Krawatte Banner -->
 <div id="krawatte-banner">
@@ -1645,6 +1853,7 @@ function startGame() {
   document.getElementById('game-screen').style.display  = 'flex';
   initGame();
   startMusic();
+  setTimeout(() => showKaesebaer(), 300);
 }
 
 // ── INIT ────────────────────────────────────────────────────
@@ -1819,6 +2028,19 @@ async function doSpin() {
   // Senfbombe-Overlay
   if (win.triggerSenfbombe) {
     setTimeout(() => showSenfbombeOverlay(win), 700);
+  }
+
+  // ── Babybel Reaktionen ──
+  const babelCount = results.filter(r => r.id === 'babybel').length;
+  if (babelCount === 3) {
+    setTimeout(() => showMittelsauerOverlay(), 600);
+  } else if (babelCount >= 1) {
+    setTimeout(() => showSauerBanner(), 400);
+  }
+
+  // ── 3× Mimolette ──
+  if (results.every(r => r.id === 'mimolette')) {
+    setTimeout(() => showKaesegesichtOverlay(), 700);
   }
 
   // ── Near-Miss Teaser (2× Roquefort oder 2× Senf) ──
@@ -2251,6 +2473,39 @@ function showKrawatteBanner(cheese, bonus) {
     banner.classList.add('hide');
     setTimeout(() => { banner.classList.remove('show', 'hide'); }, 350);
   }, 3000);
+}
+
+// ── KÄSEBÄR WELCOME ──────────────────────────────────────────
+function showKaesebaer() {
+  document.getElementById('kaesebaer-overlay').classList.add('show');
+}
+function closeKaesebaer() {
+  document.getElementById('kaesebaer-overlay').classList.remove('show');
+}
+
+// ── BABYBEL SAUER BANNER ──────────────────────────────────────
+function showSauerBanner() {
+  const banner = document.getElementById('sauer-banner');
+  banner.classList.remove('show');
+  void banner.offsetWidth; // reflow to restart animation
+  banner.classList.add('show');
+  setTimeout(() => { banner.classList.remove('show'); }, 2800);
+}
+
+// ── MITTELSAUER OVERLAY (3× Babybel) ─────────────────────────
+function showMittelsauerOverlay() {
+  document.getElementById('mittelsauer-overlay').classList.add('show');
+}
+function closeMittelsauer() {
+  document.getElementById('mittelsauer-overlay').classList.remove('show');
+}
+
+// ── KÄSEGESICHT OVERLAY (3× Mimolette) ───────────────────────
+function showKaesegesichtOverlay() {
+  document.getElementById('kaesegesicht-overlay').classList.add('show');
+}
+function closeKaesegesicht() {
+  document.getElementById('kaesegesicht-overlay').classList.remove('show');
 }
 
 // ── VORWOCHE CHAMPION ─────────────────────────────────────────
