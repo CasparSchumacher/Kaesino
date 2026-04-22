@@ -967,6 +967,60 @@ body {
 /* ── CONFETTI ── */
 #confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 10000; display: none; }
 
+/* ── NEAR-MISS TEASER ── */
+.near-miss-banner {
+  display: none;
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  z-index: 9400;
+  border-radius: 12px;
+  padding: 13px 22px;
+  font-family: Arial, sans-serif;
+  font-size: 0.88em;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.near-miss-banner.show {
+  display: block;
+  animation: nearMissIn 0.35s ease-out forwards;
+}
+.near-miss-banner.hide {
+  animation: nearMissOut 0.4s ease-in forwards;
+}
+.near-miss-banner.roq {
+  background: rgba(5,12,50,0.96);
+  border: 2px solid rgba(100,140,255,0.85);
+  color: var(--blue-light);
+  box-shadow: 0 0 24px rgba(34,68,170,0.7);
+}
+.near-miss-banner.senf {
+  background: rgba(50,35,0,0.96);
+  border: 2px solid rgba(200,168,0,0.85);
+  color: #FFD700;
+  box-shadow: 0 0 24px rgba(200,168,0,0.6);
+}
+@keyframes nearMissIn {
+  from { opacity:0; transform: translateX(-50%) translateY(16px) scale(0.9); }
+  to   { opacity:1; transform: translateX(-50%) translateY(0)   scale(1);   }
+}
+@keyframes nearMissOut {
+  from { opacity:1; transform: translateX(-50%) translateY(0)   scale(1);   }
+  to   { opacity:0; transform: translateX(-50%) translateY(-10px) scale(0.92); }
+}
+
+/* ── EPIC FREESPINS ── */
+.freespin-box {
+  animation: popIn 0.55s cubic-bezier(0.175,0.885,0.32,1.275),
+             freespinGlow 0.9s ease-in-out 0.55s infinite alternate !important;
+}
+@keyframes freespinGlow {
+  from { box-shadow: 0 0 60px rgba(34,68,170,0.6); }
+  to   { box-shadow: 0 0 120px rgba(34,68,170,1), 0 0 50px rgba(100,140,255,0.6); }
+}
+
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: #252538; border-radius: 2px; }
@@ -1149,8 +1203,8 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
 
   <div class="game-header">
     <div class="brand-tag">⭐ Obatzda Oligarchen ⭐</div>
-    <h1 class="casino-title">🧀 KÄSE CASINO <span class="version-badge">v4.0</span></h1>
-    <p class="casino-subtitle">Wo Träume aus Käse werden — und Senf draufkommt.</p>
+    <h1 class="casino-title">KÄSE CASINO</h1>
+    <p class="casino-subtitle">Wo Träume aus Käse werden — und Senf draufkommt. <span class="version-badge">v4.1</span></p>
     <p class="player-tag">Spieler: <span id="player-display"></span></p>
     <div class="social-links">
       <a href="https://www.instagram.com/obatzda.oligarchen/" target="_blank" rel="noopener">📸 @obatzda.oligarchen</a>
@@ -1325,6 +1379,9 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
   </div>
 </div>
 
+<!-- Near-Miss Teaser -->
+<div class="near-miss-banner" id="near-miss-banner"></div>
+
 <!-- Krawatte Banner -->
 <div id="krawatte-banner">
   <div class="kr-tie">👔</div>
@@ -1410,7 +1467,7 @@ const JSONBIN_KEY = '$2a$10$Ifh/yVZlwBLUEp.JGfHjP.rKvwM8jLgooR8qfQxw/xpjzmlhd1fc
 // ────────────────────────────────────────────────────────────
 const CHEESES = [
   {
-    // Kein Paargewinn — erst ab Emmentaler
+    // Kein Paargewinn
     id:'cheddar',   name:'Cheddar',     emoji:'🧀',
     weight:20, twoX:0,  threeX:3,
     bg:'linear-gradient(145deg,#7a2e00,#c85000)'
@@ -1428,26 +1485,31 @@ const CHEESES = [
     bg:'linear-gradient(145deg,#8a3000,#d45500)'
   },
   {
-    // Erster Paargewinn: 2×
     id:'brie',      name:'Brie',        emoji:'🫕',
     weight:10, twoX:2,  threeX:12,
     bg:'linear-gradient(145deg,#4a4a00,#c8b84a)'
   },
   {
-    // Erster echter Paargewinn: 4×
     id:'emmental',  name:'Emmentaler',  emoji:'🏔️',
     weight:10, twoX:4,  threeX:22,
     bg:'linear-gradient(145deg,#5a5a00,#d4d400)'
   },
   {
-    // WILD — Senf ersetzt beliebige Käse; 3× = Senfbombe
+    // SENF — kein Wild, triggert Senfbombe bei 3×; lustiger Paargewinn
     id:'senf',      name:'Senf',        emoji:'🟡',
-    weight:8,  twoX:8,  threeX:50,
-    wild: true,
+    weight:10, twoX:3,  threeX:40,
+    senfbombe: true,
     bg:'linear-gradient(145deg,#5a4500,#c8a000)'
   },
   {
-    // FREISPIELE — 3× triggert 8 Freispiele mit 1.5× (häufiger als vorher)
+    // WILD — Mozzarella, selten, ersetzt beliebige Käse
+    id:'mozz',      name:'Mozzarella',  emoji:'🥛',
+    weight:4,  twoX:8,  threeX:50,
+    wild: true,
+    bg:'linear-gradient(145deg,#2a2a2a,#aaaaaa)'
+  },
+  {
+    // FREISPIELE — 3× triggert 8 Freispiele mit 1.5×
     id:'roquefort', name:'Roquefort',   emoji:'💙',
     weight:9,  twoX:12, threeX:90,
     freespins: true,
@@ -1746,6 +1808,42 @@ async function doSpin() {
     setTimeout(() => showSenfbombeOverlay(win), 700);
   }
 
+  // ── Near-Miss Teaser (2× Roquefort oder 2× Senf) ──
+  const roqCount  = results.filter(r => r.id === 'roquefort').length;
+  const senfCount = results.filter(r => r.id === 'senf').length;
+  if (roqCount === 2 && !win.triggerFreespins) {
+    setTimeout(() => showNearMissTeaser('roquefort'), 2600);
+    [0,1,2].forEach(i => {
+      if (results[i].id === 'roquefort') {
+        setTimeout(() => { document.getElementById(`reel-${i}`).style.boxShadow = '0 0 0 2px #88aaff, 0 0 18px rgba(34,68,170,0.8)'; }, 2400);
+        setTimeout(() => { document.getElementById(`reel-${i}`).style.boxShadow = ''; }, 5200);
+      }
+    });
+  }
+  if (senfCount === 2 && !win.triggerSenfbombe) {
+    setTimeout(() => showNearMissTeaser('senf'), 2600);
+    [0,1,2].forEach(i => {
+      if (results[i].id === 'senf') {
+        setTimeout(() => { document.getElementById(`reel-${i}`).style.boxShadow = '0 0 0 2px #FFD700, 0 0 18px rgba(200,168,0,0.8)'; }, 2400);
+        setTimeout(() => { document.getElementById(`reel-${i}`).style.boxShadow = ''; }, 5200);
+      }
+    });
+  }
+
+  // ── Win/Loss Streak ──
+  if (win.amount > 0) {
+    winStreak++; lossStreak = 0;
+    if (winStreak === 3) setTimeout(() => setResult('🔥 DREIER-STREAK! Heiße Käseplatte! 🧀🔥', 'win'), 2200);
+    if (winStreak === 5) { startConfetti(50); setTimeout(() => setResult('🧀🔥 FÜNF IN FOLGE! Du bist der Käse-Gott! 🔥🧀', 'jackpot'), 2200); }
+  } else {
+    lossStreak++; winStreak = 0;
+    if (lossStreak === 5) {
+      credits += 10; refreshUI();
+      setTimeout(() => setResult('💙 Käse-Rettungspaket! +10 Coins — Kopf hoch! 🧀', 'win'), 900);
+      lossStreak = 0;
+    }
+  }
+
   // Krawatte — mittlere Walze oben/mitte/unten alle gleich
   if (midReelTopSym && midReelBotSym &&
       midReelTopSym.id === results[1].id && midReelBotSym.id === results[1].id) {
@@ -1793,7 +1891,7 @@ function startFreespinRound() {
   document.getElementById('spin-btn').textContent = '🔵 FREISPIN!';
   updateFreespinUI();
   setResult(`🔵 FREISPIEL MODUS GESTARTET! ${FREESPIN_COUNT} Spins · 1.5×!`, 'freespin');
-  startConfetti(60);
+  startConfetti(150);
 }
 
 function updateFreespinUI() {
@@ -1834,11 +1932,11 @@ function calcWin(results, betAmt) {
   const wildCount  = wildcards.length;
   const uniqueNonW = [...new Set(nonWilds.map(r => r.id))];
 
-  // ── 1. Alle drei Wild → Senfbombe! ──
+  // ── 1. Alle drei Wild (Mozzarella) ──
   if (wildCount === 3) {
     winReels = [0,1,2]; amount = betAmt * wildCh.threeX;
-    msg = `3× 🟡 SENFBOMBE! (${wildCh.threeX}×)`;
-    isWildWin = true; triggerSenfbombe = true;
+    msg = `3× 🥛 Mozzarella Wild! (${wildCh.threeX}×)`;
+    isWildWin = true;
     return { amount, msg, winReels, isJackpot, isWild: true, triggerFreespins, triggerSenfbombe };
   }
 
@@ -1849,7 +1947,7 @@ function calcWin(results, betAmt) {
     isJackpot = base.id === 'golden';
     isWildWin = true;
     triggerFreespins = !!base.freespins;
-    msg = `🟡 Senf Wild + ${3-wildCount}× ${base.emoji} ${base.name}! (${base.threeX}×)`;
+    msg = `🥛 Mozzarella Wild + ${3-wildCount}× ${base.emoji} ${base.name}! (${base.threeX}×)`;
     return { amount, msg, winReels, isJackpot, isWild: true, triggerFreespins, triggerSenfbombe };
   }
 
@@ -1858,9 +1956,12 @@ function calcWin(results, betAmt) {
   if (!isWild(a) && !isWild(b) && !isWild(c)) {
     if (a.id === b.id && b.id === c.id) {
       winReels = [0,1,2]; amount = betAmt * a.threeX;
-      msg = `3× ${a.emoji} ${a.name}! (${a.threeX}×)`;
       isJackpot = a.id === 'golden';
-      triggerFreespins = !!a.freespins;
+      triggerFreespins  = !!a.freespins;
+      triggerSenfbombe  = !!a.senfbombe;
+      msg = a.senfbombe  ? senfBombeMsg()
+          : a.freespins  ? `3× ${a.emoji} ${a.name}! FREE SPINS! 💙`
+          : `3× ${a.emoji} ${a.name}! (${a.threeX}×)`;
       return { amount, msg, winReels, isJackpot, isWild: false, triggerFreespins, triggerSenfbombe };
     }
   }
@@ -1872,26 +1973,27 @@ function calcWin(results, betAmt) {
     const otherIdx   = results.findIndex((r,i) => !isWild(r) && i !== nonWildIdx);
     const partner    = results[nonWildIdx];
     const otherCh    = otherIdx >= 0 ? results[otherIdx] : null;
-    // Wähle den besten Partner (höchster twoX)
     let bestPartner = partner, bestIdx = nonWildIdx;
     if (otherCh && otherCh.twoX > partner.twoX) { bestPartner = otherCh; bestIdx = otherIdx; }
     if (bestPartner.twoX > 0) {
       winReels = [wildIdx, bestIdx].sort((x,y) => x-y);
       amount   = betAmt * bestPartner.twoX;
-      msg      = `🟡 Senf Wild + ${bestPartner.emoji} ${bestPartner.name} Paar! (${bestPartner.twoX}×)`;
+      msg      = `🥛 Mozzarella Wild + ${bestPartner.emoji} ${bestPartner.name} Paar! (${bestPartner.twoX}×)`;
       isWildWin = true;
       return { amount, msg, winReels, isJackpot, isWild: true, triggerFreespins, triggerSenfbombe };
     }
-    // twoX=0 → kein Paargewinn, weiter zu Scatter
   }
 
   // ── 5. Reine Paare (kein Wild) — nur wenn twoX > 0 ──
   if (a.id === b.id && a.twoX > 0) {
-    winReels = [0,1]; amount = betAmt * a.twoX; msg = `2× ${a.emoji} ${a.name}! (${a.twoX}×)`;
+    winReels = [0,1]; amount = betAmt * a.twoX;
+    msg = a.id === 'senf' ? senfPairMsg() : `2× ${a.emoji} ${a.name}! (${a.twoX}×)`;
   } else if (b.id === c.id && b.twoX > 0) {
-    winReels = [1,2]; amount = betAmt * b.twoX; msg = `2× ${b.emoji} ${b.name}! (${b.twoX}×)`;
+    winReels = [1,2]; amount = betAmt * b.twoX;
+    msg = b.id === 'senf' ? senfPairMsg() : `2× ${b.emoji} ${b.name}! (${b.twoX}×)`;
   } else if (a.id === c.id && a.twoX > 0) {
-    winReels = [0,2]; amount = betAmt * a.twoX; msg = `2× ${a.emoji} ${a.name}! (${a.twoX}×)`;
+    winReels = [0,2]; amount = betAmt * a.twoX;
+    msg = a.id === 'senf' ? senfPairMsg() : `2× ${a.emoji} ${a.name}! (${a.twoX}×)`;
   }
   if (amount > 0) return { amount, msg, winReels, isJackpot, isWild: false, triggerFreespins, triggerSenfbombe };
 
@@ -1915,7 +2017,7 @@ function calcWin(results, betAmt) {
 const spinMsgPool = [
   '🎰 Die Walzen drehen sich… 🧀',
   '🔴 Babybel dreht durch!',
-  '🟡 Senf breitet sich aus…',
+  '🟡 Senfgefahr im Verzug…',
   '🏔️ Der Emmentaler bebt!',
   '💙 Roquefort schimmelt sich frei…',
   '🌟 Das Gold glänzt irgendwo da drin…',
@@ -1925,10 +2027,12 @@ const spinMsgPool = [
   '👔 Krawatte im Wind…',
   '🔶 Mimolette, zeig dich!',
   '🧀 Wer dreht, der reift…',
-  '🟡 Senfgefahr im Verzug!',
+  '🥛 Mozzarella schleicht sich an…',
   '🌟 Jackpot? Vielleicht. Vielleicht auch nicht.',
   '🧀 Im Käseuniversum dreht sich alles…',
   '💙 Drei Roquefort… bitte… bitte…',
+  '🟡 Drei Senf und es platzt! Oder nicht.',
+  '🧀 Der Emmentaler hat mehr Löcher als Argumente.',
 ];
 
 function lossMsg() {
@@ -2074,6 +2178,50 @@ function toggleAuto() {
   }
 }
 
+// ── SENF MESSAGES ────────────────────────────────────────────
+function senfPairMsg() {
+  const pool = [
+    '🟡🟡 Doppelter Senf! Noch einer und es platzt!',
+    '🟡🟡 Mittelscharfer Treffer! Bratwurst fehlt noch.',
+    '🟡🟡 Senf-Duo! Vorsicht — Fleckengefahr!',
+    '🟡🟡 Zu viel Senf? Geht nicht. Noch mehr Senf!',
+    '🟡🟡 Senf-Synergie! Der dritte lauert…',
+    '🟡🟡 Schon zwei! Der Koch ist nervös.',
+  ];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function senfBombeMsg() {
+  const pool = [
+    '💥 SENFBOMBE! Alles voller Senf!',
+    '💥 SENFBOMBE! Die Küche ist evakuiert!',
+    '💥 DREI SENF! Das Senfdilemma ist real!',
+    '💥 SENFBOMBE! Der Oligarch schwitzt Senf!',
+  ];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// ── NEAR-MISS TEASER ─────────────────────────────────────────
+function showNearMissTeaser(type, count) {
+  const banner = document.getElementById('near-miss-banner');
+  if (!banner) return;
+  if (type === 'roquefort') {
+    banner.innerHTML = `💙💙 <strong>FAST!</strong> Noch ein Roquefort = 8 FREISPIELE! 💙`;
+    banner.className = 'near-miss-banner show roq';
+  } else {
+    banner.innerHTML = `🟡🟡 <strong>VORSICHT!</strong> Noch ein Senf = SENFBOMBE! 💥`;
+    banner.className = 'near-miss-banner show senf';
+  }
+  clearTimeout(banner._timer);
+  banner._timer = setTimeout(() => {
+    banner.classList.add('hide');
+    setTimeout(() => banner.className = 'near-miss-banner', 400);
+  }, 3200);
+}
+
+// ── WIN/LOSS STREAK ──────────────────────────────────────────
+let winStreak  = 0;
+let lossStreak = 0;
+
 // ── SENFBOMBE OVERLAY ────────────────────────────────────────
 function showSenfbombeOverlay(win) {
   document.getElementById('sb-amount').textContent = `+${win.amount} 🪙`;
@@ -2192,9 +2340,14 @@ function buildPaytable() {
        <span class="pt-mult">2×</span>
      </div>
      <div class="pt-row wild" style="grid-column:span 2">
-       <span class="pt-emoji">🟡</span>
-       <span class="pt-name">Senf = WILD (ersetzt alles!) · 3× = Senfbombe!</span>
+       <span class="pt-emoji">🥛</span>
+       <span class="pt-name">Mozzarella = WILD (ersetzt alles!)</span>
        <span class="pt-mult wild">∞</span>
+     </div>
+     <div class="pt-row" style="grid-column:span 2;border-color:rgba(200,168,0,0.3);background:rgba(80,60,0,0.1)">
+       <span class="pt-emoji">🟡🟡🟡</span>
+       <span class="pt-name">3× Senf → SENFBOMBE! 💥</span>
+       <span class="pt-mult" style="color:#FFD700">40×</span>
      </div>
      <div class="pt-row special" style="grid-column:span 2">
        <span class="pt-emoji">💙💙💙</span>
