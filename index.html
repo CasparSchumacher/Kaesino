@@ -1582,7 +1582,7 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
 </div>
 
 <!-- Babybel Sauer Banner -->
-<div id="sauer-banner">
+<div id="sauer-banner" onclick="document.getElementById('sauer-banner').classList.remove('show')">
   <img class="sauer-img" src="sauer.jpg" alt="Sauer">
   <div class="sauer-msg">Man bin ich sauer!</div>
 </div>
@@ -2489,7 +2489,7 @@ function showSauerBanner() {
   banner.classList.remove('show');
   void banner.offsetWidth; // reflow to restart animation
   banner.classList.add('show');
-  setTimeout(() => { banner.classList.remove('show'); }, 2800);
+  setTimeout(() => { banner.classList.remove('show'); }, 1500);
 }
 
 // ── MITTELSAUER OVERLAY (3× Babybel) ─────────────────────────
