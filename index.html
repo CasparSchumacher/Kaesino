@@ -971,7 +971,7 @@ body {
 .near-miss-banner {
   display: none;
   position: fixed;
-  bottom: 90px;
+  top: 28%;
   left: 50%;
   transform: translateX(-50%) translateY(0);
   z-index: 9400;
@@ -1002,6 +1002,21 @@ body {
   color: #FFD700;
   box-shadow: 0 0 24px rgba(200,168,0,0.6);
 }
+/* ── SENF TILE ANIMATION ── */
+.senf-tile {
+  animation: senfRattle 0.35s ease-in-out infinite !important;
+  box-shadow: 0 0 10px rgba(200,168,0,0.6), inset 0 0 8px rgba(255,215,0,0.15) !important;
+  border: 1px solid rgba(200,168,0,0.7) !important;
+}
+@keyframes senfRattle {
+  0%   { transform: translateX(0)    rotate(0deg)    scale(1);    }
+  20%  { transform: translateX(-2px) rotate(-1.5deg) scale(1.03); }
+  40%  { transform: translateX(2px)  rotate(1.5deg)  scale(0.98); }
+  60%  { transform: translateX(-1px) rotate(-0.8deg) scale(1.02); }
+  80%  { transform: translateX(1px)  rotate(0.8deg)  scale(0.99); }
+  100% { transform: translateX(0)    rotate(0deg)    scale(1);    }
+}
+
 @keyframes nearMissIn {
   from { opacity:0; transform: translateX(-50%) translateY(16px) scale(0.9); }
   to   { opacity:1; transform: translateX(-50%) translateY(0)   scale(1);   }
@@ -1480,7 +1495,7 @@ const CHEESES = [
   },
   {
     // Kein Paargewinn
-    id:'mimolette', name:'Mimolette',   emoji:'🔶',
+    id:'mimolette', name:'Mimolette',   emoji:'🟠',
     weight:13, twoX:0,  threeX:8,
     bg:'linear-gradient(145deg,#8a3000,#d45500)'
   },
@@ -1497,7 +1512,7 @@ const CHEESES = [
   {
     // SENF — kein Wild, triggert Senfbombe bei 3×; lustiger Paargewinn
     id:'senf',      name:'Senf',        emoji:'🟡',
-    weight:10, twoX:3,  threeX:40,
+    weight:13, twoX:3,  threeX:40,
     senfbombe: true,
     bg:'linear-gradient(145deg,#5a4500,#c8a000)'
   },
@@ -1516,10 +1531,8 @@ const CHEESES = [
     bg:'linear-gradient(145deg,#00008B,#2244aa)'
   },
   {
-    // Scatter-Bonus: 1× allein = kleiner Bonus
     id:'parmesan',  name:'Parmigiano',  emoji:'⭐',
     weight:7,  twoX:20, threeX:200,
-    scatterBonus: true,
     bg:'linear-gradient(145deg,#6a4800,#c8960a)'
   },
   {
@@ -1667,7 +1680,7 @@ function buildStrip(reelIdx, result) {
   // Tracking der mittleren Walze für Krawatte-Erkennung
   if (reelIdx === 1) { midReelTopSym = topItem; midReelBotSym = botItem; }
   strip.innerHTML = items.map(c =>
-    `<div class="reel-item" style="background:${c.bg}">
+    `<div class="reel-item${c.id === 'senf' ? ' senf-tile' : ''}" style="background:${c.bg}">
        <div class="ce">${c.emoji}</div>
        <div class="cn">${c.name}</div>
      </div>`
@@ -1812,20 +1825,20 @@ async function doSpin() {
   const roqCount  = results.filter(r => r.id === 'roquefort').length;
   const senfCount = results.filter(r => r.id === 'senf').length;
   if (roqCount === 2 && !win.triggerFreespins) {
-    setTimeout(() => showNearMissTeaser('roquefort'), 2600);
+    setTimeout(() => showNearMissTeaser('roquefort'), 120);
     [0,1,2].forEach(i => {
       if (results[i].id === 'roquefort') {
-        setTimeout(() => { document.getElementById(`reel-${i}`).style.boxShadow = '0 0 0 2px #88aaff, 0 0 18px rgba(34,68,170,0.8)'; }, 2400);
-        setTimeout(() => { document.getElementById(`reel-${i}`).style.boxShadow = ''; }, 5200);
+        document.getElementById(`reel-${i}`).style.boxShadow = '0 0 0 3px #88aaff, 0 0 24px rgba(34,68,170,0.9)';
+        setTimeout(() => { document.getElementById(`reel-${i}`).style.boxShadow = ''; }, 3500);
       }
     });
   }
   if (senfCount === 2 && !win.triggerSenfbombe) {
-    setTimeout(() => showNearMissTeaser('senf'), 2600);
+    setTimeout(() => showNearMissTeaser('senf'), 120);
     [0,1,2].forEach(i => {
       if (results[i].id === 'senf') {
-        setTimeout(() => { document.getElementById(`reel-${i}`).style.boxShadow = '0 0 0 2px #FFD700, 0 0 18px rgba(200,168,0,0.8)'; }, 2400);
-        setTimeout(() => { document.getElementById(`reel-${i}`).style.boxShadow = ''; }, 5200);
+        document.getElementById(`reel-${i}`).style.boxShadow = '0 0 0 3px #FFD700, 0 0 24px rgba(200,168,0,0.9)';
+        setTimeout(() => { document.getElementById(`reel-${i}`).style.boxShadow = ''; }, 3500);
       }
     });
   }
@@ -1997,17 +2010,11 @@ function calcWin(results, betAmt) {
   }
   if (amount > 0) return { amount, msg, winReels, isJackpot, isWild: false, triggerFreespins, triggerSenfbombe };
 
-  // ── 6. Einzel-Scatter-Boni ──
+  // ── 6. Einzel-Scatter: nur Golden Käse ──
   const gIdx = results.findIndex(r => r.id === 'golden');
   if (gIdx >= 0) {
     winReels = [gIdx]; amount = betAmt * 4;
     msg = '✨ Einzelner Golden Käse! (4×)';
-    return { amount, msg, winReels, isJackpot, isWild: false, triggerFreespins, triggerSenfbombe };
-  }
-  const pIdx = results.findIndex(r => r.id === 'parmesan');
-  if (pIdx >= 0) {
-    winReels = [pIdx]; amount = betAmt * 2;
-    msg = '⭐ Einzelner Parmigiano Bonus! (2×)';
     return { amount, msg, winReels, isJackpot, isWild: false, triggerFreespins, triggerSenfbombe };
   }
 
