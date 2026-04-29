@@ -2641,12 +2641,23 @@ function togglePaytable() {
 //  Geschätzte Calls mit 10 Spielern: ~4.000/Monat (Limit: 10.000)
 // ═══════════════════════════════════════════════════════════════
 
-let lbCache       = { coins: [], wins: [] };  // In-Memory-Cache
-let lbCacheReady  = false;                    // Wurde bereits vom Server geladen?
-let lbPendingSave = null;
-let lbLastSave    = 0;
-const LB_WRITE_DEBOUNCE = 120000; // 2 Minuten zwischen JSONBin-Writes
+let lbCache         = { coins: [], wins: [] };  // In-Memory-Cache
+let lbCacheReady    = false;                    // Wurde bereits vom Server geladen?
+let lbServerLoaded  = false;                    // Server-Daten mindestens einmal geladen?
+let lbPendingSave   = null;
+let lbLastSave      = 0;
+const LB_WRITE_DEBOUNCE = 20000;  // 20 Sekunden zwischen JSONBin-Writes
 const LB_READ_INTERVAL  = 300000; // 5 Minuten zwischen JSONBin-Reads
+
+// Merge-Funktion: nimmt immer den höchsten Score pro Spieler
+function mergeLists(local, server) {
+  const map = {};
+  [...(server || []), ...(local || [])].forEach(e => {
+    if (!map[e.name] || e.score > map[e.name]) map[e.name] = e.score;
+  });
+  return Object.entries(map).map(([name, score]) => ({ name, score }))
+    .sort((a, b) => b.score - a.score).slice(0, 10);
+}
 
 // Einmaliger Lade-Vorgang vom Server (beim Start + periodisch)
 async function fetchFromServer() {
@@ -2666,11 +2677,18 @@ async function fetchFromServer() {
         lbCache = { weekStart: currentWeek, coins: [], wins: [], lastWeek };
         saveToServer(lbCache);
       } else {
-        lbCache = stored;
-        if (!lbCache.weekStart) lbCache.weekStart = currentWeek;
+        // Merge: Server + lokaler Cache — bester Score gewinnt
+        const local = lbCache;
+        lbCache = {
+          weekStart: currentWeek,
+          coins:    mergeLists(local.coins, stored.coins),
+          wins:     mergeLists(local.wins,  stored.wins),
+          lastWeek: stored.lastWeek || local.lastWeek || null
+        };
       }
 
-      lbCacheReady = true;
+      lbCacheReady   = true;
+      lbServerLoaded = true;
       localStorage.setItem('kaesino_lb', JSON.stringify(lbCache));
       renderLeaderboard(lbCache);
       if (lbCache.lastWeek) renderPrevWinner(lbCache.lastWeek);
@@ -2732,8 +2750,9 @@ async function updateLeaderboard(name, totalCoins, singleWin) {
   localStorage.setItem('kaesino_lb', JSON.stringify(lb));
   renderLeaderboard(lb);
 
-  // JSONBin-Write NUR wenn Bestwert gebrochen — mit 2-Minuten-Debounce
+  // JSONBin-Write NUR wenn Bestwert gebrochen UND Server-Daten geladen
   if (!coinsImproved && !winImproved) return;
+  if (!lbServerLoaded) return; // Warten bis Server-Merge abgeschlossen
 
   if (lbPendingSave) { clearTimeout(lbPendingSave); lbPendingSave = null; }
   const delay = Math.max(0, LB_WRITE_DEBOUNCE - (Date.now() - lbLastSave));
@@ -2763,6 +2782,21 @@ function renderLeaderboard(lb) {
 
 // Alle 5 Minuten frisch vom Server laden (Live-Rangliste)
 setInterval(() => { if (playerName) fetchFromServer(); }, LB_READ_INTERVAL);
+
+// Beim Tab-Schließen sofort speichern (verhindert Datenverlust durch Debounce)
+window.addEventListener('beforeunload', () => {
+  if (lbPendingSave && lbServerLoaded) {
+    clearTimeout(lbPendingSave);
+    lbPendingSave = null;
+    // keepalive: true — Request läuft weiter auch nach Page-Unload
+    fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
+      method:  'PUT',
+      keepalive: true,
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+      body:    JSON.stringify(lbCache)
+    }).catch(() => {});
+  }
+});
 
 // ── SOUND ────────────────────────────────────────────────────
 let actx = null;
