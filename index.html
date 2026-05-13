@@ -203,8 +203,29 @@ body {
   font-size: 0.75em;
   color: rgba(180,190,230,0.55);
   font-family: Arial, sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
-.player-tag span { color: var(--crimson); font-weight: bold; }
+.player-tag #player-display { color: var(--crimson); font-weight: bold; }
+.player-tag .rank-badge { font-size: 0.92em; }
+.player-streak-badge {
+  display:inline-flex; align-items:center; gap:3px;
+  font-size:0.9em; font-family:Arial; font-weight:bold;
+  background:rgba(255,100,0,0.14);
+  border:1px solid rgba(255,100,0,0.4);
+  color:#FF8030;
+  padding:1px 8px; border-radius:8px;
+  white-space:nowrap;
+  box-shadow:0 0 8px rgba(255,100,0,0.15);
+  animation:streakPulse 2.4s ease-in-out infinite;
+}
+@keyframes streakPulse {
+  0%,100% { box-shadow:0 0 6px rgba(255,100,0,0.15); }
+  50%      { box-shadow:0 0 14px rgba(255,100,0,0.4); }
+}
 
 /* ── MACHINE BODY ── */
 .machine {
@@ -1676,7 +1697,11 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
     <div class="brand-tag">⭐ Obatzda Oligarchen ⭐</div>
     <h1 class="casino-title">KÄSINO</h1>
     <p class="casino-subtitle">Wo Oligarchen den ganz großen Reibach machen! <span class="version-badge">v6.7</span></p>
-    <p class="player-tag">Spieler: <span id="player-display"></span></p>
+    <p class="player-tag">
+      <span>Spieler: <span id="player-display"></span></span>
+      <span id="player-rank-slot"></span>
+      <span id="player-streak-slot"></span>
+    </p>
     <div class="social-links">
       <a href="https://www.instagram.com/obatzda.oligarchen/" target="_blank" rel="noopener">📸 @obatzda.oligarchen</a>
       <a href="https://www.linkedin.com/in/obatzda-oligarchen-93b511301/" target="_blank" rel="noopener">💼 LinkedIn</a>
@@ -2886,6 +2911,32 @@ function refreshUI() {
   document.querySelectorAll('.bet-btn').forEach(b => {
     b.classList.toggle('active', Number(b.dataset.bet) === bet);
   });
+  updatePlayerTag();
+}
+
+function updatePlayerTag() {
+  if (!playerName) return;
+  // Rang ist abhängig vom höchsten je erreichten Guthaben:
+  // entweder aktuelles credits, persönlicher Best-Wert (myBestCoins) oder
+  // gespeicherter Serverwert in der Coins-Rangliste — was auch immer größer ist.
+  const lbEntry  = (lbCache.coins || []).find(e => e.name === playerName);
+  const stored   = lbEntry ? lbEntry.score : 0;
+  const highest  = Math.max(credits, stored, myBestCoins || 0);
+  const rank     = getRank(highest);
+  const rankSlot = document.getElementById('player-rank-slot');
+  if (rankSlot) {
+    rankSlot.innerHTML = rank
+      ? `<span class="rank-badge ${rank.cls}">${rank.emoji} ${rank.title}</span>`
+      : '';
+  }
+  // Daily Streak aus localStorage
+  const daily      = JSON.parse(localStorage.getItem('kaesino_daily') || '{}');
+  const streakSlot = document.getElementById('player-streak-slot');
+  if (streakSlot) {
+    streakSlot.innerHTML = (daily.streak && daily.streak > 0)
+      ? `<span class="player-streak-badge">🔥 Tag ${daily.streak}</span>`
+      : '';
+  }
 }
 function setBet(v) {
   if (spinning) return; // Bet-Änderung während Spin blockieren
