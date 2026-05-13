@@ -3296,8 +3296,22 @@ async function updateLeaderboard(name, totalCoins, singleWin) {
 
 function renderLeaderboard(lb) {
   const medals = ['🥇','🥈','🥉'];
-  function rankBadge(score) {
-    const r = getRank(score);
+  // Map name → höchstes Guthaben, damit Rang in beiden Listen konsistent ist.
+  // Fallback: wenn jemand nur in der Wins-Liste auftaucht, nehmen wir den Wins-Score
+  // (denn ein Einzelgewinn von 20k impliziert mindestens 20k Coins).
+  const rankScoreByName = {};
+  (lb.coins || []).forEach(e => { rankScoreByName[e.name] = e.score; });
+  (lb.wins  || []).forEach(e => {
+    if (!rankScoreByName[e.name] || e.score > rankScoreByName[e.name]) {
+      rankScoreByName[e.name] = e.score;
+    }
+  });
+  // Der eigene aktuelle Credits-Stand zählt auch (für sofortige Anzeige nach Rang-Up)
+  if (playerName && credits > (rankScoreByName[playerName] || 0)) {
+    rankScoreByName[playerName] = credits;
+  }
+  function rankBadge(name) {
+    const r = getRank(rankScoreByName[name] || 0);
     if (!r) return '';
     return `<span class="rank-badge ${r.cls}">${r.emoji} ${r.title}</span>`;
   }
@@ -3306,7 +3320,7 @@ function renderLeaderboard(lb) {
     return list.map((e, i) =>
       `<div class="lb-row">
          <span class="lb-rank ${i<3?'top'+(i+1):''}">${medals[i]||'#'+(i+1)}</span>
-         <span class="lb-name ${e.name===playerName?'is-me':''}">${e.name}${rankBadge(e.score)}</span>
+         <span class="lb-name ${e.name===playerName?'is-me':''}">${e.name}${rankBadge(e.name)}</span>
          <span class="lb-score">${e.score}🪙</span>
        </div>`
     ).join('');
