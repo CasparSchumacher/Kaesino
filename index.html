@@ -1313,6 +1313,185 @@ body {
   100%{ transform:translateY(360px); opacity:0; }
 }
 
+/* ── SCHIMMELRISIKO OVERLAY ── */
+#schimmel-overlay {
+  display:none; position:fixed; inset:0; z-index:9600;
+  align-items:flex-end; justify-content:center; padding:20px;
+  pointer-events:none;
+}
+#schimmel-overlay.show { display:flex; pointer-events:all; }
+.schimmel-box {
+  background:linear-gradient(135deg,#0a140a,#0f1f0f);
+  border:2px solid #3a7a3a; border-radius:18px; padding:18px 22px;
+  max-width:400px; width:100%;
+  box-shadow:0 0 40px rgba(50,150,50,0.35), 0 -20px 60px rgba(0,0,0,0.85);
+  animation:schimmelIn 0.45s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+@keyframes schimmelIn {
+  from{transform:translateY(80px);opacity:0}
+  to{transform:translateY(0);opacity:1}
+}
+.schimmel-header { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+.schimmel-emoji  { font-size:2em; animation:schimmelWobble 0.5s ease-in-out infinite alternate; }
+@keyframes schimmelWobble {
+  from{transform:rotate(-6deg) scale(1)} to{transform:rotate(6deg) scale(1.1)}
+}
+.schimmel-title  { font-size:1.05em; color:#88ff88; }
+.schimmel-amount { font-size:1.3em; color:var(--gold); font-family:'Courier New'; font-weight:bold; margin-bottom:8px; }
+.schimmel-timer-bar  { height:4px; background:rgba(255,255,255,0.1); border-radius:2px; margin-bottom:12px; overflow:hidden; }
+.schimmel-timer-fill { height:100%; background:#5a9a5a; border-radius:2px; transition:width 0.1s linear; }
+.schimmel-btns { display:flex; gap:10px; }
+.schimmel-ja   { flex:1; background:linear-gradient(135deg,#2a7a2a,#1a5a1a); color:#88ff88; border:1px solid #3a8a3a; border-radius:10px; padding:11px; font-size:0.95em; font-weight:bold; cursor:pointer; font-family:Georgia,serif; transition:transform 0.15s; }
+.schimmel-ja:hover { transform:scale(1.04); }
+.schimmel-nein { flex:1; background:transparent; color:rgba(180,190,230,0.55); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:11px; font-size:0.9em; cursor:pointer; font-family:Arial; }
+
+/* ── PARMIGIANO OVERLAY (3× ⭐) ── */
+#parmi-overlay {
+  display:none; position:fixed; inset:0; z-index:9580;
+  align-items:center; justify-content:center; padding:16px;
+  background:rgba(0,0,0,0);
+}
+#parmi-overlay.show { display:flex; animation:hexBg 0.4s ease forwards; }
+.parmi-box {
+  position:relative;
+  background:linear-gradient(145deg,#1a0f00,#2a1800);
+  border:2px solid #c89600; border-radius:22px;
+  max-width:min(92vw,360px); width:100%; overflow:hidden;
+  box-shadow:0 0 80px rgba(200,150,0,0.5);
+  animation:popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+.parmi-video-wrap { position:relative; width:100%; height:200px; overflow:hidden; background:#000; }
+.parmi-video { width:100%; height:100%; object-fit:cover; }
+.parmi-video-fade { position:absolute; inset:0; background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,0.75)); }
+.parmi-stars-float { position:absolute; bottom:10px; left:50%; transform:translateX(-50%); font-size:2.2em; white-space:nowrap; animation:popIn 0.4s ease 0.3s both; }
+.parmi-content { padding:16px 20px 20px; text-align:center; }
+.parmi-title  { font-size:1.5em; color:var(--gold); margin-bottom:5px; letter-spacing:1px; }
+.parmi-amount { font-size:1.2em; color:#fff; font-family:'Courier New'; margin-bottom:10px; }
+.parmi-porsche-wrap { border-radius:12px; overflow:hidden; margin-bottom:10px; border:2px solid rgba(200,150,0,0.5); }
+.parmi-porsche { width:100%; height:150px; object-fit:cover; object-position:center 40%; display:block; }
+.parmi-quote { font-size:0.82em; color:rgba(200,168,0,0.85); font-style:italic; font-family:Georgia,serif; line-height:1.45; margin-bottom:14px; }
+.parmi-close { background:linear-gradient(135deg,var(--gold),var(--gold2)); color:#000; border:none; padding:11px 28px; border-radius:12px; font-size:0.95em; font-weight:bold; cursor:pointer; font-family:Georgia,serif; transition:transform 0.15s; }
+.parmi-close:hover { transform:scale(1.05); }
+
+/* ── SENF SPRAY ── */
+.senf-spray-drop {
+  position:fixed; border-radius:50%; pointer-events:none; z-index:9997;
+  background:radial-gradient(circle,#FFE44D,#c8a800);
+  box-shadow:0 0 8px rgba(200,168,0,0.7);
+  animation:senfDropAnim 0.9s ease-out forwards;
+}
+@keyframes senfDropAnim {
+  0%  { opacity:1; transform:scale(1) translate(0,0); }
+  70% { opacity:0.8; }
+  100%{ opacity:0; transform:scale(0.3) translate(var(--dx),var(--dy)); }
+}
+.senf-screen-splat {
+  position:fixed; pointer-events:none; z-index:9994;
+  background:rgba(200,168,0,0.18);
+  animation:senfSplat 1.2s ease-out forwards;
+}
+@keyframes senfSplat {
+  0%  { opacity:0.85; }
+  100%{ opacity:0; }
+}
+
+/* ── KRAWATTENSTEUER REEL FLASH ── */
+.reel.steuer-flash { animation:steuerFlash 0.35s ease-in-out 4 !important; }
+@keyframes steuerFlash {
+  0%,100%{ box-shadow:none; }
+  50%{ box-shadow:0 0 0 3px #ff4444,0 0 22px rgba(255,68,68,0.85); }
+}
+
+/* ── RANG SYSTEM BADGES ── */
+.rank-badge {
+  display:inline-flex; align-items:center; gap:2px;
+  font-size:0.64em; font-family:Arial; font-weight:bold;
+  padding:1px 5px; border-radius:6px; margin-left:4px; white-space:nowrap;
+}
+.rank-kaesemeister { background:rgba(136,255,204,0.12); color:#88ffcc; border:1px solid rgba(136,255,204,0.3); }
+.rank-kaesebaron   { background:rgba(255,140,0,0.12); color:#FF8C00; border:1px solid rgba(255,140,0,0.3); }
+.rank-oligarch     { background:rgba(255,215,0,0.18); color:var(--gold); border:1px solid rgba(255,215,0,0.5); }
+
+/* ── RANG ACHIEVEMENT OVERLAY ── */
+#rang-overlay {
+  display:none; position:fixed; inset:0; z-index:9590;
+  align-items:center; justify-content:center; padding:20px;
+  background:rgba(0,0,0,0.82);
+}
+#rang-overlay.show { display:flex; }
+.rang-box {
+  background:linear-gradient(145deg,#12100a,#201800);
+  border:3px solid var(--gold); border-radius:22px;
+  padding:34px 28px; text-align:center;
+  max-width:340px; width:90%;
+  box-shadow:0 0 80px rgba(255,215,0,0.35);
+  animation:popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+.rang-icon  { font-size:3.5em; margin-bottom:10px; animation:starSpin 2s linear infinite; display:inline-block; }
+.rang-title { font-size:1.3em; color:var(--gold); margin-bottom:4px; letter-spacing:2px; text-transform:uppercase; }
+.rang-name  { font-size:2em; font-weight:bold; margin-bottom:8px; }
+.rang-desc  { font-size:0.84em; color:rgba(180,190,230,0.65); font-family:Arial; line-height:1.5; margin-bottom:18px; }
+.rang-close { background:linear-gradient(135deg,var(--gold),var(--gold2)); color:#000; border:none; padding:12px 30px; border-radius:12px; font-size:1em; font-weight:bold; cursor:pointer; font-family:Georgia,serif; }
+
+/* ── RANG LEGENDE ── */
+.rank-legend-wrap   { max-width:500px; width:100%; margin-top:10px; }
+.rank-legend-toggle { text-align:center; color:rgba(255,215,0,0.45); font-size:0.82em; cursor:pointer; font-family:Arial; margin-bottom:6px; user-select:none; }
+.rank-legend-toggle:hover { color:var(--gold); }
+.rank-legend-grid   { display:none; background:rgba(0,0,0,0.4); border:1px solid rgba(255,215,0,0.12); border-radius:12px; padding:12px 16px; }
+.rank-legend-grid.open { display:block; }
+.rank-legend-row    { display:flex; align-items:center; gap:8px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-family:Arial; font-size:0.78em; color:rgba(180,190,230,0.7); }
+.rank-legend-row:last-child { border-bottom:none; }
+
+/* ── MACHINE SHAKE (5× Verlust) ── */
+@keyframes machineShake {
+  0%,100%{ transform:translateX(0) rotate(0deg); }
+  10%{ transform:translateX(-5px) rotate(-0.6deg); }
+  20%{ transform:translateX(5px) rotate(0.6deg); }
+  30%{ transform:translateX(-7px) rotate(-1deg); }
+  40%{ transform:translateX(7px) rotate(1deg); }
+  50%{ transform:translateX(-4px) rotate(-0.4deg); }
+  60%{ transform:translateX(4px) rotate(0.4deg); }
+  70%{ transform:translateX(-6px) rotate(-0.7deg); }
+  80%{ transform:translateX(6px) rotate(0.7deg); }
+  90%{ transform:translateX(-2px) rotate(-0.2deg); }
+}
+.machine.shake-anxiety { animation:machineShake 0.55s ease-in-out 3 !important; }
+
+/* ── TURBO WALZEN ── */
+.turbo-btn.active {
+  border-color:#FFD700; color:#FFD700;
+  background:rgba(255,215,0,0.1);
+  box-shadow:0 0 12px rgba(255,215,0,0.3);
+}
+.reels-frame.turbo-mode {
+  border-color:#c8a800;
+  box-shadow:inset 0 0 40px rgba(0,0,0,0.9), 0 0 22px rgba(255,215,0,0.35);
+}
+
+/* ── TÄGLICHER KÄSE-BONUS ── */
+#daily-overlay {
+  display:none; position:fixed; inset:0; z-index:9595;
+  align-items:center; justify-content:center; padding:20px;
+  background:rgba(0,0,0,0.82);
+}
+#daily-overlay.show { display:flex; }
+.daily-box {
+  background:linear-gradient(145deg,#0d1228,#141830);
+  border:2px solid rgba(255,215,0,0.45); border-radius:22px;
+  padding:28px 24px; text-align:center;
+  max-width:340px; width:90%;
+  box-shadow:0 0 60px rgba(255,215,0,0.18);
+  animation:popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+.daily-fire    { font-size:2.5em; margin-bottom:5px; }
+.daily-title   { font-size:1.25em; color:var(--gold); margin-bottom:4px; letter-spacing:1px; }
+.daily-streak-badge { display:inline-block; background:rgba(255,100,0,0.18); border:1px solid rgba(255,100,0,0.45); color:#FF7020; border-radius:20px; padding:3px 14px; font-size:0.8em; font-family:Arial; margin-bottom:12px; }
+.daily-cheese  { font-size:0.98em; color:rgba(180,190,230,0.78); font-family:Arial; line-height:1.5; margin-bottom:8px; }
+.daily-cheese strong { color:#FFD700; }
+.daily-fact    { font-size:0.78em; color:rgba(100,140,255,0.78); font-style:italic; font-family:Georgia; background:rgba(34,68,170,0.08); border:1px solid rgba(34,68,170,0.18); border-radius:8px; padding:8px 12px; margin-bottom:12px; line-height:1.5; }
+.daily-amount  { font-size:1.4em; color:var(--gold); font-family:'Courier New'; font-weight:bold; margin-bottom:14px; }
+.daily-close   { background:linear-gradient(135deg,var(--gold),var(--gold2)); color:#000; border:none; padding:12px 30px; border-radius:12px; font-size:1em; font-weight:bold; cursor:pointer; font-family:Georgia,serif; }
+
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: #252538; border-radius: 2px; }
@@ -1562,6 +1741,7 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
       <button class="extra-btn" id="auto-btn" onclick="toggleAuto()">🔄 AUTO SPIN</button>
       <button class="extra-btn"               onclick="maxBet()">⬆ MAX BET</button>
       <button class="extra-btn" id="ig-btn"   onclick="showIgGate()">100 Gratis Coins? 🧀</button>
+      <button class="extra-btn turbo-btn" id="turbo-btn" onclick="buyTurbo()">⚡ TURBO (10.000🪙)</button>
       <button class="extra-btn"               onclick="resetGame()">🔃 RESET</button>
     </div>
   </div>
@@ -1590,6 +1770,17 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
         <div class="lb-table-header">💥 Größter Einzelgewinn</div>
         <div id="lb-wins-body"><div class="lb-empty">Noch keine Wins</div></div>
       </div>
+    </div>
+  </div>
+
+  <!-- Rang-Legende -->
+  <div class="rank-legend-wrap">
+    <div class="rank-legend-toggle" onclick="toggleRankLegend()">🏅 Käse-Ränge anzeigen ▼</div>
+    <div class="rank-legend-grid" id="rank-legend-grid">
+      <div class="rank-legend-row"><span class="rank-badge rank-kaesemeister">🧀 Käsemeister</span><span>ab 10.000 Coins</span></div>
+      <div class="rank-legend-row"><span class="rank-badge rank-kaesebaron">🏆 Käsebaron</span><span>ab 50.000 Coins</span></div>
+      <div class="rank-legend-row"><span class="rank-badge rank-oligarch">👑 Oligarch</span><span>ab 100.000 Coins</span></div>
+      <div class="rank-legend-row" style="color:rgba(100,120,180,0.5);font-size:0.72em">Rang basiert auf dem höchsten je erreichten Guthaben</div>
     </div>
   </div>
 
@@ -1822,9 +2013,74 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
   </div>
 </div>
 
+<!-- Schimmelrisiko (Doppelt oder Nichts nach jedem Gewinn) -->
+<div id="schimmel-overlay">
+  <div class="schimmel-box">
+    <div class="schimmel-header">
+      <span class="schimmel-emoji">🧀</span>
+      <div>
+        <div class="schimmel-title">Schimmelrisiko — Doppelt oder Nichts!</div>
+        <div class="schimmel-amount" id="schimmel-amount">+0 🪙</div>
+      </div>
+    </div>
+    <div class="schimmel-timer-bar"><div class="schimmel-timer-fill" id="schimmel-timer-fill" style="width:100%"></div></div>
+    <div class="schimmel-btns">
+      <button class="schimmel-ja"   onclick="resolveSchimmel(true)">🎲 JA! Riskieren!</button>
+      <button class="schimmel-nein" onclick="resolveSchimmel(false)">🤢 Nein danke</button>
+    </div>
+  </div>
+</div>
+
+<!-- Parmigiano Overlay (3× ⭐) -->
+<div id="parmi-overlay" onclick="closeParmi()">
+  <div class="parmi-box" onclick="event.stopPropagation()">
+    <div class="parmi-video-wrap">
+      <video class="parmi-video" id="parmi-video" autoplay muted playsinline loop preload="none">
+        <source src="geometrical_figure.mov" type="video/mp4">
+      </video>
+      <div class="parmi-video-fade"></div>
+      <div class="parmi-stars-float">⭐⭐⭐</div>
+    </div>
+    <div class="parmi-content">
+      <div class="parmi-title">3× PARMIGIANO!</div>
+      <div class="parmi-amount" id="parmi-amount">+0 🪙</div>
+      <div class="parmi-porsche-wrap">
+        <img class="parmi-porsche" src="oligarchenporsche.jpg" alt="Oligarchenporsche"
+             onerror="this.parentElement.style.display='none'">
+      </div>
+      <div class="parmi-quote">„Mit 3× Parmigiano kann man sich vielleicht bald einen Porsche leisten — Kennzeichen: OLIGARCHEN. Oder zumindest einen weiteren Spin."</div>
+      <button class="parmi-close" onclick="closeParmi()">Weiter zocken! ⭐</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rang Achievement Overlay -->
+<div id="rang-overlay">
+  <div class="rang-box">
+    <div class="rang-icon" id="rang-icon">🏆</div>
+    <div class="rang-title">Neuer Rang erreicht!</div>
+    <div class="rang-name" id="rang-name">Käsebaron</div>
+    <div class="rang-desc" id="rang-desc">Du hast 50.000 Coins erreicht und bist nun offiziell Käsebaron. Andere zittern beim Anblick deiner Laibe.</div>
+    <button class="rang-close" onclick="closeRang()">Ehre annehmen 🏆</button>
+  </div>
+</div>
+
+<!-- Täglicher Käse-Bonus -->
+<div id="daily-overlay">
+  <div class="daily-box">
+    <div class="daily-fire">🔥</div>
+    <div class="daily-title">Täglicher Käse-Bonus!</div>
+    <div class="daily-streak-badge" id="daily-streak-badge">Tag 1 🧀</div>
+    <div class="daily-cheese">Der Käse des Tages ist: <strong id="daily-cheese-name">Emmentaler</strong></div>
+    <div class="daily-fact" id="daily-fact">Emmentaler hat mehr Löcher als Argumente.</div>
+    <div class="daily-amount" id="daily-amount">+50 🪙</div>
+    <button class="daily-close" onclick="closeDailyBonus()">Käse einsammeln! 🧀</button>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════════════════
-//  🧀  KÄSE CASINO — Obatzda Oligarchen Edition  v3.0
+//  🧀  KÄSE CASINO — Obatzda Oligarchen Edition  v4.4
 // ═══════════════════════════════════════════════════════════════
 const JSONBIN_ID  = '69cbba8a36566621a8666740';
 const JSONBIN_KEY = '$2a$10$Ifh/yVZlwBLUEp.JGfHjP.rKvwM8jLgooR8qfQxw/xpjzmlhd1fcO';
@@ -1943,9 +2199,13 @@ const CHEESES = [
 const WHEEL = [];
 CHEESES.forEach(c => { for (let i = 0; i < c.weight; i++) WHEEL.push(c); });
 
-// ── KRAWATTE — Tracking mittlere Walze ──────────────────────
+// ── KRAWATTE — Tracking alle drei Walzen ────────────────────
 let midReelTopSym = null;
 let midReelBotSym = null;
+let reel0TopSym   = null;
+let reel0BotSym   = null;
+let reel2TopSym   = null;
+let reel2BotSym   = null;
 
 // ── SPIELZUSTAND ────────────────────────────────────────────
 let credits            = 100;
@@ -1955,7 +2215,22 @@ let autoOn             = false;
 let autoTimer          = null;
 let playerName         = '';
 let milestone1000Shown = false;
-const ogMilestonesShown = new Set();
+const ogMilestonesShown   = new Set();
+const rangMilestonesShown = new Set();
+
+// ── SCHIMMELRISIKO ───────────────────────────────────────────
+let schimmelPending     = false;
+let schimmelAmount      = 0;
+let schimmelTimer       = null;
+let schimmelBarTimer    = null;
+const SCHIMMEL_TIMEOUT  = 8000;
+
+// ── TURBO WALZEN ─────────────────────────────────────────────
+let turboActive    = false;
+let turboEndTime   = 0;
+let turboCountdown = null;
+const TURBO_COST   = 10000;
+const TURBO_SECS   = 420;  // 7 Minuten
 
 // Free Spins
 let freespinsLeft    = 0;
@@ -2060,6 +2335,8 @@ function initGame() {
     btn.textContent = '✅ Coins erhalten!';
     btn.disabled = true;
   }
+  // Täglicher Käse-Bonus nach kurzem Delay (nach Käsebär)
+  setTimeout(checkDailyBonus, 2200);
 }
 
 function rndCheese() {
@@ -2076,8 +2353,10 @@ function buildStrip(reelIdx, result) {
   items.push(topItem);   // oben (sichtbar)
   items.push(result);    // MITTE = Ergebnis
   items.push(botItem);   // unten (sichtbar)
-  // Tracking der mittleren Walze für Krawatte-Erkennung
+  // Tracking aller Walzen für Krawattensteuer
+  if (reelIdx === 0) { reel0TopSym = topItem; reel0BotSym = botItem; }
   if (reelIdx === 1) { midReelTopSym = topItem; midReelBotSym = botItem; }
+  if (reelIdx === 2) { reel2TopSym = topItem; reel2BotSym = botItem; }
   strip.innerHTML = items.map(c =>
     `<div class="reel-item${c.id === 'senf' ? ' senf-tile' : ''}" style="background:${c.bg}">
        <div class="ce">${c.emoji}</div>
@@ -2143,8 +2422,8 @@ async function doSpin() {
   setResult(fsLabel, freespinActive ? 'freespin' : '');
 
   const results   = [rndCheese(), rndCheese(), rndCheese()];
-  const delays    = [0, 350, 700];
-  const durations = [1400, 1800, 2300];
+  const delays    = turboActive ? [0, 175, 360] : [0, 350, 700];
+  const durations = turboActive ? [700, 900, 1150] : [1400, 1800, 2300];
 
   playSpinSound();
   const promises = results.map((r, i) =>
@@ -2215,8 +2494,9 @@ async function doSpin() {
     setResult('🔵 RE-TRIGGER! +5 Freispiele! 🎉', 'freespin');
   }
 
-  // Senfbombe-Overlay
+  // Senfbombe-Overlay + Spray
   if (win.triggerSenfbombe) {
+    senfSpray();
     setTimeout(() => showSenfbombeOverlay(win), 700);
   }
 
@@ -2236,6 +2516,11 @@ async function doSpin() {
   // ── 3× Emmentaler → Hexagon ──
   if (results.every(r => r.id === 'emmental')) {
     setTimeout(() => showHexagonOverlay(), 800);
+  }
+
+  // ── 3× Parmigiano ──
+  if (results.every(r => r.id === 'parmesan')) {
+    setTimeout(() => showParmiOverlay(win.amount), 900);
   }
 
   // ── Near-Miss Teaser (2× Roquefort oder 2× Senf) ──
@@ -2268,10 +2553,19 @@ async function doSpin() {
   } else {
     lossStreak++; winStreak = 0;
     if (lossStreak === 5) {
+      // Schüttelanimation
+      const machine = document.querySelector('.machine');
+      machine.classList.add('shake-anxiety');
+      setTimeout(() => machine.classList.remove('shake-anxiety'), 1800);
       credits += 10; refreshUI();
       setTimeout(() => setResult('💙 Käse-Rettungspaket! +10 Coins — Kopf hoch! 🧀', 'win'), 900);
       lossStreak = 0;
     }
+  }
+
+  // ── Schimmelrisiko: nach jedem echten Gewinn (kein Freespin, kein Jackpot) ──
+  if (win.amount > 0 && !freespinActive && !win.isJackpot && !win.triggerFreespins) {
+    setTimeout(() => showSchimmelrisiko(win.amount), 1800);
   }
 
   // Krawatte — mittlere Walze oben/mitte/unten alle gleich
@@ -2288,6 +2582,19 @@ async function doSpin() {
     setTimeout(() => {
       showKrawatteTieAnim(() => showKrawatteBanner(results[1], krawatteBonus));
     }, tieDelay);
+  }
+
+  // ── Krawattensteuer: linke/rechte Walze 3× gleich → Steuer (nur ohne anderen Gewinn) ──
+  if (win.amount === 0) {
+    [[0, reel0TopSym, reel0BotSym], [2, reel2TopSym, reel2BotSym]].forEach(([idx, topSym, botSym]) => {
+      if (topSym && botSym && topSym.id === results[idx].id && botSym.id === results[idx].id) {
+        const tax = Math.max(1, Math.floor(spinBet / 3));
+        credits -= tax;
+        if (credits < 0) credits = 0;
+        refreshUI();
+        setTimeout(() => showSteuerAnim(idx, results[idx], tax), 600 + idx * 200);
+      }
+    });
   }
 
   // Bet-Buttons wieder freischalten
@@ -2513,6 +2820,13 @@ function checkMilestones() {
       setTimeout(() => showOligarchengedeckOverlay(threshold), 1000);
     }
   });
+  // Käse-Baron Rang-System bei 10k / 50k / 100k
+  RANK_TIERS.forEach(tier => {
+    if (credits >= tier.threshold && !rangMilestonesShown.has(tier.threshold)) {
+      rangMilestonesShown.add(tier.threshold);
+      setTimeout(() => showRangOverlay(tier), 2200);
+    }
+  });
 }
 function closeMilestone() {
   document.getElementById('milestone-overlay').classList.remove('show');
@@ -2579,8 +2893,19 @@ function resetGame() {
   credits = 100; bet = 10; autoOn = false;
   milestone1000Shown = false;
   ogMilestonesShown.clear();
+  rangMilestonesShown.clear();
   freespinActive = false; freespinsLeft = 0; freespinPending = false;
   autoSpinCount = 0;
+  schimmelPending = false;
+  clearInterval(schimmelBarTimer);
+  document.getElementById('schimmel-overlay').classList.remove('show');
+  if (turboActive) {
+    turboActive = false;
+    clearInterval(turboCountdown);
+    document.getElementById('reels-frame').classList.remove('turbo-mode');
+    document.getElementById('turbo-btn').classList.remove('active');
+    updateTurboBtn();
+  }
   clearTimeout(autoTimer);
   document.getElementById('auto-btn').classList.remove('on');
   document.getElementById('auto-btn').textContent = '🔄 AUTO SPIN';
@@ -2971,12 +3296,17 @@ async function updateLeaderboard(name, totalCoins, singleWin) {
 
 function renderLeaderboard(lb) {
   const medals = ['🥇','🥈','🥉'];
+  function rankBadge(score) {
+    const r = getRank(score);
+    if (!r) return '';
+    return `<span class="rank-badge ${r.cls}">${r.emoji} ${r.title}</span>`;
+  }
   function rows(list) {
     if (!list || list.length === 0) return '<div class="lb-empty">Noch keine Einträge</div>';
     return list.map((e, i) =>
       `<div class="lb-row">
          <span class="lb-rank ${i<3?'top'+(i+1):''}">${medals[i]||'#'+(i+1)}</span>
-         <span class="lb-name ${e.name===playerName?'is-me':''}">${e.name}</span>
+         <span class="lb-name ${e.name===playerName?'is-me':''}">${e.name}${rankBadge(e.score)}</span>
          <span class="lb-score">${e.score}🪙</span>
        </div>`
     ).join('');
@@ -3059,6 +3389,229 @@ function showKrawatteTieAnim(callback) {
     tieAnim.classList.remove('sliding');
     callback();
   }, 1200);
+}
+
+// ── SCHIMMELRISIKO ───────────────────────────────────────────
+function showSchimmelrisiko(amount) {
+  if (schimmelPending) return;
+  schimmelPending = true;
+  schimmelAmount  = amount;
+  document.getElementById('schimmel-amount').textContent = `+${amount} 🪙 → Doppelt oder Nichts?`;
+  const fill = document.getElementById('schimmel-timer-fill');
+  fill.style.transition = 'none';
+  fill.style.width = '100%';
+  void fill.offsetHeight;
+  document.getElementById('schimmel-overlay').classList.add('show');
+  const start = Date.now();
+  clearInterval(schimmelBarTimer);
+  schimmelBarTimer = setInterval(() => {
+    const pct = 100 - ((Date.now() - start) / SCHIMMEL_TIMEOUT) * 100;
+    fill.style.transition = '';
+    fill.style.width = Math.max(0, pct) + '%';
+    if (pct <= 0) { clearInterval(schimmelBarTimer); resolveSchimmel(false); }
+  }, 100);
+}
+
+function resolveSchimmel(accept) {
+  if (!schimmelPending) return;
+  schimmelPending = false;
+  clearInterval(schimmelBarTimer);
+  clearTimeout(schimmelTimer);
+  document.getElementById('schimmel-overlay').classList.remove('show');
+  if (!accept) {
+    setResult(`🧀 Kein Risiko — +${schimmelAmount}🪙 sicher behalten.`, 'win');
+    return;
+  }
+  const gewonnen = Math.random() < 0.5;
+  if (gewonnen) {
+    credits += schimmelAmount;
+    refreshUI();
+    updateLeaderboard(playerName, credits, schimmelAmount);
+    startConfetti(60);
+    setResult(`🟢 SCHIMMEL VERLOREN, GEWINN VERDOPPELT! +${schimmelAmount * 2}🪙 insgesamt! 🎉`, 'win');
+  } else {
+    credits -= schimmelAmount;
+    if (credits < 0) credits = 0;
+    refreshUI();
+    setResult(`🔴 Der Schimmel hat gewonnen! Gewinn verfault. +0🪙 🧀`, '');
+  }
+  checkMilestones();
+}
+
+// ── PARMIGIANO OVERLAY (3× ⭐) ────────────────────────────────
+function showParmiOverlay(amount) {
+  document.getElementById('parmi-amount').textContent = `+${amount} 🪙`;
+  const vid = document.getElementById('parmi-video');
+  vid.load();
+  vid.play().catch(() => {});
+  document.getElementById('parmi-overlay').classList.add('show');
+  startConfetti(70);
+}
+function closeParmi() {
+  document.getElementById('parmi-overlay').classList.remove('show');
+  document.getElementById('parmi-video').pause();
+  stopConfetti();
+}
+
+// ── SENF SPRAY ────────────────────────────────────────────────
+function senfSpray() {
+  const count = 18;
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      const size = 8 + Math.random() * 20;
+      const startX = Math.random() * window.innerWidth;
+      const startY = Math.random() * window.innerHeight;
+      const dx = (Math.random() - 0.5) * 200;
+      const dy = (Math.random() - 0.5) * 200;
+      el.className = 'senf-spray-drop';
+      el.style.cssText = `left:${startX}px;top:${startY}px;width:${size}px;height:${size}px;--dx:${dx}px;--dy:${dy}px;`;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 950);
+    }, i * 40);
+  }
+  // Gelber Bildschirmblitz
+  const splat = document.createElement('div');
+  splat.className = 'senf-screen-splat';
+  splat.style.cssText = 'inset:0;position:fixed;border-radius:0;';
+  document.body.appendChild(splat);
+  setTimeout(() => splat.remove(), 1250);
+}
+
+// ── KRAWATTENSTEUER ───────────────────────────────────────────
+let steuerMsgShown = false;
+function showSteuerAnim(reelIdx, cheese, tax) {
+  const reel = document.getElementById(`reel-${reelIdx}`);
+  if (!reel) return;
+  reel.classList.remove('steuer-flash');
+  void reel.offsetHeight;
+  reel.classList.add('steuer-flash');
+  setTimeout(() => reel.classList.remove('steuer-flash'), 1500);
+  if (!steuerMsgShown) {
+    steuerMsgShown = true;
+    setResult(`🏛️ Finanzamt! ${cheese.emoji}${cheese.emoji}${cheese.emoji} — Krawattensteuer: -${tax}🪙`, '');
+    setTimeout(() => { steuerMsgShown = false; }, 3000);
+  }
+}
+
+// ── RANG SYSTEM ───────────────────────────────────────────────
+const RANK_TIERS = [
+  { threshold: 100000, title: 'Oligarch',    emoji: '👑', cls: 'rank-oligarch',
+    desc: 'Du hast 100.000 Coins erreicht. Du bist jetzt offiziell Oligarch. Das Finanzamt weint.' },
+  { threshold:  50000, title: 'Käsebaron',   emoji: '🏆', cls: 'rank-kaesebaron',
+    desc: 'Du hast 50.000 Coins erreicht. Käsebaron — deine Laibe regieren das Land.' },
+  { threshold:  10000, title: 'Käsemeister', emoji: '🧀', cls: 'rank-kaesemeister',
+    desc: 'Du hast 10.000 Coins erreicht. Käsemeister — der Emmentaler verbeugt sich vor dir.' },
+];
+
+function getRank(score) {
+  return RANK_TIERS.find(r => score >= r.threshold) || null;
+}
+
+function showRangOverlay(tier) {
+  document.getElementById('rang-icon').textContent  = tier.emoji;
+  document.getElementById('rang-name').textContent  = tier.title;
+  document.getElementById('rang-name').style.color  = tier.cls === 'rank-oligarch' ? '#FFD700' : tier.cls === 'rank-kaesebaron' ? '#FF8C00' : '#88ffcc';
+  document.getElementById('rang-desc').textContent  = tier.desc;
+  document.getElementById('rang-overlay').classList.add('show');
+  startConfetti(80);
+}
+function closeRang() {
+  document.getElementById('rang-overlay').classList.remove('show');
+  stopConfetti();
+}
+function toggleRankLegend() {
+  const g = document.getElementById('rank-legend-grid');
+  const t = document.querySelector('.rank-legend-toggle');
+  g.classList.toggle('open');
+  t.textContent = g.classList.contains('open') ? '🏅 Käse-Ränge ausblenden ▲' : '🏅 Käse-Ränge anzeigen ▼';
+}
+
+// ── TURBO WALZEN ──────────────────────────────────────────────
+function buyTurbo() {
+  if (turboActive) return;
+  if (credits < TURBO_COST) {
+    setResult(`⚡ Nicht genug Coins! Turbo kostet ${TURBO_COST}🪙.`, '');
+    return;
+  }
+  credits -= TURBO_COST;
+  refreshUI();
+  turboActive  = true;
+  turboEndTime = Date.now() + TURBO_SECS * 1000;
+  document.getElementById('reels-frame').classList.add('turbo-mode');
+  const btn = document.getElementById('turbo-btn');
+  btn.classList.add('active');
+  setResult('⚡ TURBO-WALZEN aktiviert — 7 Minuten Hochgeschwindigkeit!', 'win');
+  updateTurboBtn();
+  clearInterval(turboCountdown);
+  turboCountdown = setInterval(() => {
+    const rem = Math.ceil((turboEndTime - Date.now()) / 1000);
+    if (rem <= 0) {
+      clearInterval(turboCountdown);
+      turboActive = false;
+      document.getElementById('reels-frame').classList.remove('turbo-mode');
+      const b = document.getElementById('turbo-btn');
+      b.classList.remove('active');
+      b.textContent = `⚡ TURBO (${TURBO_COST.toLocaleString()}🪙)`;
+      setResult('⚡ Turbo-Walzen abgelaufen. Normale Geschwindigkeit.', '');
+    } else {
+      updateTurboBtn(rem);
+    }
+  }, 1000);
+}
+function updateTurboBtn(rem) {
+  const btn = document.getElementById('turbo-btn');
+  if (!rem) { btn.textContent = `⚡ TURBO (${TURBO_COST.toLocaleString()}🪙)`; return; }
+  const m = Math.floor(rem / 60), s = rem % 60;
+  btn.textContent = `⚡ TURBO aktiv ${m}:${String(s).padStart(2,'0')}`;
+}
+
+// ── TÄGLICHER KÄSE-BONUS ──────────────────────────────────────
+const CHEESE_FACTS = {
+  'Cheddar':    'Cheddar ist der meistgegessene Käse der Welt. Auch der langweiligste.',
+  'Babybel':    'Babybel ist eigentlich kein echter Käse. Aber ein echter Oligarch.',
+  'Mimolette':  'Mimolette reift mit Käsemilben. Delikat.',
+  'Brie':       'Brie wurde von Karl dem Großen entdeckt. Seitdem reift er.',
+  'Emmentaler': 'Emmentaler hat mehr Löcher als Argumente.',
+  'Senf':       'Senf ist kein Käse. Aber er versteht sich mit allem.',
+  'Mozzarella': 'Mozzarella schmilzt bei 55°C. Und auf der Zunge.',
+  'Roquefort':  'Roquefort reift in Höhlen. Wie Oligarchen.',
+  'Parmigiano': 'Parmigiano Reggiano reift min. 12 Monate. Geduld ist eine Tugend.',
+  'GOLDEN KÄSE':'Der goldene Käse existiert nur im Käsino. Und in deinen Träumen.',
+};
+
+function checkDailyBonus() {
+  const stored  = JSON.parse(localStorage.getItem('kaesino_daily') || '{}');
+  const today   = new Date().toISOString().split('T')[0];
+  if (stored.lastDate === today) return; // schon heute beansprucht
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const streak = (stored.lastDate === yesterday) ? (stored.streak || 0) + 1 : 1;
+  const bonus   = Math.min(50 + streak * 25, 300);
+  const cheese  = CHEESES[Math.floor(Math.random() * CHEESES.length)];
+  const fact    = CHEESE_FACTS[cheese.name] || `${cheese.name} — ein rätselhafter Käse.`;
+  document.getElementById('daily-streak-badge').textContent = `🔥 Tag ${streak} am Stück!`;
+  document.getElementById('daily-cheese-name').textContent  = cheese.name + ' ' + cheese.emoji;
+  document.getElementById('daily-fact').textContent         = fact;
+  document.getElementById('daily-amount').textContent       = `+${bonus} 🪙`;
+  document.getElementById('daily-overlay').classList.add('show');
+  // Werte merken damit closeDailyBonus() sie anwenden kann
+  window._dailyBonus  = bonus;
+  window._dailyStreak = streak;
+  window._dailyDate   = today;
+}
+function closeDailyBonus() {
+  document.getElementById('daily-overlay').classList.remove('show');
+  if (window._dailyBonus) {
+    credits += window._dailyBonus;
+    refreshUI();
+    updateLeaderboard(playerName, credits, 0);
+    checkMilestones();
+    localStorage.setItem('kaesino_daily', JSON.stringify({
+      lastDate: window._dailyDate, streak: window._dailyStreak
+    }));
+    setResult(`🔥 Tages-Bonus! +${window._dailyBonus}🪙 — Tag ${window._dailyStreak} am Stück!`, 'win');
+    window._dailyBonus = 0;
+  }
 }
 
 // ── SOUND ────────────────────────────────────────────────────
