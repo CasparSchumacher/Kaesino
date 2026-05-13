@@ -1273,8 +1273,8 @@ body {
 .og-merge-arrow { font-size:1.1em; color:rgba(255,255,255,0.25); opacity:0; text-align:center; animation:ogIn 0.3s ease 1.1s forwards; }
 .og-phone { opacity:0; animation:ogPhoneIn 0.6s ease 1.5s forwards; }
 @keyframes ogPhoneIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-.og-img-wrap { width:100%; height:185px; overflow:hidden; background:#000; }
-.og-main-img { width:100%; height:100%; object-fit:cover; object-position:center; }
+.og-img-wrap { width:100%; height:240px; overflow:hidden; background:#0a0a12; display:flex; align-items:center; justify-content:center; }
+.og-main-img { max-width:100%; max-height:100%; object-fit:contain; display:block; }
 .og-img-ph { width:100%; height:100%; background:linear-gradient(145deg,#1a1200,#2a2000); display:none; align-items:center; justify-content:center; font-size:3em; gap:6px; }
 .og-info { background:linear-gradient(180deg,rgba(0,0,0,0.85),#0a0a12 55%); padding:14px 18px 0; }
 .og-call-lbl { font-size:0.65em; color:rgba(255,255,255,0.35); font-family:-apple-system,Arial,sans-serif; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:2px; }
@@ -1986,7 +1986,7 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
           <div class="og-btn-circle og-decline-c">📵</div>
           <span class="og-btn-lbl">Ablehnen</span>
         </button>
-        <button class="og-call-btn" onclick="closeOligarchengedeck()">
+        <button class="og-call-btn" id="og-accept-btn" onclick="acceptOligarchengedeck()">
           <div class="og-btn-circle og-accept-c">📞</div>
           <span class="og-btn-lbl">Abheben</span>
         </button>
@@ -3408,6 +3408,8 @@ window.addEventListener('beforeunload', () => {
 function showOligarchengedeckOverlay(milestone) {
   const labels = { 5000:'5.000 COINS!', 25000:'25.000 COINS!', 50000:'50.000 COINS!', 100000:'100.000 COINS!' };
   document.getElementById('og-milestone-tag').textContent = labels[milestone] || `${milestone} COINS!`;
+  // Anruf-Zustand bei jedem neuen Trigger zurücksetzen
+  resetOligarchengedeckCallState();
   // Animationen zurücksetzen damit sie bei erneutem Öffnen neu spielen
   document.querySelectorAll('.og-comp-item, .og-plus, .og-merge-arrow, .og-phone').forEach(el => {
     el.style.animation = 'none';
@@ -3420,6 +3422,53 @@ function showOligarchengedeckOverlay(milestone) {
 function closeOligarchengedeck() {
   document.getElementById('oligarchengedeck-overlay').classList.remove('show');
   stopConfetti();
+}
+
+const OG_DEFAULT_DESC = 'Das Oligarchengedeck ruft an! Seine Bestandteile sind von einer fast lächerlichen Schlichtheit: ein Babybel, eine Zigarette und ein Bier. Drei Dinge, die einzeln betrachtet banal wirken, beinahe proletarisch sogar. Doch zusammen bilden sie ein kleines Ritual der Dekadenz im Taschenformat, eine minimalistische Version von Luxus.';
+
+function resetOligarchengedeckCallState() {
+  const ov = document.getElementById('oligarchengedeck-overlay');
+  const ring = ov.querySelector('.og-ring-txt');
+  const desc = ov.querySelector('.og-desc');
+  const name = ov.querySelector('.og-name');
+  const lbl  = ov.querySelector('.og-call-lbl');
+  const acc  = document.getElementById('og-accept-btn');
+  ring.textContent = 'Ruft an…';
+  ring.style.color = '';
+  ring.style.animation = '';
+  name.textContent = 'Oligarchengedeck';
+  lbl.textContent  = 'Incoming Call';
+  desc.innerHTML = OG_DEFAULT_DESC;
+  desc.style.color = '';
+  desc.style.fontStyle = '';
+  if (acc) {
+    acc.style.display = '';
+    acc.onclick = acceptOligarchengedeck;
+    acc.querySelector('.og-btn-circle').textContent = '📞';
+    acc.querySelector('.og-btn-circle').className = 'og-btn-circle og-accept-c';
+    acc.querySelector('.og-btn-lbl').textContent = 'Abheben';
+  }
+}
+
+function acceptOligarchengedeck() {
+  const ov = document.getElementById('oligarchengedeck-overlay');
+  const ring = ov.querySelector('.og-ring-txt');
+  const desc = ov.querySelector('.og-desc');
+  const lbl  = ov.querySelector('.og-call-lbl');
+  const acc  = document.getElementById('og-accept-btn');
+  // Verbunden-Status setzen
+  lbl.textContent  = 'Verbunden';
+  ring.textContent = '✓ Anruf angenommen';
+  ring.style.color = '#34c759';
+  ring.style.animation = 'none';
+  desc.innerHTML = '🍺 <strong style="color:#FFD700">Gönn dir ne kurze Pause, schnapp dir n Bier und dann gehts weiter!</strong>';
+  desc.style.color = '#fff';
+  desc.style.fontStyle = 'normal';
+  // Abheben-Button zu "Auflegen" umfunktionieren
+  acc.querySelector('.og-btn-circle').textContent = '☎️';
+  acc.querySelector('.og-btn-circle').className = 'og-btn-circle og-decline-c';
+  acc.querySelector('.og-btn-lbl').textContent = 'Auflegen';
+  acc.onclick = closeOligarchengedeck;
 }
 
 // ── HEXAGON OVERLAY ──────────────────────────────────────────
