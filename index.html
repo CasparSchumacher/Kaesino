@@ -1607,6 +1607,164 @@ body {
 .daily-amount  { font-size:1.4em; color:var(--gold); font-family:'Courier New'; font-weight:bold; margin-bottom:14px; }
 .daily-close   { background:linear-gradient(135deg,var(--gold),var(--gold2)); color:#000; border:none; padding:12px 30px; border-radius:12px; font-size:1em; font-weight:bold; cursor:pointer; font-family:Georgia,serif; }
 
+/* ── SUPPORT KÄSE-ENTWICKLER BUTTON ── */
+.support-section { max-width:500px; width:100%; margin:20px auto 8px; }
+.support-btn {
+  width:100%;
+  background:linear-gradient(135deg, #FFD700 0%, #FF8C00 50%, #FFD700 100%);
+  background-size:200% 200%;
+  border:2px solid rgba(184,40,72,0.5);
+  color:#3a1f00;
+  padding:14px 16px;
+  border-radius:16px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-family:'Georgia',serif;
+  text-align:left;
+  box-shadow:0 6px 22px rgba(255,140,0,0.5), 0 0 0 2px rgba(255,215,0,0.2);
+  animation:supportPulse 3s ease-in-out infinite, supportShimmer 4s linear infinite;
+  position:relative;
+  overflow:hidden;
+  transition:transform 0.15s;
+}
+.support-btn:hover { transform:translateY(-2px) scale(1.02); }
+@keyframes supportPulse {
+  0%,100% { box-shadow:0 6px 22px rgba(255,140,0,0.45), 0 0 0 2px rgba(255,215,0,0.15); }
+  50%     { box-shadow:0 10px 34px rgba(255,140,0,0.75), 0 0 24px rgba(255,215,0,0.45), 0 0 0 2px rgba(255,215,0,0.4); }
+}
+@keyframes supportShimmer {
+  0%   { background-position:0% 50%; }
+  100% { background-position:200% 50%; }
+}
+.support-btn-icon {
+  font-size:1.9em; line-height:1;
+  animation:bounceWobble 1.4s ease-in-out infinite;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
+@keyframes bounceWobble {
+  0%,100% { transform:translateY(0) rotate(-6deg); }
+  50%      { transform:translateY(-5px) rotate(6deg) scale(1.06); }
+}
+.support-btn-text { flex:1; }
+.support-btn-text strong { font-size:1.05em; font-weight:bold; display:block; }
+.support-btn-text small  { font-size:0.7em; opacity:0.75; font-family:Arial; font-style:italic; }
+.support-btn-arrow { font-size:1.3em; }
+
+/* ── SUPPORT OVERLAY ── */
+#support-overlay {
+  display:none; position:fixed; inset:0; z-index:9700;
+  align-items:center; justify-content:center; padding:18px;
+  background:rgba(0,0,0,0.82);
+}
+#support-overlay.show { display:flex; }
+.support-box {
+  position:relative;
+  background:linear-gradient(155deg, #1a0f00 0%, #2a1800 50%, #1a0d00 100%);
+  border:3px solid #FFD700;
+  border-radius:22px;
+  padding:24px 22px 20px;
+  max-width:380px;
+  width:100%;
+  text-align:center;
+  box-shadow:0 0 70px rgba(255,140,0,0.5);
+  animation:popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+  overflow:hidden;
+}
+.support-coins-bg {
+  position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:0;
+}
+.support-coin {
+  position:absolute; font-size:1.4em;
+  animation:supportCoinFall 4s linear infinite;
+  opacity:0.55;
+}
+@keyframes supportCoinFall {
+  0%   { transform:translateY(-30px) rotate(0deg); opacity:0; }
+  10%  { opacity:0.6; }
+  90%  { opacity:0.6; }
+  100% { transform:translateY(450px) rotate(540deg); opacity:0; }
+}
+.support-box > *:not(.support-coins-bg) { position:relative; z-index:1; }
+.support-emoji-row { font-size:2.4em; margin-bottom:6px; letter-spacing:6px; }
+.support-emoji-row span {
+  display:inline-block; animation:supportFloat 2s ease-in-out infinite;
+}
+.support-emoji-row span:nth-child(1) { animation-delay:0s; }
+.support-emoji-row span:nth-child(2) { animation-delay:0.3s; }
+.support-emoji-row span:nth-child(3) { animation-delay:0.6s; }
+@keyframes supportFloat {
+  0%,100% { transform:translateY(0) rotate(-4deg); }
+  50%      { transform:translateY(-6px) rotate(4deg); }
+}
+.support-title {
+  font-size:1.3em; color:var(--gold); font-family:'Georgia',serif;
+  margin-bottom:6px; letter-spacing:0.5px; line-height:1.25;
+}
+.support-body {
+  font-size:0.85em; color:rgba(180,190,230,0.75); font-family:Arial;
+  line-height:1.5; margin-bottom:14px;
+}
+.support-body strong { color:#FFD700; }
+.support-amounts { display:flex; flex-direction:column; gap:7px; margin-bottom:12px; }
+.support-amount {
+  display:flex; align-items:center; gap:10px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,215,0,0.35);
+  color:#FFD700;
+  padding:10px 14px;
+  border-radius:11px;
+  text-decoration:none;
+  font-family:Arial,sans-serif;
+  transition:all 0.15s;
+  font-weight:bold;
+}
+.support-amount:hover {
+  background:rgba(255,215,0,0.12);
+  border-color:#FFD700;
+  transform:translateX(3px);
+  box-shadow:0 0 14px rgba(255,215,0,0.3);
+}
+.support-amount.featured {
+  background:linear-gradient(135deg, rgba(255,140,0,0.18), rgba(255,215,0,0.12));
+  border-color:#FF8C00;
+  box-shadow:0 0 14px rgba(255,140,0,0.25);
+}
+.support-amount-emoji { font-size:1.5em; line-height:1; flex-shrink:0; }
+.support-amount-label { flex:1; text-align:left; font-size:0.92em; }
+.support-amount-value {
+  font-family:'Courier New',monospace; font-weight:bold;
+  background:rgba(255,215,0,0.2); padding:3px 9px; border-radius:7px;
+  font-size:0.95em;
+}
+.support-amount-custom {
+  display:block;
+  background:transparent;
+  border:1px dashed rgba(255,215,0,0.3);
+  color:rgba(255,215,0,0.7);
+  padding:9px 14px;
+  border-radius:10px;
+  text-decoration:none;
+  font-family:Arial; font-size:0.85em;
+  transition:all 0.15s;
+}
+.support-amount-custom:hover { color:#FFD700; border-color:#FFD700; background:rgba(255,215,0,0.05); }
+.support-fineprint { font-size:0.66em; color:rgba(180,190,230,0.4); font-family:Arial; font-style:italic; margin:8px 0 10px; }
+.support-close {
+  width:100%;
+  background:transparent;
+  border:1px solid rgba(180,190,230,0.15);
+  color:rgba(180,190,230,0.5);
+  padding:9px 18px;
+  border-radius:9px;
+  font-size:0.82em;
+  font-family:Arial,sans-serif;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.support-close:hover { border-color:rgba(180,190,230,0.3); color:rgba(180,190,230,0.75); }
+
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: #252538; border-radius: 2px; }
@@ -1917,6 +2075,18 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
     </div>
   </div>
 
+  <!-- Support den Käse-Entwickler -->
+  <div class="support-section">
+    <button class="support-btn" onclick="showSupport()">
+      <span class="support-btn-icon">🧀💰</span>
+      <span class="support-btn-text">
+        <strong>Support den Käse-Entwickler!</strong>
+        <small>Spendier ihm sein nächstes Oligarchengedeck 🍺</small>
+      </span>
+      <span class="support-btn-arrow">→</span>
+    </button>
+  </div>
+
 </div><!-- /game-screen -->
 
 <!-- ═══════════════════════════════════════════════ -->
@@ -2197,6 +2367,45 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
     <div class="rang-name" id="rang-name">Käsebaron</div>
     <div class="rang-desc" id="rang-desc">Du hast 50.000 Coins erreicht und bist nun offiziell Käsebaron. Andere zittern beim Anblick deiner Laibe.</div>
     <button class="rang-close" onclick="closeRang()">Ehre annehmen 🏆</button>
+  </div>
+</div>
+
+<!-- Support den Käse-Entwickler -->
+<div id="support-overlay">
+  <div class="support-box">
+    <div class="support-coins-bg" id="support-coins-bg"></div>
+    <div class="support-emoji-row"><span>🧀</span><span>🍺</span><span>🚬</span></div>
+    <div class="support-title">Käse-Entwickler braucht ein Oligarchengedeck!</div>
+    <div class="support-body">
+      Spendier ihm ein paar Bauteile damit er weiter coden kann.<br>
+      Jeder Cent fließt direkt ins <strong>Tyskie-Lager</strong> 🍻
+    </div>
+    <div class="support-amounts">
+      <a class="support-amount" target="_blank" rel="noopener"
+         href="https://www.paypal.com/donate/?business=caspar.80639%40gmail.com&amp;item_name=Eine+Kippe+f%C3%BCr+den+K%C3%A4se-Entwickler&amp;amount=3&amp;currency_code=EUR">
+        <span class="support-amount-emoji">🚬</span>
+        <span class="support-amount-label">Eine Kippe für den Coder</span>
+        <span class="support-amount-value">3 €</span>
+      </a>
+      <a class="support-amount" target="_blank" rel="noopener"
+         href="https://www.paypal.com/donate/?business=caspar.80639%40gmail.com&amp;item_name=Ein+Babybel+f%C3%BCr+den+K%C3%A4se-Entwickler&amp;amount=5&amp;currency_code=EUR">
+        <span class="support-amount-emoji">🔴</span>
+        <span class="support-amount-label">Ein Babybel obendrauf</span>
+        <span class="support-amount-value">5 €</span>
+      </a>
+      <a class="support-amount featured" target="_blank" rel="noopener"
+         href="https://www.paypal.com/donate/?business=caspar.80639%40gmail.com&amp;item_name=Komplettes+Oligarchengedeck&amp;amount=10&amp;currency_code=EUR">
+        <span class="support-amount-emoji">🍺</span>
+        <span class="support-amount-label">Komplettes Gedeck 🤝</span>
+        <span class="support-amount-value">10 €</span>
+      </a>
+      <a class="support-amount-custom" target="_blank" rel="noopener"
+         href="https://www.paypal.com/donate/?business=caspar.80639%40gmail.com&amp;item_name=Oligarchengedeck&amp;currency_code=EUR">
+        Anderer Betrag — du bestimmst →
+      </a>
+    </div>
+    <div class="support-fineprint">🔒 Sichere Weiterleitung zu PayPal • caspar.80639@gmail.com</div>
+    <button class="support-close" onclick="closeSupport()">Vielleicht später</button>
   </div>
 </div>
 
@@ -3968,6 +4177,29 @@ function closeDailyBonus() {
     setResult(`🔥 Tages-Bonus! +${window._dailyBonus}🪙 — Tag ${window._dailyStreak} am Stück!`, 'win');
     window._dailyBonus = 0;
   }
+}
+
+// ── SUPPORT KÄSE-ENTWICKLER ─────────────────────────────────
+function showSupport() {
+  // Goldmünzen-Hintergrund-Animation aufbauen
+  const bg = document.getElementById('support-coins-bg');
+  if (bg) {
+    bg.innerHTML = '';
+    const coinEmojis = ['🪙','💰','🟡','🪙'];
+    for (let i = 0; i < 14; i++) {
+      const c = document.createElement('div');
+      c.className = 'support-coin';
+      c.textContent = coinEmojis[i % coinEmojis.length];
+      c.style.left            = (Math.random() * 100) + '%';
+      c.style.animationDelay  = (Math.random() * 3) + 's';
+      c.style.animationDuration = (3 + Math.random() * 2.5) + 's';
+      bg.appendChild(c);
+    }
+  }
+  document.getElementById('support-overlay').classList.add('show');
+}
+function closeSupport() {
+  document.getElementById('support-overlay').classList.remove('show');
 }
 
 // ── SOUND ────────────────────────────────────────────────────
