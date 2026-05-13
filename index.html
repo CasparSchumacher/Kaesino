@@ -1740,7 +1740,7 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
     <div class="extras">
       <button class="extra-btn" id="auto-btn" onclick="toggleAuto()">🔄 AUTO SPIN</button>
       <button class="extra-btn"               onclick="maxBet()">⬆ MAX BET</button>
-      <button class="extra-btn" id="ig-btn"   onclick="showIgGate()">100 Gratis Coins? 🧀</button>
+      <button class="extra-btn" id="ig-btn"   onclick="showIgGate()">1.000 Gratis Coins? 🧀</button>
       <button class="extra-btn turbo-btn" id="turbo-btn" onclick="buyTurbo()">⚡ TURBO (10.000🪙)</button>
       <button class="extra-btn"               onclick="resetGame()">🔃 RESET</button>
     </div>
@@ -1997,7 +1997,7 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
 <div class="overlay-bg" id="ig-overlay">
   <div class="ig-box">
     <div class="ig-icon">📸</div>
-    <div class="ig-title">100 Gratis Coins verdienen!</div>
+    <div class="ig-title">1.000 Gratis Coins verdienen!</div>
     <div class="ig-body">
       <strong>Like und kommentiere mindestens 5 Oligarchen Reels</strong><br><br>
       Klick auf Instagram, mach mit — und komm zurück für deine Coins!
@@ -2863,10 +2863,10 @@ document.addEventListener('visibilitychange', () => {
   if (clicked && !credited) {
     sessionStorage.setItem('ig_credited', '1');
     sessionStorage.removeItem('ig_link_clicked');
-    credits += 100;
+    credits += 1000;
     refreshUI();
     closeIgGate();
-    setResult('🎉 +100 Gratis-Coins! Danke fürs Mitmachen! 🧀', 'win');
+    setResult('🎉 +1.000 Gratis-Coins! Danke fürs Mitmachen! 🧀', 'win');
     const btn = document.getElementById('ig-btn');
     btn.textContent = '✅ Coins erhalten!';
     btn.disabled    = true;
