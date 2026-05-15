@@ -2659,6 +2659,42 @@ function getWeekLabel(weekStartStr) {
   return start.toLocaleDateString('de-DE', fmt) + ' – ' + end.toLocaleDateString('de-DE', fmt);
 }
 
+// ── SPIELSTAND PRO NAME (wochenweise gespeichert) ────────────
+//  Speichert den höchsten Guthaben-Stand pro Spielername in localStorage,
+//  gebunden an die aktuelle Woche. Loggt man sich innerhalb derselben Woche
+//  mit gleichem Namen wieder ein, wird dieser Stand wiederhergestellt.
+//  Ab Montag (neue Woche) startet jeder wieder bei 100.
+function loadPlayerProgress(name) {
+  try {
+    const all   = JSON.parse(localStorage.getItem('kaesino_progress') || '{}');
+    const entry = all[name];
+    if (entry && entry.week === getWeekStart() && typeof entry.credits === 'number') {
+      return entry.credits;
+    }
+  } catch (e) {}
+  return null;
+}
+function savePlayerProgress() {
+  if (!playerName) return;
+  try {
+    const all  = JSON.parse(localStorage.getItem('kaesino_progress') || '{}');
+    const week = getWeekStart();
+    const prev = all[playerName];
+    const prevBest = (prev && prev.week === week) ? (prev.credits || 0) : 0;
+    // Höchststand der Woche behalten
+    all[playerName] = { week, credits: Math.max(prevBest, credits) };
+    localStorage.setItem('kaesino_progress', JSON.stringify(all));
+  } catch (e) {}
+}
+function clearPlayerProgress() {
+  if (!playerName) return;
+  try {
+    const all = JSON.parse(localStorage.getItem('kaesino_progress') || '{}');
+    delete all[playerName];
+    localStorage.setItem('kaesino_progress', JSON.stringify(all));
+  } catch (e) {}
+}
+
 // ── COUNTDOWN ───────────────────────────────────────────────
 function updateCountdown() {
   const el = document.getElementById('countdown');
@@ -2694,11 +2730,18 @@ function startGame() {
   playerName = 'Käse-' + suffix;
   localStorage.setItem('kaesino_player', playerName);
   document.getElementById('player-display').textContent = playerName;
+  // Spielstand dieser Woche wiederherstellen (gleicher Name → alter Höchststand)
+  const savedCredits = loadPlayerProgress(playerName);
+  if (savedCredits !== null) credits = Math.max(credits, savedCredits);
   document.getElementById('name-screen').style.display  = 'none';
   document.getElementById('game-screen').style.display  = 'flex';
   initGame();
   startMusic();
   setTimeout(() => showKaesebaer(), 300);
+  // Hinweis wenn ein gespeicherter Spielstand wiederhergestellt wurde
+  if (savedCredits !== null && savedCredits > 100) {
+    setTimeout(() => setResult(`🧀 Willkommen zurück, ${playerName}! Spielstand wiederhergestellt: ${credits}🪙`, 'win'), 1400);
+  }
 }
 
 // ── INIT ────────────────────────────────────────────────────
@@ -3275,6 +3318,7 @@ function refreshUI() {
     b.classList.toggle('active', Number(b.dataset.bet) === bet);
   });
   updatePlayerTag();
+  savePlayerProgress();
 }
 
 function updatePlayerTag() {
@@ -3311,6 +3355,7 @@ function maxBet() { setBet(Math.min(100, credits)); }
 function resetGame() {
   if (spinning) return;
   credits = 100; bet = 10; autoOn = false;
+  clearPlayerProgress();   // gespeicherten Wochen-Stand löschen → echter Reset auf 100
   milestone1000Shown = false;
   ogMilestonesShown.clear();
   rangMilestonesShown.clear();
