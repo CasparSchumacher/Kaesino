@@ -1104,41 +1104,74 @@ body {
 }
 .kaesebaer-btn:hover { transform: scale(1.04); }
 
-/* ── BABYBEL SAUER BANNER ── */
+/* ── BABYBEL SAUER BANNER (verpasster 3× Babybel) ── */
 #sauer-banner {
   display: none;
   position: fixed;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
   z-index: 9400;
   text-align: center;
   pointer-events: none;
-  animation: sauerPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+  /* left/top werden per JS auf die Walze ohne Babybel gesetzt */
 }
-#sauer-banner.show { display: block; }
-@keyframes sauerPop {
-  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
-  70%  { transform: translate(-50%, -50%) scale(1.06); }
-  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+#sauer-banner.show {
+  display: block;
+  animation: sauerBurst 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+}
+@keyframes sauerBurst {
+  0%   { opacity: 0; transform: translate(-50%, 10%)  scale(0.15); }
+  60%  { opacity: 1; transform: translate(-50%, -86%) scale(1.12); }
+  100% { opacity: 1; transform: translate(-50%, -80%) scale(1); }
 }
 .sauer-img {
-  width: 180px; height: 180px;
+  width: 130px; height: 130px;
   object-fit: cover;
   border-radius: 50%;
   border: 4px solid var(--crimson);
   box-shadow: 0 0 30px rgba(184,40,72,0.7);
   display: block;
-  margin: 0 auto 10px;
+  margin: 0 auto 8px;
 }
 .sauer-msg {
   color: var(--crimson);
-  font-size: 1.1em;
+  font-size: 1.05em;
   font-weight: bold;
   font-style: italic;
   text-shadow: 0 0 12px rgba(184,40,72,0.8);
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.78);
   border-radius: 10px;
-  padding: 6px 14px;
+  padding: 5px 12px;
+  display: inline-block;
+}
+.sauer-sub {
+  margin-top: 5px;
+  color: #ff9aa6;
+  font-size: 0.74em;
+  font-family: Arial, sans-serif;
+  font-style: italic;
+  background: rgba(0,0,0,0.78);
+  border-radius: 8px;
+  padding: 4px 10px;
+  display: inline-block;
+  line-height: 1.35;
+}
+/* Pfeil der nach unten auf die schuldige Walze zeigt */
+.sauer-arrow {
+  margin: 2px auto 0;
+  font-size: 1.4em;
+  line-height: 1;
+  animation: sauerArrowBob 0.6s ease-in-out infinite alternate;
+}
+@keyframes sauerArrowBob {
+  from { transform: translateY(0); }
+  to   { transform: translateY(4px); }
+}
+/* Walze ohne Babybel blitzt rot auf */
+.reel.sauer-flash {
+  animation: sauerReelFlash 0.5s ease-in-out 4 !important;
+}
+@keyframes sauerReelFlash {
+  0%,100% { box-shadow: inset 0 0 40px rgba(0,0,0,0.9); }
+  50%     { box-shadow: 0 0 0 3px var(--crimson), 0 0 26px rgba(204,21,32,0.9); }
 }
 
 /* ── MITTELSAUER FULL OVERLAY (3× Babybel) ── */
@@ -2169,10 +2202,13 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
   </div>
 </div>
 
-<!-- Babybel Sauer Banner -->
-<div id="sauer-banner" onclick="document.getElementById('sauer-banner').classList.remove('show')">
+<!-- Babybel Sauer Banner (verpasster 3× Babybel — erscheint über der Walze ohne Babybel) -->
+<div id="sauer-banner">
   <img class="sauer-img" src="sauer.jpg" alt="Sauer">
   <div class="sauer-msg">Man bin ich sauer!</div>
+  <br>
+  <div class="sauer-sub">Diese Walze hat den 3× Babybel vermasselt! 🔴🔴❌</div>
+  <div class="sauer-arrow">🔻</div>
 </div>
 
 <!-- Mittelsauer Overlay (3× Babybel) -->
@@ -2849,8 +2885,11 @@ async function doSpin() {
   const babelCount = results.filter(r => r.id === 'babybel').length;
   if (win.comboId === 'babybel') {
     setTimeout(() => showMittelsauerOverlay(), 600);
-  } else if (babelCount >= 1 && win.amount === 0) {
-    setTimeout(() => showSauerBanner(), 400);
+  } else if (babelCount === 2) {
+    // Genau 2× Babybel — der 3er wurde knapp verpasst.
+    // Die Sauer-Animation kommt aus der Walze OHNE Babybel (die Schuldige).
+    const missIdx = results.findIndex(r => r.id !== 'babybel');
+    setTimeout(() => showSauerBanner(missIdx), 500);
   }
 
   // ── 3× Mimolette (auch via Wild) ──
@@ -3396,12 +3435,27 @@ function closeKaesebaer() {
 }
 
 // ── BABYBEL SAUER BANNER ──────────────────────────────────────
-function showSauerBanner() {
+//  reelIdx = Index der Walze OHNE Babybel; die Animation erscheint dort,
+//  damit klar wird dass diese Walze den 3× Babybel vermasselt hat.
+function showSauerBanner(reelIdx) {
   const banner = document.getElementById('sauer-banner');
+  const reel   = (typeof reelIdx === 'number') ? document.getElementById('reel-' + reelIdx) : null;
+  if (reel) {
+    const r = reel.getBoundingClientRect();
+    banner.style.left = (r.left + r.width / 2) + 'px';
+    banner.style.top  = (r.top  + r.height / 2) + 'px';
+    // Schuldige Walze rot aufblitzen lassen
+    reel.classList.add('sauer-flash');
+    setTimeout(() => reel.classList.remove('sauer-flash'), 2100);
+  } else {
+    // Fallback: Bildschirmmitte
+    banner.style.left = '50%';
+    banner.style.top  = '50%';
+  }
   banner.classList.remove('show');
   void banner.offsetWidth; // reflow to restart animation
   banner.classList.add('show');
-  setTimeout(() => { banner.classList.remove('show'); }, 1500);
+  setTimeout(() => { banner.classList.remove('show'); }, 3000);
 }
 
 // ── MITTELSAUER OVERLAY (3× Babybel) ─────────────────────────
