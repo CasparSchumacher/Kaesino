@@ -2845,25 +2845,26 @@ async function doSpin() {
   }
 
   // ── Babybel Reaktionen ──
+  //  comboId === 'babybel' deckt auch Wild-Kombos ab (z.B. 🥛 + 2× Babybel)
   const babelCount = results.filter(r => r.id === 'babybel').length;
-  if (babelCount === 3) {
+  if (win.comboId === 'babybel') {
     setTimeout(() => showMittelsauerOverlay(), 600);
   } else if (babelCount >= 1 && win.amount === 0) {
     setTimeout(() => showSauerBanner(), 400);
   }
 
-  // ── 3× Mimolette ──
-  if (results.every(r => r.id === 'mimolette')) {
+  // ── 3× Mimolette (auch via Wild) ──
+  if (win.comboId === 'mimolette') {
     setTimeout(() => showKaesegesichtOverlay(), 700);
   }
 
-  // ── 3× Emmentaler → Hexagon ──
-  if (results.every(r => r.id === 'emmental')) {
+  // ── 3× Emmentaler → Hexagon (auch via Wild) ──
+  if (win.comboId === 'emmental') {
     setTimeout(() => showHexagonOverlay(), 800);
   }
 
-  // ── 3× Parmigiano ──
-  if (results.every(r => r.id === 'parmesan')) {
+  // ── 3× Parmigiano (auch via Wild) ──
+  if (win.comboId === 'parmesan') {
     setTimeout(() => showParmiOverlay(win.amount), 900);
   }
 
@@ -3027,18 +3028,22 @@ function calcWin(results, betAmt) {
     winReels = [0,1,2]; amount = betAmt * wildCh.threeX;
     msg = `3× 🥛 Mozzarella Wild! (${wildCh.threeX}×)`;
     isWildWin = true;
-    return { amount, msg, winReels, isJackpot, isWild: true, triggerFreespins, triggerSenfbombe };
+    return { amount, msg, winReels, isJackpot, isWild: true, triggerFreespins, triggerSenfbombe, comboId: null };
   }
 
   // ── 2. 3er-Kombo (mit Wilds) ──
+  //  comboId = der effektiv erzielte Käse, damit Spezial-Animationen
+  //  (Hexagon, Senfbombe, Parmigiano …) auch mit Wild-Beteiligung auslösen.
   if (wildCount >= 1 && uniqueNonW.length === 1) {
     const base = CHEESES.find(c => c.id === uniqueNonW[0]);
     winReels = [0,1,2]; amount = betAmt * base.threeX;
     isJackpot = base.id === 'golden';
     isWildWin = true;
     triggerFreespins = !!base.freespins;
-    msg = `🥛 Mozzarella Wild + ${3-wildCount}× ${base.emoji} ${base.name}! (${base.threeX}×)`;
-    return { amount, msg, winReels, isJackpot, isWild: true, triggerFreespins, triggerSenfbombe };
+    triggerSenfbombe = !!base.senfbombe;
+    msg = base.senfbombe ? senfBombeMsg()
+        : `🥛 Mozzarella Wild + ${3-wildCount}× ${base.emoji} ${base.name}! (${base.threeX}×)`;
+    return { amount, msg, winReels, isJackpot, isWild: true, triggerFreespins, triggerSenfbombe, comboId: base.id };
   }
 
   // ── 3. Reine 3er-Kombo (kein Wild) ──
@@ -3052,7 +3057,7 @@ function calcWin(results, betAmt) {
       msg = a.senfbombe  ? senfBombeMsg()
           : a.freespins  ? `3× ${a.emoji} ${a.name}! FREE SPINS! 💙`
           : `3× ${a.emoji} ${a.name}! (${a.threeX}×)`;
-      return { amount, msg, winReels, isJackpot, isWild: false, triggerFreespins, triggerSenfbombe };
+      return { amount, msg, winReels, isJackpot, isWild: false, triggerFreespins, triggerSenfbombe, comboId: a.id };
     }
   }
 
@@ -3070,7 +3075,7 @@ function calcWin(results, betAmt) {
       amount   = betAmt * bestPartner.twoX;
       msg      = `🥛 Mozzarella Wild + ${bestPartner.emoji} ${bestPartner.name} Paar! (${bestPartner.twoX}×)`;
       isWildWin = true;
-      return { amount, msg, winReels, isJackpot, isWild: true, triggerFreespins, triggerSenfbombe };
+      return { amount, msg, winReels, isJackpot, isWild: true, triggerFreespins, triggerSenfbombe, comboId: null };
     }
   }
 
@@ -3085,17 +3090,17 @@ function calcWin(results, betAmt) {
     winReels = [0,2]; amount = betAmt * a.twoX;
     msg = a.id === 'senf' ? senfPairMsg() : `2× ${a.emoji} ${a.name}! (${a.twoX}×)`;
   }
-  if (amount > 0) return { amount, msg, winReels, isJackpot, isWild: false, triggerFreespins, triggerSenfbombe };
+  if (amount > 0) return { amount, msg, winReels, isJackpot, isWild: false, triggerFreespins, triggerSenfbombe, comboId: null };
 
   // ── 6. Einzel-Scatter: nur Golden Käse ──
   const gIdx = results.findIndex(r => r.id === 'golden');
   if (gIdx >= 0) {
     winReels = [gIdx]; amount = betAmt * 4;
     msg = '✨ Einzelner Golden Käse! (4×)';
-    return { amount, msg, winReels, isJackpot, isWild: false, triggerFreespins, triggerSenfbombe };
+    return { amount, msg, winReels, isJackpot, isWild: false, triggerFreespins, triggerSenfbombe, comboId: null };
   }
 
-  return { amount: 0, msg: '', winReels: [], isJackpot: false, isWild: false, triggerFreespins: false, triggerSenfbombe: false };
+  return { amount: 0, msg: '', winReels: [], isJackpot: false, isWild: false, triggerFreespins: false, triggerSenfbombe: false, comboId: null };
 }
 
 const spinMsgPool = [
