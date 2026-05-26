@@ -2728,6 +2728,12 @@ function getNextMonday(baseDate = new Date()) {
   return next;
 }
 
+function getPreviousWeekStart(baseDate = new Date()) {
+  const prev = getWeekResetDate(baseDate);
+  prev.setDate(prev.getDate() - 7);
+  return localDateKey(prev);
+}
+
 function getWeekLabel(weekStartStr) {
   const start = dateFromLocalKey(weekStartStr);
   const end   = new Date(start);
@@ -3640,8 +3646,17 @@ function archiveWeek(stored) {
   // Falls die abgelaufene Woche komplett leer war (kein Champion, kein Win),
   // den alten Vorwochen-Eintrag behalten statt zu überschreiben.
   if (!winner && !biggestWin) return stored.lastWeek || null;
-  const weekLabel  = stored.weekStart ? getWeekLabel(stored.weekStart) : '–';
-  return { weekLabel, winner, biggestWin };
+  const weekStart  = stored.weekStart || getPreviousWeekStart();
+  const weekLabel  = getWeekLabel(weekStart);
+  return { weekStart, weekLabel, winner, biggestWin };
+}
+
+function getPrevWinnerWeekLabel(lastWeek) {
+  const expectedWeekStart = getPreviousWeekStart();
+  const weekStart = lastWeek && lastWeek.weekStart ? lastWeek.weekStart : expectedWeekStart;
+  // Alte JSONBin-Daten hatten teilweise nur ein veraltetes weekLabel ohne weekStart.
+  // In dem Fall zeigen wir den Zeitraum der echten letzten abgeschlossenen Woche.
+  return getWeekLabel(weekStart === expectedWeekStart ? weekStart : expectedWeekStart);
 }
 
 function renderPrevWinner(lastWeek) {
@@ -3654,7 +3669,7 @@ function renderPrevWinner(lastWeek) {
     ? `<br>Größter Einzelgewinn: <span class="pw-name">${lastWeek.biggestWin.name}</span> — ${lastWeek.biggestWin.score}🪙`
     : '';
   content.innerHTML =
-    `${lastWeek.weekLabel}:<br>` +
+    `${getPrevWinnerWeekLabel(lastWeek)}:<br>` +
     `🥇 <span class="pw-name">${lastWeek.winner.name}</span> — ${lastWeek.winner.score}🪙` +
     bwLine;
 }
