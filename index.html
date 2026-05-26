@@ -1266,6 +1266,58 @@ body {
 }
 .kaesegesicht-btn:hover { transform: scale(1.04); }
 
+/* ── BRIE-SAND OVERLAY (3× Brie) ── */
+#briesand-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 9600;
+  background: rgba(0,0,0,0.84);
+  align-items: center; justify-content: center;
+  padding: 18px;
+}
+#briesand-overlay.show { display: flex; }
+.briesand-box {
+  background: linear-gradient(145deg, #191208, #2c210d);
+  border: 3px solid #f0d778;
+  border-radius: 24px;
+  padding: 26px 24px 22px;
+  max-width: min(90vw, 370px); width: 100%;
+  text-align: center;
+  box-shadow: 0 0 70px rgba(240,215,120,0.42);
+  animation: popIn 0.45s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+}
+.briesand-img {
+  width: min(260px, 70vw); height: min(340px, 68vh);
+  object-fit: cover;
+  object-position: center 32%;
+  border-radius: 18px;
+  border: 3px solid #f0d778;
+  margin: 0 auto 16px;
+  display: block;
+  box-shadow: 0 0 34px rgba(240,215,120,0.34), 0 12px 34px rgba(0,0,0,0.78);
+}
+.briesand-msg {
+  font-size: 1.7em;
+  color: #ffeaa0;
+  font-weight: bold;
+  font-style: italic;
+  letter-spacing: 1px;
+  margin-bottom: 18px;
+  text-shadow: 0 0 16px rgba(240,215,120,0.58);
+}
+.briesand-btn {
+  background: linear-gradient(135deg, #f0d778, #b6862f);
+  color: #1a1000;
+  border: none;
+  padding: 11px 28px;
+  border-radius: 12px;
+  font-size: 0.95em;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: Georgia, serif;
+  transition: transform 0.15s;
+}
+.briesand-btn:hover { transform: scale(1.04); }
+
 /* ── OLIGARCHENGEDECK OVERLAY ── */
 #oligarchengedeck-overlay { z-index: 9998; }
 .og-outer {
@@ -2229,6 +2281,15 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
   </div>
 </div>
 
+<!-- Brie-sand Overlay (3× Brie) -->
+<div id="briesand-overlay">
+  <div class="briesand-box">
+    <img class="briesand-img" src="briesand.jpg" alt="Brie-sand">
+    <div class="briesand-msg">Brie-sand!</div>
+    <button class="briesand-btn" onclick="closeBriesand()">Sand wegklopfen 🫕</button>
+  </div>
+</div>
+
 <!-- Krawatte Banner -->
 <div id="krawatte-banner">
   <div class="kr-tie">👔</div>
@@ -2978,6 +3039,11 @@ async function doSpin() {
     setTimeout(() => showKaesegesichtOverlay(), 700);
   }
 
+  // ── 3× Brie (auch via Wild) ──
+  if (win.comboId === 'brie') {
+    setTimeout(() => showBriesandOverlay(), 750);
+  }
+
   // ── 3× Emmentaler → Hexagon (auch via Wild) ──
   if (win.comboId === 'emmental') {
     setTimeout(() => showHexagonOverlay(), 800);
@@ -3555,6 +3621,16 @@ function showKaesegesichtOverlay() {
 }
 function closeKaesegesicht() {
   document.getElementById('kaesegesicht-overlay').classList.remove('show');
+}
+
+// ── BRIE-SAND OVERLAY (3× Brie) ──────────────────────────────
+function showBriesandOverlay() {
+  document.getElementById('briesand-overlay').classList.add('show');
+  startConfetti(45);
+}
+function closeBriesand() {
+  document.getElementById('briesand-overlay').classList.remove('show');
+  stopConfetti();
 }
 
 // ── VORWOCHE CHAMPION ─────────────────────────────────────────
