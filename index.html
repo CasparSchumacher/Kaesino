@@ -2631,58 +2631,89 @@ const ITEM_H   = () => window.innerWidth <= 480 ? 72 : 90;
 const PRE_SPIN = 25;
 
 // ── WOCHENSYSTEM ────────────────────────────────────────────
-function getWeekStart() {
-  const now = new Date();
+// Neue Wettbewerbswoche: Montag 00:01 in lokaler Browserzeit.
+// Wichtig: Keine ISO/UTC-Datumskeys verwenden, sonst kippt Deutschland
+// montags kurz nach Mitternacht noch auf den UTC-Sonntag.
+const WEEK_RESET_DAY    = 1; // Montag
+const WEEK_RESET_HOUR   = 0;
+const WEEK_RESET_MINUTE = 1;
+let activeWeekStart     = null;
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+function localDateKey(date) {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+function dateFromLocalKey(key) {
+  const [y, m, d] = String(key || '').split('-').map(Number);
+  return new Date(y || 1970, (m || 1) - 1, d || 1, 0, 0, 0, 0);
+}
+function getWeekResetDate(baseDate = new Date()) {
+  const now = new Date(baseDate);
   const day = now.getDay(); // 0=So, 1=Mo, …
-  const diff = day === 0 ? -6 : 1 - day; // zurück zu Montag
-  const monday = new Date(now);
-  monday.setDate(now.getDate() + diff);
-  monday.setHours(0, 0, 0, 0);
-  return monday.toISOString().split('T')[0]; // "2026-04-22"
+  const diff = day === 0 ? WEEK_RESET_DAY - 7 : WEEK_RESET_DAY - day; // zurück zum Wochenstart
+  const reset = new Date(now);
+  reset.setDate(now.getDate() + diff);
+  reset.setHours(WEEK_RESET_HOUR, WEEK_RESET_MINUTE, 0, 0);
+  if (now < reset) reset.setDate(reset.getDate() - 7);
+  return reset;
+}
+function getWeekStart(baseDate = new Date()) {
+  return localDateKey(getWeekResetDate(baseDate));
 }
 
-function getNextMonday() {
-  const now = new Date();
-  const day = now.getDay();
-  const daysUntil = day === 1 ? 7 : (8 - day) % 7;
-  const next = new Date(now);
-  next.setDate(now.getDate() + daysUntil);
-  next.setHours(23, 59, 59, 0);
+function getNextMonday(baseDate = new Date()) {
+  const next = new Date(getWeekResetDate(baseDate));
+  next.setDate(next.getDate() + 7);
   return next;
 }
 
 function getWeekLabel(weekStartStr) {
-  const start = new Date(weekStartStr);
+  const start = dateFromLocalKey(weekStartStr);
   const end   = new Date(start);
   end.setDate(start.getDate() + 6);
   const fmt = { day: 'numeric', month: 'long' };
   return start.toLocaleDateString('de-DE', fmt) + ' – ' + end.toLocaleDateString('de-DE', fmt);
 }
+activeWeekStart = getWeekStart();
 
 // ── SPIELSTAND PRO NAME (wochenweise gespeichert) ────────────
-//  Speichert den höchsten Guthaben-Stand pro Spielername in localStorage,
+//  Speichert den aktuellen Guthaben-Stand pro Spielername in localStorage,
 //  gebunden an die aktuelle Woche. Loggt man sich innerhalb derselben Woche
 //  mit gleichem Namen wieder ein, wird dieser Stand wiederhergestellt.
 //  Ab Montag (neue Woche) startet jeder wieder bei 100.
-function loadPlayerProgress(name) {
+function purgePlayerProgressForCurrentWeek() {
   try {
+    const currentWeek = getWeekStart();
+    const all = JSON.parse(localStorage.getItem('kaesino_progress') || '{}');
+    Object.keys(all).forEach(name => {
+      if (!all[name] || all[name].week !== currentWeek) delete all[name];
+    });
+    localStorage.setItem('kaesino_progress', JSON.stringify(all));
+  } catch (e) {}
+}
+function getStoredPlayerProgress(name) {
+  try {
+    purgePlayerProgressForCurrentWeek();
     const all   = JSON.parse(localStorage.getItem('kaesino_progress') || '{}');
     const entry = all[name];
     if (entry && entry.week === getWeekStart() && typeof entry.credits === 'number') {
-      return entry.credits;
+      return entry;
     }
   } catch (e) {}
   return null;
 }
+function loadPlayerProgress(name) {
+  const entry = getStoredPlayerProgress(name);
+  return entry ? entry.credits : null;
+}
 function savePlayerProgress() {
   if (!playerName) return;
   try {
+    purgePlayerProgressForCurrentWeek();
     const all  = JSON.parse(localStorage.getItem('kaesino_progress') || '{}');
     const week = getWeekStart();
-    const prev = all[playerName];
-    const prevBest = (prev && prev.week === week) ? (prev.credits || 0) : 0;
-    // Höchststand der Woche behalten
-    all[playerName] = { week, credits: Math.max(prevBest, credits) };
+    // Spielstand = aktueller Stand, nicht Wochen-Höchststand.
+    all[playerName] = { week, credits: Math.max(0, credits), updatedAt: Date.now() };
     localStorage.setItem('kaesino_progress', JSON.stringify(all));
   } catch (e) {}
 }
@@ -2697,6 +2728,7 @@ function clearPlayerProgress() {
 
 // ── COUNTDOWN ───────────────────────────────────────────────
 function updateCountdown() {
+  handleWeekBoundaryIfNeeded();
   const el = document.getElementById('countdown');
   if (!el) return;
   const deadline = getNextMonday();
@@ -2730,9 +2762,12 @@ function startGame() {
   playerName = 'Käse-' + suffix;
   localStorage.setItem('kaesino_player', playerName);
   document.getElementById('player-display').textContent = playerName;
-  // Spielstand dieser Woche wiederherstellen (gleicher Name → alter Höchststand)
+  // Spielstand dieser Woche wiederherstellen (gleicher Name → aktueller alter Stand)
   const savedCredits = loadPlayerProgress(playerName);
-  if (savedCredits !== null) credits = Math.max(credits, savedCredits);
+  if (savedCredits !== null) {
+    credits = Math.max(0, savedCredits);
+    if (credits < bet) bet = Math.max(1, Math.min(bet, credits || 1));
+  }
   document.getElementById('name-screen').style.display  = 'none';
   document.getElementById('game-screen').style.display  = 'flex';
   initGame();
@@ -2752,7 +2787,10 @@ function initGame() {
   updateCountdown();
   // Beim Start: erst localStorage zeigen (sofort), dann Server laden (1 API-Read)
   loadLeaderboard().then(lb => { renderLeaderboard(lb); if (lb.lastWeek) renderPrevWinner(lb.lastWeek); });
-  fetchFromServer();
+  fetchFromServer().then(() => {
+    // Login zählt für die aktuelle Wochenrangliste, auch bevor der erste Spin passiert.
+    updateLeaderboard(playerName, credits, 0);
+  });
   if (sessionStorage.getItem('ig_credited')) {
     const btn = document.getElementById('ig-btn');
     btn.textContent = '✅ Coins erhalten!';
@@ -3662,6 +3700,26 @@ let lbLastSave      = 0;
 const LB_WRITE_DEBOUNCE = 20000;  // 20 Sekunden zwischen JSONBin-Writes
 const LB_READ_INTERVAL  = 300000; // 5 Minuten zwischen JSONBin-Reads
 
+function createEmptyLeaderboard(weekStart = getWeekStart(), lastWeek = null, resetEpoch = '') {
+  return { weekStart, resetEpoch, coins: [], wins: [], lastWeek };
+}
+
+function normalizeLeaderboard(raw) {
+  const currentWeek = getWeekStart();
+  if (!raw || typeof raw !== 'object') return createEmptyLeaderboard(currentWeek);
+  if (raw.weekStart !== currentWeek) {
+    const lastWeek = raw.lastWeek || (raw.weekStart ? archiveWeek(raw) : null);
+    return createEmptyLeaderboard(currentWeek, lastWeek, raw.resetEpoch || '');
+  }
+  return {
+    weekStart:  currentWeek,
+    resetEpoch: raw.resetEpoch || '',
+    coins:      Array.isArray(raw.coins) ? raw.coins : [],
+    wins:       Array.isArray(raw.wins)  ? raw.wins  : [],
+    lastWeek:   raw.lastWeek || null
+  };
+}
+
 // Merge-Funktion: nimmt immer den höchsten Score pro Spieler
 function mergeLists(local, server) {
   const map = {};
@@ -3686,26 +3744,25 @@ async function fetchFromServer() {
       const localEpoch  = localStorage.getItem('kaesino_lb_resetEpoch') || '';
       const serverEpoch = stored.resetEpoch || '';
 
-      if (serverEpoch && serverEpoch !== localEpoch) {
+      if (stored.weekStart && stored.weekStart !== currentWeek) {
+        // Neue Woche — Vorwoche archivieren und Ranglisten/Spieler für die neue Woche leeren.
+        const lastWeek   = archiveWeek(stored);
+        const resetEpoch = `${currentWeek}-${Date.now()}`;
+        lbCache = createEmptyLeaderboard(currentWeek, lastWeek, resetEpoch);
+        localStorage.setItem('kaesino_lb_resetEpoch', resetEpoch);
+        myBestCoins = 0;
+        myBestWin   = 0;
+        saveToServer(lbCache);
+      } else if (serverEpoch && serverEpoch !== localEpoch) {
         // Server wurde explizit zurückgesetzt — lokalen Cache komplett verwerfen
-        lbCache = {
-          weekStart:  currentWeek,
-          resetEpoch: serverEpoch,
-          coins:      stored.coins || [],
-          wins:       stored.wins  || [],
-          lastWeek:   stored.lastWeek || null
-        };
+        lbCache = normalizeLeaderboard(stored);
+        lbCache.resetEpoch = serverEpoch;
         localStorage.setItem('kaesino_lb_resetEpoch', serverEpoch);
         myBestCoins = 0;
         myBestWin   = 0;
-      } else if (stored.weekStart && stored.weekStart !== currentWeek) {
-        // Neue Woche — Vorwoche archivieren und Reset
-        const lastWeek = archiveWeek(stored);
-        lbCache = { weekStart: currentWeek, resetEpoch: serverEpoch, coins: [], wins: [], lastWeek };
-        saveToServer(lbCache);
       } else {
         // Merge: Server + lokaler Cache — bester Score gewinnt
-        const local = lbCache;
+        const local = normalizeLeaderboard(lbCache);
         lbCache = {
           weekStart:  currentWeek,
           resetEpoch: serverEpoch || local.resetEpoch,
@@ -3722,6 +3779,7 @@ async function fetchFromServer() {
       if (lbCache.lastWeek) renderPrevWinner(lbCache.lastWeek);
     }
   } catch(e) {}
+  return lbCache;
 }
 
 async function saveToServer(data) {
@@ -3738,11 +3796,40 @@ async function saveToServer(data) {
 // Rangliste laden — gibt immer sofort den Cache zurück, KEIN API-Call
 function loadLeaderboard() {
   if (!lbCacheReady) {
-    // Fallback: localStorage (bereits beim Start befüllt)
-    lbCache      = JSON.parse(localStorage.getItem('kaesino_lb') || '{"coins":[],"wins":[]}');
+    // Fallback: localStorage, aber niemals alte Wochenranglisten anzeigen.
+    lbCache      = normalizeLeaderboard(JSON.parse(localStorage.getItem('kaesino_lb') || '{}'));
     lbCacheReady = true;
+    localStorage.setItem('kaesino_lb', JSON.stringify(lbCache));
   }
   return Promise.resolve(lbCache);
+}
+
+function handleWeekBoundaryIfNeeded() {
+  const currentWeek = getWeekStart();
+  if (currentWeek === activeWeekStart) return;
+  if (spinning || freespinPending || schimmelPending) return;
+
+  const previousCache = normalizeLeaderboard(lbCache);
+  activeWeekStart = currentWeek;
+  purgePlayerProgressForCurrentWeek();
+  myBestCoins = 0;
+  myBestWin   = 0;
+
+  const lastWeek = previousCache.lastWeek || archiveWeek(previousCache);
+  lbCache = createEmptyLeaderboard(currentWeek, lastWeek, previousCache.resetEpoch || '');
+  lbCacheReady = true;
+  localStorage.setItem('kaesino_lb', JSON.stringify(lbCache));
+  renderLeaderboard(lbCache);
+  if (lbCache.lastWeek) renderPrevWinner(lbCache.lastWeek);
+
+  if (playerName) {
+    credits = 100;
+    bet = Math.min(bet, credits);
+    savePlayerProgress();
+    refreshUI();
+    setResult('🕛 Neue Käsino-Woche! Alle Spielstände wurden zurückgesetzt.', 'win');
+    fetchFromServer().then(() => updateLeaderboard(playerName, credits, 0));
+  }
 }
 
 // Persönliche Bestwerte (verhindert unnötige API-Writes)
@@ -3750,6 +3837,7 @@ let myBestCoins = 0;
 let myBestWin   = 0;
 
 async function updateLeaderboard(name, totalCoins, singleWin) {
+  lbCache = normalizeLeaderboard(lbCache);
   const lb = lbCache; // Direkt aus Memory — kein API-Call!
 
   // Prüfen ob sich überhaupt etwas verbessert hat
