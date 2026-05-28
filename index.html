@@ -2692,12 +2692,13 @@ const ITEM_H   = () => window.innerWidth <= 480 ? 72 : 90;
 const PRE_SPIN = 25;
 
 // ── WOCHENSYSTEM ────────────────────────────────────────────
-// Neue Wettbewerbswoche: Montag 00:01 in lokaler Browserzeit.
+// Neue Wettbewerbswoche: Montag 00:00 in lokaler Browserzeit,
+// also direkt nach Sonntag 23:59.
 // Wichtig: Keine ISO/UTC-Datumskeys verwenden, sonst kippt Deutschland
 // montags kurz nach Mitternacht noch auf den UTC-Sonntag.
 const WEEK_RESET_DAY    = 1; // Montag
 const WEEK_RESET_HOUR   = 0;
-const WEEK_RESET_MINUTE = 1;
+const WEEK_RESET_MINUTE = 0;
 let activeWeekStart     = null;
 
 function pad2(n) { return String(n).padStart(2, '0'); }
@@ -3660,10 +3661,16 @@ function getPrevWinnerWeekLabel(lastWeek) {
 }
 
 function renderPrevWinner(lastWeek) {
-  if (!lastWeek || !lastWeek.winner) return;
   const box     = document.getElementById('prev-winner-box');
   const content = document.getElementById('pw-content');
   if (!box || !content) return;
+  const expectedWeekStart = getPreviousWeekStart();
+  const isExpectedWeek = !lastWeek || !lastWeek.weekStart || lastWeek.weekStart === expectedWeekStart;
+  if (!lastWeek || !lastWeek.winner || !isExpectedWeek) {
+    box.style.display = 'none';
+    content.innerHTML = '';
+    return;
+  }
   box.style.display = 'block';
   const bwLine = lastWeek.biggestWin
     ? `<br>Größter Einzelgewinn: <span class="pw-name">${lastWeek.biggestWin.name}</span> — ${lastWeek.biggestWin.score}🪙`

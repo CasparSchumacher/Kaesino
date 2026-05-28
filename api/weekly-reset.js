@@ -1,6 +1,7 @@
 const JSONBIN_ID = process.env.JSONBIN_ID || '69cbba8a36566621a8666740';
 const JSONBIN_KEY = process.env.JSONBIN_KEY || '$2a$10$Ifh/yVZlwBLUEp.JGfHjP.rKvwM8jLgooR8qfQxw/xpjzmlhd1fcO';
 const API_BASE = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
+const WEEK_RESET_MINUTE = 0;
 
 function berlinParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -42,7 +43,7 @@ function getWeekStart(date = new Date()) {
   const day = new Date(currentDayMs).getUTCDay();
   const diff = day === 0 ? -6 : 1 - day;
   let mondayMs = currentDayMs + diff * 86400000;
-  if (day === 1 && p.hour === 0 && p.minute < 1) mondayMs -= 7 * 86400000;
+  if (day === 1 && p.hour === 0 && p.minute < WEEK_RESET_MINUTE) mondayMs -= 7 * 86400000;
   return keyFromUtcMs(mondayMs);
 }
 

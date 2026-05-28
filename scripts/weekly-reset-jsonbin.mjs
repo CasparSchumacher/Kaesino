@@ -4,6 +4,7 @@ const INDEX_HTML = fs.readFileSync('index.html', 'utf8');
 const JSONBIN_ID = process.env.JSONBIN_ID || readConst('JSONBIN_ID');
 const JSONBIN_KEY = process.env.JSONBIN_KEY || readConst('JSONBIN_KEY');
 const API_BASE = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
+const WEEK_RESET_MINUTE = 0;
 
 function readConst(name) {
   const match = INDEX_HTML.match(new RegExp(`const\\s+${name}\\s*=\\s*'([^']+)'`));
@@ -50,7 +51,7 @@ function getWeekStart(date = new Date()) {
   const day = new Date(currentDayMs).getUTCDay();
   const diff = day === 0 ? -6 : 1 - day;
   let mondayMs = currentDayMs + diff * 86400000;
-  if (day === 1 && (p.hour === 0 && p.minute < 1)) mondayMs -= 7 * 86400000;
+  if (day === 1 && p.hour === 0 && p.minute < WEEK_RESET_MINUTE) mondayMs -= 7 * 86400000;
   return keyFromUtcMs(mondayMs);
 }
 
