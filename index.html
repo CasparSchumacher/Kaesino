@@ -3653,20 +3653,17 @@ function archiveWeek(stored) {
 }
 
 function getPrevWinnerWeekLabel(lastWeek) {
-  const expectedWeekStart = getPreviousWeekStart();
-  const weekStart = lastWeek && lastWeek.weekStart ? lastWeek.weekStart : expectedWeekStart;
-  // Alte JSONBin-Daten hatten teilweise nur ein veraltetes weekLabel ohne weekStart.
-  // In dem Fall zeigen wir den Zeitraum der echten letzten abgeschlossenen Woche.
-  return getWeekLabel(weekStart === expectedWeekStart ? weekStart : expectedWeekStart);
+  // Der angezeigte Zeitraum ist immer die letzte abgeschlossene Kalenderwoche.
+  // Gespeicherte Labels aus JSONBin werden bewusst ignoriert, weil alte Daten
+  // dort mehrfach falsche/future Week-Labels enthielten.
+  return getWeekLabel(getPreviousWeekStart());
 }
 
 function renderPrevWinner(lastWeek) {
   const box     = document.getElementById('prev-winner-box');
   const content = document.getElementById('pw-content');
   if (!box || !content) return;
-  const expectedWeekStart = getPreviousWeekStart();
-  const isExpectedWeek = !lastWeek || !lastWeek.weekStart || lastWeek.weekStart === expectedWeekStart;
-  if (!lastWeek || !lastWeek.winner || !isExpectedWeek) {
+  if (!lastWeek || !lastWeek.winner) {
     box.style.display = 'none';
     content.innerHTML = '';
     return;
