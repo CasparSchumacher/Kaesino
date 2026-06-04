@@ -2349,7 +2349,7 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
 <!-- Cheddar Nice Video -->
 <div id="cheddar-overlay">
   <div class="cheddar-box">
-    <video class="cheddar-video" id="cheddar-video" controls playsinline preload="metadata">
+    <video class="cheddar-video" id="cheddar-video" autoplay muted playsinline loop preload="none">
       <source src="nice.mov" type="video/quicktime">
       Dein Browser kann das Cheddar-Video nicht abspielen. <a href="nice.mov">nice.mov öffnen</a>
     </video>
@@ -3921,9 +3921,9 @@ function showCheddarOverlay() {
     cheddarResumeMusic = bgMusic && !musicMuted && !bgMusic.paused;
     if (cheddarResumeMusic) bgMusic.pause();
     video.load();
-    video.currentTime = 0;
-    video.muted = false;
-    video.volume = 1;
+    try { video.currentTime = 0; } catch(e) {}
+    video.muted = true;
+    video.volume = 0;
     video.play().catch(() => {});
   } catch(e) {}
 }
@@ -3934,6 +3934,7 @@ function closeCheddar() {
   try {
     video.pause();
     video.currentTime = 0;
+    video.muted = true;
     if (cheddarResumeMusic && bgMusic && !musicMuted) bgMusic.play().catch(() => {});
     cheddarResumeMusic = false;
   } catch(e) {}
