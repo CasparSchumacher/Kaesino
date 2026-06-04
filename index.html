@@ -880,7 +880,7 @@ body {
 /* ── CHEDDAR NICE VIDEO OVERLAY ── */
 #cheddar-overlay {
   display: none;
-  position: fixed; inset: 0; z-index: 9610;
+  position: fixed; inset: 0; z-index: 10060;
   background: rgba(0,0,0,0.9);
   align-items: center; justify-content: center;
   padding: 18px;
@@ -3324,6 +3324,7 @@ async function doSpin() {
 
   spinning = false;
   spinBtn.disabled = false;
+  setTimeout(triggerVisibleWinAnimations, 120);
 
   if (autoOn && !freespinPending) {
     autoSpinCount++;
@@ -3637,6 +3638,16 @@ function isJackpotResultText(text) {
   return typeof text === 'string' && text.includes('J A C K P O T');
 }
 
+function triggerVisibleWinAnimations() {
+  const text = document.getElementById('result-bar')?.textContent || '';
+  if (isCheddarResultText(text)) {
+    queueCheddarOverlay(0);
+  }
+  if (isJackpotResultText(text)) {
+    queueJackpotOverlay(null, 0);
+  }
+}
+
 function setResult(text, cls) {
   const el = document.getElementById('result-bar');
   el.textContent = text;
@@ -3887,7 +3898,14 @@ function queueCheddarOverlay(delay = 700) {
   cheddarOverlayQueued = true;
   setTimeout(() => {
     cheddarOverlayQueued = false;
-    showCheddarOverlay();
+    try {
+      if (overlay) {
+        overlay.classList.add('show');
+        overlay.style.display = 'flex';
+        overlay.style.zIndex = '10060';
+      }
+      showCheddarOverlay();
+    } catch(e) {}
   }, delay);
 }
 
@@ -3895,7 +3913,10 @@ function showCheddarOverlay() {
   const overlay = document.getElementById('cheddar-overlay');
   const video   = document.getElementById('cheddar-video');
   const bgMusic = document.getElementById('bg-music');
+  if (!overlay || !video) return;
   overlay.classList.add('show');
+  overlay.style.display = 'flex';
+  overlay.style.zIndex = '10060';
   try {
     cheddarResumeMusic = bgMusic && !musicMuted && !bgMusic.paused;
     if (cheddarResumeMusic) bgMusic.pause();
@@ -3917,6 +3938,8 @@ function closeCheddar() {
     cheddarResumeMusic = false;
   } catch(e) {}
   overlay.classList.remove('show');
+  overlay.style.display = '';
+  overlay.style.zIndex = '';
   notifyOverlayClosed();
 }
 
@@ -4006,16 +4029,27 @@ function queueJackpotOverlay(win, delay = 600) {
   jackpotOverlayQueued = true;
   setTimeout(() => {
     jackpotOverlayQueued = false;
-    showJackpotOverlay(win || { amount: displayedWinAmount() });
+    try {
+      if (overlay) {
+        overlay.classList.add('show');
+        overlay.style.display = 'flex';
+        overlay.style.zIndex = '10020';
+      }
+      showJackpotOverlay(win || { amount: displayedWinAmount() });
+    } catch(e) {}
   }, delay);
 }
 
 function showJackpotOverlay(win) {
+  const overlay = document.getElementById('jackpot-overlay');
+  if (!overlay) return;
   document.getElementById('jackpot-phase-walhalla').classList.add('show');
   document.getElementById('jackpot-phase-gedeck').classList.remove('show');
   document.getElementById('jk-amount').textContent = `+${win.amount} 🪙`;
   document.getElementById('jk-msg').textContent    = jackpotMsgs[Math.floor(Math.random() * jackpotMsgs.length)];
-  document.getElementById('jackpot-overlay').classList.add('show');
+  overlay.classList.add('show');
+  overlay.style.display = 'flex';
+  overlay.style.zIndex = '10020';
   playWalhallaRefrain();
   playWinSound(true);
 }
@@ -4026,7 +4060,10 @@ function advanceJackpot() {
   playWinSound(true);
 }
 function closeJackpot() {
-  document.getElementById('jackpot-overlay').classList.remove('show');
+  const overlay = document.getElementById('jackpot-overlay');
+  overlay.classList.remove('show');
+  overlay.style.display = '';
+  overlay.style.zIndex = '';
   stopWalhallaRefrain(true);
   stopConfetti();
   notifyOverlayClosed();
