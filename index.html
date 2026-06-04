@@ -760,27 +760,115 @@ body {
 }
 .overlay-bg.show { display: flex; }
 
-/* ── JACKPOT OVERLAY ── */
+/* ── EPIC JACKPOT OVERLAY ── */
+#jackpot-overlay {
+  z-index: 10020;
+  padding: 0;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255,215,0,0.34), transparent 28%),
+    rgba(2,3,12,0.96);
+}
 .jackpot-box {
-  background: linear-gradient(160deg, #18082a, #0c0418);
+  position: relative;
+  width: min(96vw, 760px);
+  max-height: 94vh;
+  overflow: hidden;
   border: 3px solid var(--gold);
-  border-radius: 22px;
-  padding: 42px 36px;
+  border-radius: 20px;
+  background: #05040a;
   text-align: center;
-  max-width: 92vw;
-  box-shadow: 0 0 60px rgba(255,215,0,0.5);
-  animation: popIn 0.55s cubic-bezier(0.175,0.885,0.32,1.275);
+  box-shadow: 0 0 100px rgba(255,215,0,0.72), 0 0 180px rgba(184,40,72,0.32);
+  animation: jackpotAscend 0.7s cubic-bezier(0.175,0.885,0.32,1.275);
 }
 @keyframes popIn {
   from { transform: scale(0.4); opacity: 0; }
   to   { transform: scale(1);   opacity: 1; }
 }
-.jk-stars  { font-size: 2.5em; animation: starSpin 1.5s linear infinite; display: inline-block; margin-bottom: 6px; }
+@keyframes jackpotAscend {
+  from { transform: scale(0.62) translateY(50px); opacity: 0; filter: saturate(0.4); }
+  to   { transform: scale(1) translateY(0); opacity: 1; filter: saturate(1.2); }
+}
 @keyframes starSpin { to { transform: rotate(360deg); } }
-.jk-title  { font-size: 2.6em; color: var(--gold); margin-bottom: 8px; letter-spacing: 2px; }
-.jk-emojis { font-size: 2.8em; margin-bottom: 10px; }
-.jk-amount { font-size: 2.3em; color: #fff; font-family: 'Courier New'; margin-bottom: 6px; }
-.jk-msg    { color: rgba(180,190,230,0.65); font-style: italic; margin-bottom: 20px; font-size: 0.95em; }
+.jackpot-phase { display: none; }
+.jackpot-phase.show { display: block; }
+.jk-hero {
+  position: relative;
+  min-height: min(72vh, 640px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+}
+.jk-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  filter: saturate(1.15) contrast(1.05);
+}
+.jk-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.46) 38%, rgba(0,0,0,0.08) 70%),
+    radial-gradient(circle at 50% 16%, rgba(255,215,0,0.28), transparent 34%);
+}
+.jk-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 34px 24px 30px;
+}
+.jk-stars  { font-size: 2.2em; animation: starSpin 1.5s linear infinite; display: inline-block; margin-bottom: 8px; }
+.jk-title  {
+  font-size: clamp(2em, 8vw, 4.8em);
+  color: var(--gold);
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 20px rgba(255,215,0,0.9), 0 0 70px rgba(255,140,0,0.42);
+}
+.jk-amount { font-size: clamp(1.5em, 5vw, 2.7em); color: #fff; font-family: 'Courier New'; margin-bottom: 8px; }
+.jk-msg {
+  color: rgba(255,240,170,0.92);
+  font-size: clamp(1em, 3vw, 1.35em);
+  font-style: italic;
+  line-height: 1.35;
+  max-width: 560px;
+  margin: 0 auto 20px;
+}
+.jk-og-card {
+  padding: 24px 22px 26px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,215,0,0.18), transparent 36%),
+    linear-gradient(160deg, #120814, #05040a 64%);
+}
+.jk-og-img {
+  display: block;
+  width: min(100%, 520px);
+  max-height: 48vh;
+  object-fit: contain;
+  border-radius: 16px;
+  border: 2px solid rgba(255,215,0,0.62);
+  margin: 0 auto 18px;
+  box-shadow: 0 14px 45px rgba(0,0,0,0.78), 0 0 36px rgba(255,215,0,0.26);
+}
+.jk-og-title {
+  font-size: clamp(1.55em, 5vw, 2.5em);
+  color: var(--gold);
+  margin-bottom: 10px;
+  text-shadow: 0 0 18px rgba(255,215,0,0.55);
+}
+.jk-og-msg {
+  color: rgba(230,235,255,0.82);
+  font-family: Arial, sans-serif;
+  font-size: 0.96em;
+  line-height: 1.55;
+  max-width: 540px;
+  margin: 0 auto 20px;
+}
 .jk-close  {
   background: linear-gradient(135deg, var(--gold), var(--gold2));
   color: #000; border: none; padding: 13px 32px;
@@ -788,6 +876,55 @@ body {
   cursor: pointer; font-family: 'Georgia', serif; transition: transform 0.15s;
 }
 .jk-close:hover { transform: scale(1.05); }
+
+/* ── CHEDDAR NICE VIDEO OVERLAY ── */
+#cheddar-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 9610;
+  background: rgba(0,0,0,0.9);
+  align-items: center; justify-content: center;
+  padding: 18px;
+}
+#cheddar-overlay.show { display: flex; }
+.cheddar-box {
+  width: min(94vw, 520px);
+  background: linear-gradient(145deg, #1f1000, #3a1c00);
+  border: 3px solid #ff9a20;
+  border-radius: 22px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 0 70px rgba(255,140,0,0.45);
+  animation: popIn 0.45s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+}
+.cheddar-video {
+  width: 100%;
+  max-height: 68vh;
+  border-radius: 15px;
+  background: #000;
+  display: block;
+  margin-bottom: 14px;
+  box-shadow: 0 12px 34px rgba(0,0,0,0.72);
+}
+.cheddar-title {
+  font-size: 1.8em;
+  color: #ffcf70;
+  font-style: italic;
+  margin-bottom: 14px;
+  text-shadow: 0 0 16px rgba(255,140,0,0.62);
+}
+.cheddar-close {
+  background: linear-gradient(135deg, #ffb13b, #d66a00);
+  color: #1b0b00;
+  border: none;
+  padding: 11px 28px;
+  border-radius: 12px;
+  font-size: 0.95em;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: Georgia, serif;
+  transition: transform 0.15s;
+}
+.cheddar-close:hover { transform: scale(1.04); }
 
 /* ── FREE SPINS START OVERLAY ── */
 #freespin-start-overlay { z-index: 9994; }
@@ -987,7 +1124,7 @@ body {
 .sound-btn.muted { border-color: rgba(90,104,152,0.25); opacity: 0.5; }
 
 /* ── CONFETTI ── */
-#confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 10000; display: none; }
+#confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 10050; display: none; }
 
 /* ── NEAR-MISS TEASER ── */
 .near-miss-banner {
@@ -1984,9 +2121,9 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
   .spin-btn { padding: 20px; font-size: 1.35em; letter-spacing: 2px; min-height: 64px; }
   .extras { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
   .extra-btn { padding: 10px 8px; font-size: 0.78em; min-height: 44px; text-align: center; }
-  .jackpot-box { padding: 28px 20px; }
-  .jk-title { font-size: 2em; }
-  .jk-amount { font-size: 1.9em; }
+  .jackpot-box { width: min(96vw, 760px); border-radius: 16px; }
+  .jk-content { padding: 28px 18px 24px; }
+  .jk-og-card { padding: 20px 16px 22px; }
   .jk-close { width: 100%; padding: 14px; }
   .paytable-grid { grid-template-columns: 1fr; }
   .lb-tables { grid-template-columns: 1fr; }
@@ -2001,6 +2138,8 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
 
 <!-- Hintergrundmusik — Datei als "musik.m4a" in denselben Ordner legen -->
 <audio id="bg-music" src="musik.m4a" loop preload="auto"></audio>
+<!-- Optionaler Jackpot-Refrain — Datei als "walhalla-refrain.mp3" in denselben Ordner legen -->
+<audio id="walhalla-audio" preload="none"></audio>
 
 <!-- Floating Sound-Buttons: SFX links, Musik rechts -->
 <div class="float-sound-btns" id="float-sound-btns">
@@ -2181,12 +2320,41 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
 <!-- Jackpot -->
 <div class="overlay-bg" id="jackpot-overlay">
   <div class="jackpot-box">
-    <div class="jk-stars">⭐</div>
-    <div class="jk-title">🧀 JACKPOT! 🧀</div>
-    <div class="jk-emojis">🌟🌟🌟</div>
-    <div class="jk-amount" id="jk-amount"></div>
-    <div class="jk-msg"    id="jk-msg"></div>
-    <button class="jk-close" onclick="closeJackpot()">ABRÄUMEN! 💰</button>
+    <div class="jackpot-phase show" id="jackpot-phase-walhalla">
+      <div class="jk-hero">
+        <img class="jk-hero-img" src="walhalla.jpg" alt="Obatzda Oligarchen Walhalla">
+        <div class="jk-content">
+          <div class="jk-stars">⭐</div>
+          <div class="jk-title">Ist das schon Walhalla?</div>
+          <div class="jk-amount" id="jk-amount"></div>
+          <div class="jk-msg" id="jk-msg"></div>
+          <button class="jk-close" onclick="advanceJackpot()">WEITER ZUR EHRE ⚔️</button>
+        </div>
+      </div>
+    </div>
+    <div class="jackpot-phase" id="jackpot-phase-gedeck">
+      <div class="jk-og-card">
+        <img class="jk-og-img" src="oligarchengedeck.jpg" alt="Oligarchengedeck">
+        <div class="jk-og-title">Oligarchengedeck verdient!</div>
+        <div class="jk-og-msg">
+          Du hast dir dadurch ein Oligarchengedeck mit dem nächstgelegenen Oligarchen verdient!<br>
+          Mach einen Screenshot und lass es die OO wissen!
+        </div>
+        <button class="jk-close" onclick="closeJackpot()">Ehre einsammeln 💰</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cheddar Nice Video -->
+<div id="cheddar-overlay">
+  <div class="cheddar-box">
+    <video class="cheddar-video" id="cheddar-video" controls playsinline preload="metadata">
+      <source src="nice.mov" type="video/quicktime">
+      Dein Browser kann das Cheddar-Video nicht abspielen. <a href="nice.mov">nice.mov öffnen</a>
+    </video>
+    <div class="cheddar-title">Cheddar nice!</div>
+    <button class="cheddar-close" onclick="closeCheddar()">Weiter drehen 🧀</button>
   </div>
 </div>
 
@@ -2664,6 +2832,8 @@ let schimmelPending     = false;
 let schimmelAmount      = 0;
 let schimmelTimer       = null;
 let schimmelBarTimer    = null;
+let pendingSchimmelAmount = 0;
+let pendingSchimmelTimer  = null;
 const SCHIMMEL_TIMEOUT  = 8000;
 
 // ── TURBO WALZEN ─────────────────────────────────────────────
@@ -2687,6 +2857,9 @@ let autoSpinCount   = 0;
 // Sound
 let sfxMuted   = false;
 let musicMuted = false;
+let cheddarResumeMusic = false;
+let walhallaResumeMusic = false;
+const WALHALLA_REFRAIN_SRC = 'walhalla-refrain.mp3';
 
 const ITEM_H   = () => window.innerWidth <= 480 ? 72 : 90;
 const PRE_SPIN = 25;
@@ -2919,7 +3092,7 @@ function spinReel(reelIdx, result, duration) {
 
 // ── HAUPT-SPIN ───────────────────────────────────────────────
 async function doSpin() {
-  if (spinning || freespinPending) return;
+  if (spinning || freespinPending || schimmelPending || pendingSchimmelAmount) return;
 
   // ⚠️ BET LOCK — Einsatz JETZT einfrieren, bevor irgendetwas passiert
   const spinBet = bet;
@@ -3046,6 +3219,11 @@ async function doSpin() {
     setTimeout(() => showKaesegesichtOverlay(), 700);
   }
 
+  // ── 3× Cheddar (auch via Mozzarella-Wild) ──
+  if (isCheddarAnimationWin(results, win)) {
+    setTimeout(() => showCheddarOverlay(), 700);
+  }
+
   // ── 3× Brie (auch via Wild) ──
   if (win.comboId === 'brie') {
     setTimeout(() => showBriesandOverlay(), 750);
@@ -3109,7 +3287,7 @@ async function doSpin() {
   //  5. Emmentaler 3× (22×)
   //  Ausgeschlossen: Jackpot (Golden 3×) und Freispiele (Roquefort 3×)
   if (win.amount >= spinBet * 22 && !freespinActive && !win.isJackpot && !win.triggerFreespins) {
-    setTimeout(() => showSchimmelrisiko(win.amount), 1800);
+    queueSchimmelrisiko(win.amount, 2600);
   }
 
   // Krawatte — mittlere Walze oben/mitte/unten alle gleich
@@ -3153,6 +3331,9 @@ async function doSpin() {
       // 10 Spins voll — Auto Spin automatisch stoppen
       toggleAuto();
       setResult(`⏸ Auto Spin nach ${AUTO_SPIN_MAX} Runden gestoppt. Manuell neu starten!`, '');
+    } else if (pendingSchimmelAmount || schimmelPending) {
+      document.getElementById('auto-btn').textContent =
+        `⏸ STOP (${AUTO_SPIN_MAX - autoSpinCount} übrig)`;
     } else if (credits >= bet) {
       // Verbleibende Spins im Button anzeigen
       document.getElementById('auto-btn').textContent =
@@ -3161,6 +3342,23 @@ async function doSpin() {
     } else {
       toggleAuto();
     }
+  }
+}
+
+function resumeAutoAfterSchimmel() {
+  if (!autoOn || freespinPending || spinning || schimmelPending || pendingSchimmelAmount) return;
+  if (autoSpinCount >= AUTO_SPIN_MAX) {
+    toggleAuto();
+    setResult(`⏸ Auto Spin nach ${AUTO_SPIN_MAX} Runden gestoppt. Manuell neu starten!`, '');
+    return;
+  }
+  if (credits >= bet) {
+    document.getElementById('auto-btn').textContent =
+      `⏸ STOP (${AUTO_SPIN_MAX - autoSpinCount} übrig)`;
+    clearTimeout(autoTimer);
+    autoTimer = setTimeout(doSpin, 1400);
+  } else {
+    toggleAuto();
   }
 }
 
@@ -3296,6 +3494,15 @@ function calcWin(results, betAmt) {
   return { amount: 0, msg: '', winReels: [], isJackpot: false, isWild: false, triggerFreespins: false, triggerSenfbombe: false, comboId: null };
 }
 
+function isCheddarAnimationWin(results, win) {
+  if (!win || win.amount <= 0) return false;
+  if (win.comboId === 'cheddar') return true;
+  const hasCheddar = results.some(r => r.id === 'cheddar');
+  const hasWild    = results.some(r => r.wild === true);
+  const onlyCheddarOrWild = results.every(r => r.id === 'cheddar' || r.wild === true);
+  return hasCheddar && hasWild && onlyCheddarOrWild;
+}
+
 const spinMsgPool = [
   '🎰 Die Walzen drehen sich… 🧀',
   '🔴 Babybel dreht durch!',
@@ -3378,6 +3585,7 @@ function checkMilestones() {
 }
 function closeMilestone() {
   document.getElementById('milestone-overlay').classList.remove('show');
+  notifyOverlayClosed();
 }
 
 // ── INSTAGRAM GATE ───────────────────────────────────────────
@@ -3395,6 +3603,7 @@ function igLinkClicked() {
 }
 function closeIgGate() {
   document.getElementById('ig-overlay').classList.remove('show');
+  notifyOverlayClosed();
 }
 
 document.addEventListener('visibilitychange', () => {
@@ -3473,6 +3682,10 @@ function resetGame() {
   freespinActive = false; freespinsLeft = 0; freespinPending = false;
   autoSpinCount = 0;
   schimmelPending = false;
+  pendingSchimmelAmount = 0;
+  clearTimeout(pendingSchimmelTimer);
+  pendingSchimmelTimer = null;
+  clearTimeout(schimmelTimer);
   clearInterval(schimmelBarTimer);
   document.getElementById('schimmel-overlay').classList.remove('show');
   if (turboActive) {
@@ -3567,6 +3780,7 @@ function showSenfbombeOverlay(win) {
 function closeSenfbombe() {
   document.getElementById('senfbombe-overlay').classList.remove('show');
   stopConfetti();
+  notifyOverlayClosed();
 }
 
 // ── KRAWATTE BANNER ──────────────────────────────────────────
@@ -3588,6 +3802,7 @@ function showKaesebaer() {
 }
 function closeKaesebaer() {
   document.getElementById('kaesebaer-overlay').classList.remove('show');
+  notifyOverlayClosed();
 }
 
 // ── BABYBEL SAUER BANNER ──────────────────────────────────────
@@ -3611,7 +3826,10 @@ function showSauerBanner(reelIdx) {
   banner.classList.remove('show');
   void banner.offsetWidth; // reflow to restart animation
   banner.classList.add('show');
-  setTimeout(() => { banner.classList.remove('show'); }, 3000);
+  setTimeout(() => {
+    banner.classList.remove('show');
+    notifyOverlayClosed();
+  }, 3000);
 }
 
 // ── MITTELSAUER OVERLAY (3× Babybel) ─────────────────────────
@@ -3620,6 +3838,7 @@ function showMittelsauerOverlay() {
 }
 function closeMittelsauer() {
   document.getElementById('mittelsauer-overlay').classList.remove('show');
+  notifyOverlayClosed();
 }
 
 // ── KÄSEGESICHT OVERLAY (3× Mimolette) ───────────────────────
@@ -3628,6 +3847,7 @@ function showKaesegesichtOverlay() {
 }
 function closeKaesegesicht() {
   document.getElementById('kaesegesicht-overlay').classList.remove('show');
+  notifyOverlayClosed();
 }
 
 // ── BRIE-SAND OVERLAY (3× Brie) ──────────────────────────────
@@ -3638,6 +3858,37 @@ function showBriesandOverlay() {
 function closeBriesand() {
   document.getElementById('briesand-overlay').classList.remove('show');
   stopConfetti();
+  notifyOverlayClosed();
+}
+
+// ── CHEDDAR NICE VIDEO (3× Cheddar) ──────────────────────────
+function showCheddarOverlay() {
+  const overlay = document.getElementById('cheddar-overlay');
+  const video   = document.getElementById('cheddar-video');
+  const bgMusic = document.getElementById('bg-music');
+  overlay.classList.add('show');
+  try {
+    cheddarResumeMusic = bgMusic && !musicMuted && !bgMusic.paused;
+    if (cheddarResumeMusic) bgMusic.pause();
+    video.currentTime = 0;
+    video.muted = false;
+    video.volume = 1;
+    video.load();
+    video.play().catch(() => {});
+  } catch(e) {}
+}
+function closeCheddar() {
+  const overlay = document.getElementById('cheddar-overlay');
+  const video   = document.getElementById('cheddar-video');
+  const bgMusic = document.getElementById('bg-music');
+  try {
+    video.pause();
+    video.currentTime = 0;
+    if (cheddarResumeMusic && bgMusic && !musicMuted) bgMusic.play().catch(() => {});
+    cheddarResumeMusic = false;
+  } catch(e) {}
+  overlay.classList.remove('show');
+  notifyOverlayClosed();
 }
 
 // ── VORWOCHE CHAMPION ─────────────────────────────────────────
@@ -3684,15 +3935,55 @@ const jackpotMsgs = [
   'Überemmentaler Jackpot!','Die Milch war nicht umsonst!',
   '777 goldene Laibe!','Du hast den Käse-Gott erfreut!',
 ];
+function playWalhallaRefrain() {
+  const audio   = document.getElementById('walhalla-audio');
+  const bgMusic = document.getElementById('bg-music');
+  if (!audio || musicMuted) return;
+  try {
+    walhallaResumeMusic = bgMusic && !musicMuted && !bgMusic.paused;
+    if (walhallaResumeMusic) bgMusic.pause();
+    if (!audio.getAttribute('src')) audio.src = WALHALLA_REFRAIN_SRC;
+    audio.currentTime = 0;
+    audio.volume = 1;
+    audio.muted = false;
+    audio.play().catch(() => {
+      if (walhallaResumeMusic && bgMusic && !musicMuted) bgMusic.play().catch(() => {});
+      walhallaResumeMusic = false;
+    });
+  } catch(e) {}
+}
+function stopWalhallaRefrain(resumeMusic = false) {
+  const audio   = document.getElementById('walhalla-audio');
+  const bgMusic = document.getElementById('bg-music');
+  try {
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    if (resumeMusic && walhallaResumeMusic && bgMusic && !musicMuted) bgMusic.play().catch(() => {});
+  } catch(e) {}
+  walhallaResumeMusic = false;
+}
 function showJackpotOverlay(win) {
+  document.getElementById('jackpot-phase-walhalla').classList.add('show');
+  document.getElementById('jackpot-phase-gedeck').classList.remove('show');
   document.getElementById('jk-amount').textContent = `+${win.amount} 🪙`;
   document.getElementById('jk-msg').textContent    = jackpotMsgs[Math.floor(Math.random() * jackpotMsgs.length)];
   document.getElementById('jackpot-overlay').classList.add('show');
+  playWalhallaRefrain();
+  playWinSound(true);
+}
+function advanceJackpot() {
+  document.getElementById('jackpot-phase-walhalla').classList.remove('show');
+  document.getElementById('jackpot-phase-gedeck').classList.add('show');
+  startConfetti(140);
   playWinSound(true);
 }
 function closeJackpot() {
   document.getElementById('jackpot-overlay').classList.remove('show');
+  stopWalhallaRefrain(true);
   stopConfetti();
+  notifyOverlayClosed();
 }
 
 // ── TICKER ───────────────────────────────────────────────────
@@ -4046,6 +4337,7 @@ function showOligarchengedeckOverlay(milestone) {
 function closeOligarchengedeck() {
   document.getElementById('oligarchengedeck-overlay').classList.remove('show');
   stopConfetti();
+  notifyOverlayClosed();
 }
 
 const OG_DEFAULT_DESC = 'Das Oligarchengedeck ruft an! Seine Bestandteile sind von einer fast lächerlichen Schlichtheit: ein Babybel, eine Zigarette und ein Bier. Drei Dinge, die einzeln betrachtet banal wirken, beinahe proletarisch sogar. Doch zusammen bilden sie ein kleines Ritual der Dekadenz im Taschenformat, eine minimalistische Version von Luxus.';
@@ -4111,6 +4403,7 @@ function showHexagonOverlay() {
 function closeHexagon() {
   document.getElementById('hexagon-overlay').classList.remove('show');
   clearTimeout(hexagonTimer);
+  notifyOverlayClosed();
 }
 
 // ── KRAWATTE TIE ANIMATION ───────────────────────────────────
@@ -4136,6 +4429,58 @@ function showKrawatteTieAnim(callback) {
 }
 
 // ── SCHIMMELRISIKO ───────────────────────────────────────────
+const SCHIMMEL_BLOCKING_OVERLAYS = [
+  'jackpot-overlay',
+  'cheddar-overlay',
+  'freespin-start-overlay',
+  'milestone-overlay',
+  'senfbombe-overlay',
+  'kaesebaer-overlay',
+  'mittelsauer-overlay',
+  'kaesegesicht-overlay',
+  'briesand-overlay',
+  'oligarchengedeck-overlay',
+  'hexagon-overlay',
+  'ig-overlay',
+  'parmi-overlay',
+  'rang-overlay',
+  'support-overlay',
+  'daily-overlay',
+];
+
+function hasBlockingOverlayOpen() {
+  return SCHIMMEL_BLOCKING_OVERLAYS.some(id => {
+    const el = document.getElementById(id);
+    return el && el.classList.contains('show');
+  });
+}
+
+function queueSchimmelrisiko(amount, delay = 0) {
+  pendingSchimmelAmount = amount;
+  clearTimeout(pendingSchimmelTimer);
+  pendingSchimmelTimer = setTimeout(maybeShowQueuedSchimmelrisiko, delay);
+}
+
+function notifyOverlayClosed() {
+  if (!pendingSchimmelAmount) return;
+  clearTimeout(pendingSchimmelTimer);
+  pendingSchimmelTimer = setTimeout(maybeShowQueuedSchimmelrisiko, 180);
+}
+
+function maybeShowQueuedSchimmelrisiko() {
+  if (!pendingSchimmelAmount) return;
+  if (schimmelPending || spinning || freespinPending || hasBlockingOverlayOpen()) {
+    clearTimeout(pendingSchimmelTimer);
+    pendingSchimmelTimer = setTimeout(maybeShowQueuedSchimmelrisiko, 350);
+    return;
+  }
+  const amount = pendingSchimmelAmount;
+  pendingSchimmelAmount = 0;
+  clearTimeout(pendingSchimmelTimer);
+  pendingSchimmelTimer = null;
+  showSchimmelrisiko(amount);
+}
+
 function resetSchimmelOverlay() {
   document.querySelector('#schimmel-overlay .schimmel-btns').style.display     = '';
   document.querySelector('#schimmel-overlay .schimmel-timer-bar').style.display = '';
@@ -4155,6 +4500,10 @@ function resetSchimmelOverlay() {
 }
 
 function showSchimmelrisiko(amount) {
+  if (hasBlockingOverlayOpen()) {
+    queueSchimmelrisiko(amount, 250);
+    return;
+  }
   if (schimmelPending) return;
   schimmelPending = true;
   schimmelAmount  = amount;
@@ -4184,6 +4533,7 @@ function resolveSchimmel(accept) {
     schimmelPending = false;
     document.getElementById('schimmel-overlay').classList.remove('show');
     setResult(`🧀 Kein Risiko — +${schimmelAmount}🪙 sicher behalten.`, 'win');
+    resumeAutoAfterSchimmel();
     return;
   }
 
@@ -4305,6 +4655,7 @@ function revealSchimmelResult(gewonnen) {
       setResult(`🔴 Der Schimmel hat gewonnen! Gewinn verfault. +0🪙 🧀`, '');
     }
     checkMilestones();
+    resumeAutoAfterSchimmel();
   }, 1800);
 }
 
@@ -4321,6 +4672,7 @@ function closeParmi() {
   document.getElementById('parmi-overlay').classList.remove('show');
   document.getElementById('parmi-video').pause();
   stopConfetti();
+  notifyOverlayClosed();
 }
 
 // ── SENF SPRAY ────────────────────────────────────────────────
@@ -4389,6 +4741,7 @@ function showRangOverlay(tier) {
 function closeRang() {
   document.getElementById('rang-overlay').classList.remove('show');
   stopConfetti();
+  notifyOverlayClosed();
 }
 function toggleRankLegend() {
   const g = document.getElementById('rank-legend-grid');
@@ -4493,6 +4846,7 @@ function closeDailyBonus() {
     setResult(`🔥 Tages-Bonus! +${window._dailyBonus}🪙 — Tag ${window._dailyStreak} am Stück!`, 'win');
     window._dailyBonus = 0;
   }
+  notifyOverlayClosed();
 }
 
 // ── SUPPORT KÄSE-ENTWICKLER ─────────────────────────────────
@@ -4516,6 +4870,7 @@ function showSupport() {
 }
 function closeSupport() {
   document.getElementById('support-overlay').classList.remove('show');
+  notifyOverlayClosed();
 }
 
 // ── SOUND ────────────────────────────────────────────────────
