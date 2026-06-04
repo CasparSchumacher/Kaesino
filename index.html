@@ -3153,7 +3153,7 @@ async function doSpin() {
     if (win.isJackpot) {
       setResult('🌟 J A C K P O T ! 🌟', 'jackpot');
       startConfetti(200);
-      setTimeout(() => showJackpotOverlay(win), 600);
+      queueJackpotOverlay(win, 600);
     } else if (win.amount >= spinBet * 20) {
       setResult(`🎉 RIESIGER GEWINN! ${win.msg}  +${win.amount} 🪙`, 'win');
       startConfetti(90);
@@ -3221,7 +3221,7 @@ async function doSpin() {
 
   // ── 3× Cheddar (auch via Mozzarella-Wild) ──
   if (isCheddarAnimationWin(results, win)) {
-    setTimeout(() => showCheddarOverlay(), 700);
+    queueCheddarOverlay(700);
   }
 
   // ── 3× Brie (auch via Wild) ──
@@ -3626,10 +3626,27 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ── UI HELFER ────────────────────────────────────────────────
+function isCheddarResultText(text) {
+  return typeof text === 'string'
+    && text.includes('Cheddar')
+    && text.includes('(3×)')
+    && !text.includes('Paar');
+}
+
+function isJackpotResultText(text) {
+  return typeof text === 'string' && text.includes('J A C K P O T');
+}
+
 function setResult(text, cls) {
   const el = document.getElementById('result-bar');
   el.textContent = text;
   el.className   = 'result-bar' + (cls ? ` ${cls}` : '');
+  if (isCheddarResultText(text)) {
+    queueCheddarOverlay(700);
+  }
+  if (isJackpotResultText(text)) {
+    queueJackpotOverlay(null, 600);
+  }
 }
 function refreshUI() {
   document.getElementById('credits-val').textContent = credits;
@@ -3862,6 +3879,18 @@ function closeBriesand() {
 }
 
 // ── CHEDDAR NICE VIDEO (3× Cheddar) ──────────────────────────
+let cheddarOverlayQueued = false;
+
+function queueCheddarOverlay(delay = 700) {
+  const overlay = document.getElementById('cheddar-overlay');
+  if (cheddarOverlayQueued || overlay?.classList.contains('show')) return;
+  cheddarOverlayQueued = true;
+  setTimeout(() => {
+    cheddarOverlayQueued = false;
+    showCheddarOverlay();
+  }, delay);
+}
+
 function showCheddarOverlay() {
   const overlay = document.getElementById('cheddar-overlay');
   const video   = document.getElementById('cheddar-video');
@@ -3870,10 +3899,10 @@ function showCheddarOverlay() {
   try {
     cheddarResumeMusic = bgMusic && !musicMuted && !bgMusic.paused;
     if (cheddarResumeMusic) bgMusic.pause();
+    video.load();
     video.currentTime = 0;
     video.muted = false;
     video.volume = 1;
-    video.load();
     video.play().catch(() => {});
   } catch(e) {}
 }
@@ -3964,6 +3993,23 @@ function stopWalhallaRefrain(resumeMusic = false) {
   } catch(e) {}
   walhallaResumeMusic = false;
 }
+let jackpotOverlayQueued = false;
+
+function displayedWinAmount() {
+  const raw = document.getElementById('win-val')?.textContent || '';
+  return Number(raw.replace(/[^\d]/g, '')) || 0;
+}
+
+function queueJackpotOverlay(win, delay = 600) {
+  const overlay = document.getElementById('jackpot-overlay');
+  if (jackpotOverlayQueued || overlay?.classList.contains('show')) return;
+  jackpotOverlayQueued = true;
+  setTimeout(() => {
+    jackpotOverlayQueued = false;
+    showJackpotOverlay(win || { amount: displayedWinAmount() });
+  }, delay);
+}
+
 function showJackpotOverlay(win) {
   document.getElementById('jackpot-phase-walhalla').classList.add('show');
   document.getElementById('jackpot-phase-gedeck').classList.remove('show');
