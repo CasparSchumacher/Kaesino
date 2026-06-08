@@ -887,7 +887,7 @@ body {
 #cheddar-overlay.show { display: flex; animation: hexBg 0.4s ease forwards; }
 .cheddar-box {
   position: relative;
-  max-width: min(92vw, 360px); width: 100%; overflow: hidden;
+  max-width: min(92vw, 390px); width: 100%; overflow: hidden;
   background: linear-gradient(145deg, #1f1000, #3a1c00);
   border: 2px solid #ff9a20;
   border-radius: 22px;
@@ -896,24 +896,17 @@ body {
   animation: popIn 0.45s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
 }
 .cheddar-video-wrap {
-  position: relative; width: 100%; height: 200px; overflow: hidden; background: #000;
+  position: relative; width: 100%; height: min(78vh, 620px); overflow: hidden; background: #000;
 }
 .cheddar-video {
-  width: 100%; height: 100%; object-fit: cover;
+  width: 100%; height: 100%; object-fit: contain;
 }
 .cheddar-video-fade {
   position: absolute; inset: 0; background: linear-gradient(to bottom,transparent 50%,rgba(0,0,0,0.75));
 }
 .cheddar-content {
-  padding: 16px 20px 20px;
+  padding: 14px 20px 18px;
   text-align: center;
-}
-.cheddar-title {
-  font-size: 1.5em;
-  color: #ffcf70;
-  font-style: italic;
-  margin-bottom: 14px;
-  text-shadow: 0 0 16px rgba(255,140,0,0.62);
 }
 .cheddar-close {
   background: linear-gradient(135deg, #ffb13b, #d66a00);
@@ -2359,7 +2352,6 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
       <div class="cheddar-video-fade"></div>
     </div>
     <div class="cheddar-content">
-      <div class="cheddar-title">Nice!</div>
       <button class="cheddar-close" onclick="closeCheddar()">Weiter drehen 🧀</button>
     </div>
   </div>
