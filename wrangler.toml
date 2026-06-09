@@ -1,0 +1,19 @@
+name = "kaesino"
+main = "cloudflare/worker.js"
+compatibility_date = "2026-06-08"
+workers_dev = true
+preview_urls = false
+
+[assets]
+directory = "."
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "kaesino"
+database_id = "6d9057c2-c1b6-403e-931c-a8f913e5f860"
+migrations_dir = "cloudflare/migrations"
+
+[triggers]
+crons = ["1 22 * * SUN", "1 23 * * SUN"]

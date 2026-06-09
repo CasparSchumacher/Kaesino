@@ -8,7 +8,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0d1228">
 <title>🧀 KÄSINO — Obatzda Oligarchen</title>
-<script defer src="/_vercel/insights/script.js"></script>
 <style>
 :root {
   --bg:       #0d1228;
@@ -2690,8 +2689,19 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
 // ═══════════════════════════════════════════════════════════════
 //  🧀  KÄSE CASINO — Obatzda Oligarchen Edition  v4.4
 // ═══════════════════════════════════════════════════════════════
-const JSONBIN_ID  = '69cbba8a36566621a8666740';
-const JSONBIN_KEY = '$2a$10$Ifh/yVZlwBLUEp.JGfHjP.rKvwM8jLgooR8qfQxw/xpjzmlhd1fcO';
+// Server-API: In Cloudflare läuft sie unter /api. Für lokale Tests mit
+// separatem Worker kann window.KASINO_API_BASE oder localStorage gesetzt werden.
+const KASINO_API_BASE = String(
+  window.KASINO_API_BASE || localStorage.getItem('kaesino_api_base') || ''
+).replace(/\/+$/, '');
+
+function kasinoApiUrl(path) {
+  return `${KASINO_API_BASE}${path}`;
+}
+
+function kasinoApiAvailable() {
+  return location.protocol === 'http:' || location.protocol === 'https:' || !!KASINO_API_BASE;
+}
 
 // ── WAVE HINTERGRUND ────────────────────────────────────────
 (function () {
@@ -2945,6 +2955,42 @@ function loadPlayerProgress(name) {
   const entry = getStoredPlayerProgress(name);
   return entry ? entry.credits : null;
 }
+let playerProgressPendingSave = null;
+let playerProgressLastSave = 0;
+const PLAYER_PROGRESS_WRITE_DEBOUNCE = 12000;
+
+function queuePlayerProgressServerSave(entry, immediate = false) {
+  if (!entry || !playerName || !kasinoApiAvailable()) return;
+  if (playerProgressPendingSave) {
+    clearTimeout(playerProgressPendingSave);
+    playerProgressPendingSave = null;
+  }
+
+  const delay = immediate ? 0 : Math.max(0, PLAYER_PROGRESS_WRITE_DEBOUNCE - (Date.now() - playerProgressLastSave));
+  playerProgressPendingSave = setTimeout(() => {
+    playerProgressLastSave = Date.now();
+    playerProgressPendingSave = null;
+    savePlayerProgressToServer(entry);
+  }, delay);
+}
+
+async function savePlayerProgressToServer(entry, keepalive = false) {
+  if (!entry || !playerName || !kasinoApiAvailable()) return;
+  try {
+    await fetch(kasinoApiUrl('/api/player'), {
+      method: 'PUT',
+      keepalive,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: playerName,
+        week: entry.week,
+        credits: Math.max(0, Math.floor(entry.credits || 0)),
+        updatedAt: entry.updatedAt || Date.now()
+      })
+    });
+  } catch (e) {}
+}
+
 function savePlayerProgress() {
   if (!playerName) return;
   try {
@@ -2952,8 +2998,10 @@ function savePlayerProgress() {
     const all  = JSON.parse(localStorage.getItem('kaesino_progress') || '{}');
     const week = getWeekStart();
     // Spielstand = aktueller Stand, nicht Wochen-Höchststand.
-    all[playerName] = { week, credits: Math.max(0, credits), updatedAt: Date.now() };
+    const entry = { week, credits: Math.max(0, credits), updatedAt: Date.now() };
+    all[playerName] = entry;
     localStorage.setItem('kaesino_progress', JSON.stringify(all));
+    queuePlayerProgressServerSave(entry);
   } catch (e) {}
 }
 function clearPlayerProgress() {
@@ -4138,14 +4186,11 @@ function togglePaytable() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  RANGLISTE — 3-stufiges Cache-System (API-sparend)
+//  RANGLISTE — D1-Backend mit lokalem Sofort-Cache
 //
 //  Stufe 1: In-Memory lbCache — 0 API-Calls während des Spielens
-//  Stufe 2: Schreiben NUR wenn persönlicher Bestwert gebrochen
-//           + Debounce 2 Minuten → max 1 Write/2min pro Spieler
-//  Stufe 3: Lesen von JSONBin nur beim Start + alle 5 Minuten
-//
-//  Geschätzte Calls mit 10 Spielern: ~4.000/Monat (Limit: 10.000)
+//  Stufe 2: Server aktualisiert einzelne Spieler atomar, keine JSON-Blob-Rennen
+//  Stufe 3: Lesen beim Start + alle 5 Minuten
 // ═══════════════════════════════════════════════════════════════
 
 let lbCache         = { coins: [], wins: [] };  // In-Memory-Cache
@@ -4153,8 +4198,8 @@ let lbCacheReady    = false;                    // Wurde bereits vom Server gela
 let lbServerLoaded  = false;                    // Server-Daten mindestens einmal geladen?
 let lbPendingSave   = null;
 let lbLastSave      = 0;
-const LB_WRITE_DEBOUNCE = 20000;  // 20 Sekunden zwischen JSONBin-Writes
-const LB_READ_INTERVAL  = 300000; // 5 Minuten zwischen JSONBin-Reads
+const LB_WRITE_DEBOUNCE = 20000;  // 20 Sekunden zwischen Server-Writes
+const LB_READ_INTERVAL  = 300000; // 5 Minuten zwischen Server-Reads
 
 function createEmptyLeaderboard(weekStart = getWeekStart(), lastWeek = null, resetEpoch = '') {
   return { weekStart, resetEpoch, coins: [], wins: [], lastWeek };
@@ -4186,16 +4231,48 @@ function mergeLists(local, server) {
     .sort((a, b) => b.score - a.score).slice(0, 10);
 }
 
-// Einmaliger Lade-Vorgang vom Server (beim Start + periodisch)
-async function fetchFromServer() {
-  if (!JSONBIN_ID || !JSONBIN_KEY) return;
+function normalizeServerPlayerProgress(player) {
+  if (!player || typeof player !== 'object') return null;
+  if (player.week !== getWeekStart() || typeof player.credits !== 'number') return null;
+  return {
+    week: player.week,
+    credits: Math.max(0, Math.floor(player.credits)),
+    updatedAt: Number(player.updatedAt || 0)
+  };
+}
+
+function applyServerPlayerProgress(serverEntry) {
+  const remote = normalizeServerPlayerProgress(serverEntry);
+  if (!remote || !playerName) return false;
+
+  const local = getStoredPlayerProgress(playerName);
+  const localUpdatedAt = Number(local?.updatedAt || 0);
+  if (local && localUpdatedAt > remote.updatedAt) {
+    queuePlayerProgressServerSave(local, true);
+    return false;
+  }
+
+  credits = remote.credits;
+  if (credits < bet) bet = Math.max(1, Math.min(bet, credits || 1));
   try {
-    const r = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`, {
-      headers: { 'X-Master-Key': JSONBIN_KEY }
-    });
+    const all = JSON.parse(localStorage.getItem('kaesino_progress') || '{}');
+    all[playerName] = remote;
+    localStorage.setItem('kaesino_progress', JSON.stringify(all));
+  } catch (e) {}
+  refreshUI();
+  return true;
+}
+
+// Lade-Vorgang vom Server (beim Start + periodisch)
+async function fetchFromServer() {
+  if (!kasinoApiAvailable()) return lbCache;
+  try {
+    const nameParam = playerName ? `?name=${encodeURIComponent(playerName)}` : '';
+    const r = await fetch(kasinoApiUrl(`/api/state${nameParam}`));
+    if (!r.ok) throw new Error(`API ${r.status}`);
     const d = await r.json();
-    if (d.record) {
-      const stored      = d.record;
+    if (d.leaderboard) {
+      const stored      = d.leaderboard;
       const currentWeek = getWeekStart();
       const localEpoch  = localStorage.getItem('kaesino_lb_resetEpoch') || '';
       const serverEpoch = stored.resetEpoch || '';
@@ -4208,7 +4285,6 @@ async function fetchFromServer() {
         localStorage.setItem('kaesino_lb_resetEpoch', resetEpoch);
         myBestCoins = 0;
         myBestWin   = 0;
-        saveToServer(lbCache);
       } else if (serverEpoch && serverEpoch !== localEpoch) {
         // Server wurde explizit zurückgesetzt — lokalen Cache komplett verwerfen
         lbCache = normalizeLeaderboard(stored);
@@ -4233,19 +4309,39 @@ async function fetchFromServer() {
       localStorage.setItem('kaesino_lb', JSON.stringify(lbCache));
       renderLeaderboard(lbCache);
       if (lbCache.lastWeek) renderPrevWinner(lbCache.lastWeek);
+      if (d.player) applyServerPlayerProgress(d.player);
     }
   } catch(e) {}
   return lbCache;
 }
 
-async function saveToServer(data) {
-  if (!JSONBIN_ID || !JSONBIN_KEY) return;
+async function saveToServer(data, keepalive = false) {
+  if (!playerName || !kasinoApiAvailable()) return;
   try {
-    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
-      body: JSON.stringify(data)
+    const playerEntry = getStoredPlayerProgress(playerName);
+    const r = await fetch(kasinoApiUrl('/api/leaderboard'), {
+      method: 'POST',
+      keepalive,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: playerName,
+        totalCoins: Math.max(0, Math.floor(credits || 0)),
+        singleWin: Math.max(0, Math.floor(myBestWin || 0)),
+        player: playerEntry ? {
+          credits: playerEntry.credits,
+          updatedAt: playerEntry.updatedAt
+        } : null
+      })
     });
+    if (r.ok) {
+      const d = await r.json();
+      if (d.leaderboard) {
+        lbCache = normalizeLeaderboard(d.leaderboard);
+        localStorage.setItem('kaesino_lb', JSON.stringify(lbCache));
+        renderLeaderboard(lbCache);
+        if (lbCache.lastWeek) renderPrevWinner(lbCache.lastWeek);
+      }
+    }
   } catch(e) {}
 }
 
@@ -4322,7 +4418,7 @@ async function updateLeaderboard(name, totalCoins, singleWin) {
   localStorage.setItem('kaesino_lb', JSON.stringify(lb));
   renderLeaderboard(lb);
 
-  // JSONBin-Write NUR wenn Bestwert gebrochen UND Server-Daten geladen
+  // Server-Write NUR wenn Bestwert gebrochen UND Server-Daten geladen
   if (!coinsImproved && !winImproved) return;
   if (!lbServerLoaded) return; // Warten bis Server-Merge abgeschlossen
 
@@ -4375,19 +4471,22 @@ function renderLeaderboard(lb) {
 setInterval(() => { if (playerName) fetchFromServer(); }, LB_READ_INTERVAL);
 
 // Beim Tab-Schließen sofort speichern (verhindert Datenverlust durch Debounce)
-window.addEventListener('beforeunload', () => {
+function flushPendingServerSaves(keepalive = false) {
+  if (playerProgressPendingSave) {
+    clearTimeout(playerProgressPendingSave);
+    playerProgressPendingSave = null;
+    const entry = getStoredPlayerProgress(playerName);
+    if (entry) savePlayerProgressToServer(entry, keepalive);
+  }
   if (lbPendingSave && lbServerLoaded) {
     clearTimeout(lbPendingSave);
     lbPendingSave = null;
-    // keepalive: true — Request läuft weiter auch nach Page-Unload
-    fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
-      method:  'PUT',
-      keepalive: true,
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
-      body:    JSON.stringify(lbCache)
-    }).catch(() => {});
+    saveToServer(lbCache, keepalive);
   }
-});
+}
+
+window.addEventListener('pagehide', () => flushPendingServerSaves(true));
+window.addEventListener('beforeunload', () => flushPendingServerSaves(true));
 
 // ── OLIGARCHENGEDECK OVERLAY ─────────────────────────────────
 function showOligarchengedeckOverlay(milestone) {
