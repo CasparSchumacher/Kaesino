@@ -346,25 +346,6 @@ body {
   gap: 6px;
   position: relative;
 }
-.chamber-title {
-  display: none;
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 28;
-  padding: 4px 10px;
-  border: 1px solid rgba(136,255,255,0.42);
-  border-radius: 999px;
-  background: rgba(4,12,34,0.78);
-  color: #88ffff;
-  font-family: Arial, sans-serif;
-  font-size: 0.68em;
-  letter-spacing: 1.3px;
-  text-transform: uppercase;
-  box-shadow: 0 0 16px rgba(34,170,255,0.28);
-}
-.reels-frame.freespin-mode .chamber-title { display: block; }
 .ripen-pop {
   position: absolute;
   left: 50%;
@@ -2661,7 +2642,6 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
     <div class="reels-frame" id="reels-frame">
       <span class="wl-left">◄</span>
       <span class="wl-right">►</span>
-      <div class="chamber-title">Roquefort-Schimmelkammer</div>
       <div class="ripen-pop" id="ripen-pop">+0.25× REIFE</div>
       <div class="reels-wrapper">
         <div class="wl-line"></div>
@@ -3398,7 +3378,7 @@ let freespinBet      = 100;
 let pendingFreespinBet = 100;
 let freespinBought   = false;
 let freespinRipenMulti = 1.5;
-let freespinPlateUsed  = false;
+let freespinPlateCount = 0;
 let freespinSchimmelbruchUsed = false;
 const FREESPIN_COUNT = 8;
 const FREESPIN_START_MULTI = 1.5;
@@ -3750,7 +3730,7 @@ function showRipenPop(text) {
 }
 
 function findCheesePlate(results) {
-  if (!freespinActive || freespinPlateUsed) return null;
+  if (!freespinActive) return null;
   for (const targetId of CHEESE_PLATE_TARGETS) {
     const targetIdx = results
       .map((r, i) => r.id === targetId ? i : -1)
@@ -3781,7 +3761,8 @@ async function runCheesePlate(results, spinBet) {
   const plate = findCheesePlate(results);
   if (!plate) return null;
 
-  freespinPlateUsed = true;
+  freespinPlateCount++;
+  updateFreespinUI();
   const target = plate.label;
   plate.hold.forEach(i => document.getElementById(`reel-${i}`).classList.add('plate-locked'));
   const openReel = document.getElementById(`reel-${plate.open}`);
@@ -4197,7 +4178,7 @@ function startFreespinRound(options = {}) {
   freespinBet     = Math.max(1, Math.floor(options.bet || pendingFreespinBet || bet || 1));
   freespinBought  = options.bought === true;
   freespinRipenMulti = FREESPIN_START_MULTI;
-  freespinPlateUsed  = false;
+  freespinPlateCount = 0;
   freespinSchimmelbruchUsed = false;
   document.getElementById('reels-frame').classList.add('freespin-mode');
   document.getElementById('spin-btn').classList.add('freespin-btn');
@@ -4222,7 +4203,7 @@ function updateFreespinUI() {
     if (plate) {
       plate.textContent = (!freespinSchimmelbruchUsed && freespinRipenMulti >= FREESPIN_RIPEN_CAP)
         ? 'Schimmelbruch geladen'
-        : freespinPlateUsed ? 'Käseplatte verbraucht' : 'Käseplatte bereit';
+        : freespinPlateCount > 0 ? `Käseplatte ×${freespinPlateCount}` : 'Käseplatten bereit';
     }
   } else {
     banner.classList.remove('show');
@@ -4234,7 +4215,7 @@ function endFreespins() {
   freespinActive = false;
   freespinBought = false;
   freespinRipenMulti = FREESPIN_START_MULTI;
-  freespinPlateUsed  = false;
+  freespinPlateCount = 0;
   freespinSchimmelbruchUsed = false;
   document.getElementById('reels-frame').classList.remove('freespin-mode');
   document.getElementById('reels-frame').classList.remove('ripen-150', 'ripen-175', 'ripen-200', 'ripen-225', 'schimmelbruch');
@@ -4822,7 +4803,7 @@ function resetGame() {
   rangMilestonesShown.clear();
   freespinActive = false; freespinsLeft = 0; freespinPending = false;
   freespinBet = 100; pendingFreespinBet = 100; freespinBought = false;
-  freespinRipenMulti = FREESPIN_START_MULTI; freespinPlateUsed = false; freespinSchimmelbruchUsed = false;
+  freespinRipenMulti = FREESPIN_START_MULTI; freespinPlateCount = 0; freespinSchimmelbruchUsed = false;
   autoSpinCount = 0;
   schimmelPending = false;
   pendingSchimmelAmount = 0;
