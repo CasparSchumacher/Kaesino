@@ -391,6 +391,15 @@ body {
   box-shadow: 0 0 0 2px #88ffcc, 0 0 22px rgba(136,255,204,0.6) !important;
   animation: reelWild 0.5s ease-in-out infinite;
 }
+.reel.plate-locked {
+  box-shadow: 0 0 0 3px rgba(136,255,255,0.42), 0 0 28px rgba(34,170,255,0.72) !important;
+}
+.reel.plate-open {
+  animation: plateOpenPulse 0.55s ease-in-out infinite;
+}
+.reel.melt-hit {
+  animation: meltHit 0.45s ease-in-out 4;
+}
 @keyframes reelWin {
   0%,100% { box-shadow: 0 0 0 2px var(--gold), 0 0 18px rgba(255,215,0,0.7); }
   50%      { box-shadow: 0 0 0 3px var(--gold), 0 0 40px rgba(255,215,0,0.95); }
@@ -398,6 +407,14 @@ body {
 @keyframes reelWild {
   0%,100% { box-shadow: 0 0 0 2px #88ffcc, 0 0 14px rgba(136,255,204,0.5); }
   50%      { box-shadow: 0 0 0 3px #88ffcc, 0 0 30px rgba(136,255,204,0.9); }
+}
+@keyframes plateOpenPulse {
+  0%,100% { box-shadow: 0 0 0 2px rgba(255,216,107,0.42), 0 0 16px rgba(255,170,40,0.35); }
+  50%     { box-shadow: 0 0 0 5px rgba(255,216,107,0.72), 0 0 34px rgba(255,170,40,0.75); }
+}
+@keyframes meltHit {
+  0%,100% { transform: translateY(0) scale(1); }
+  50%     { transform: translateY(-4px) scale(1.035); }
 }
 
 /* ── FREE SPIN BANNER ── */
@@ -415,6 +432,26 @@ body {
   animation: freespinPulse 1.2s ease-in-out infinite;
 }
 .freespin-banner.show { display: block; }
+.fs-stats {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  font-size: 0.86em;
+}
+.fs-pill {
+  border: 1px solid rgba(136,255,255,0.24);
+  border-radius: 999px;
+  padding: 3px 8px;
+  color: rgba(210,240,255,0.86);
+  background: rgba(20,50,120,0.18);
+}
+.fs-pill.hot {
+  color: #88ffff;
+  border-color: rgba(136,255,255,0.48);
+  box-shadow: 0 0 12px rgba(34,170,255,0.18);
+}
 @keyframes freespinPulse {
   0%,100% { border-color: rgba(100,140,255,0.35); }
   50%      { border-color: rgba(100,140,255,0.8); box-shadow: 0 0 14px rgba(34,68,170,0.3); }
@@ -600,6 +637,15 @@ body {
   border-color: var(--crimson);
   color: #ff7090;
   background: rgba(184,40,72,0.1);
+}
+.extra-btn.reifekammer-btn {
+  border-color: rgba(100,140,255,0.32);
+  color: var(--blue-light);
+  background: rgba(34,68,170,0.08);
+}
+.extra-btn.reifekammer-btn:hover:not(:disabled) {
+  border-color: rgba(136,255,255,0.55);
+  box-shadow: 0 0 16px rgba(34,68,170,0.28);
 }
 .extra-btn:disabled {
   opacity: 0.5;
@@ -2382,7 +2428,12 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
 
     <!-- Free Spin Banner (erscheint nur während Freispielen) -->
     <div class="freespin-banner" id="freespin-banner">
-      🔵 FREISPIEL MODUS — <span id="fs-counter">0</span> verbleibend · 1.5× Multiplikator
+      🔵 REIFEKAMMER — <span id="fs-counter">0</span> Freispiele verbleibend
+      <div class="fs-stats">
+        <span class="fs-pill hot">Schimmelgrad <span id="fs-multi">1.50×</span></span>
+        <span class="fs-pill">Bonus-Einsatz <span id="fs-bet">100</span>🪙</span>
+        <span class="fs-pill" id="fs-plate-pill">Käseplatte bereit</span>
+      </div>
     </div>
 
     <div class="result-bar" id="result-bar">🧀 Drücke DREHEN und gewinne köstlichen Käse! 🧀</div>
@@ -2405,7 +2456,8 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
       <button class="extra-btn" id="auto-btn" onclick="toggleAuto()">🔄 AUTO SPIN</button>
       <button class="extra-btn"               onclick="maxBet()">⬆ MAX BET</button>
       <button class="extra-btn" id="ig-btn"   onclick="showIgGate()">1.000 Gratis Coins? 🧀</button>
-      <button class="extra-btn turbo-btn" id="turbo-btn" onclick="buyTurbo()">⚡ TURBO (10.000🪙)</button>
+      <button class="extra-btn turbo-btn" id="turbo-btn" onclick="buyTurbo()">🔒 TURBO ab Käsemeister</button>
+      <button class="extra-btn reifekammer-btn" id="buy-freespin-btn" onclick="buyFreespins()">🔒 REIFEKAMMER ab Käsebaron</button>
       <button class="extra-btn"               onclick="resetGame()">🔃 RESET</button>
     </div>
   </div>
@@ -2558,8 +2610,9 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
     <div class="fs-title">FREISPIELE!</div>
     <div class="fs-body">
       3× <strong>Roquefort</strong> — du hast<br>
-      <strong>8 Freispiele</strong> mit <strong>1.5× Multiplikator</strong> gewonnen!<br><br>
-      Kein Einsatz. Alles reiner Gewinn.
+      die <strong>Roquefort-Reifekammer</strong> geöffnet!<br>
+      <strong>8 Freispiele</strong> starten bei <strong>1.50×</strong>.<br><br>
+      Nieten erhöhen den Schimmelgrad. Käseplatten können schmelzen.
     </div>
     <button class="fs-go" onclick="startFreespinRound()">LOS GEHT'S! 🔵</button>
   </div>
@@ -2943,7 +2996,7 @@ function logSoftError(scope, error) {
 //  KÄSESORTEN — Gewichte, Multiplikatoren, Spezial-Flags
 //
 //  wild:         Mozzarella ersetzt beliebige Käse bei 3er-Kombos
-//  freespins:    3× diese Sorte → 8 Freispiele (1.5×)
+//  freespins:    3× diese Sorte → 8 Reifekammer-Freispiele
 //  scatterBonus: 1× allein → kleiner Bonus
 // ═══════════════════════════════════════════════════════════════
 // ── BALANCE ~78% RTP ────────────────────────────────────────
@@ -2995,7 +3048,7 @@ const CHEESES = [
     bg:'linear-gradient(145deg,#2a2a2a,#aaaaaa)'
   },
   {
-    // FREISPIELE — 3× triggert 8 Freispiele mit 1.5×
+    // FREISPIELE — 3× triggert 8 Reifekammer-Freispiele
     id:'roquefort', name:'Roquefort',   emoji:'💙',
     weight:9,  twoX:12, threeX:90,
     freespins: true,
@@ -3034,6 +3087,8 @@ let autoTimer          = null;
 let playerName         = '';
 let milestone1000Shown = false;
 let restoredProgressNoticeShown = false;
+let myBestCoins        = 0;
+let myBestWin          = 0;
 const ogMilestonesShown   = new Set();
 const rangMilestonesShown = new Set();
 
@@ -3059,15 +3114,28 @@ const SCHIMMEL_TIMEOUT  = 8000;
 let turboActive    = false;
 let turboEndTime   = 0;
 let turboCountdown = null;
-const TURBO_COST   = 10000;
-const TURBO_SECS   = 420;  // 7 Minuten
+const TURBO_COST   = 5000;
+const TURBO_SECS   = 210;  // 3 Minuten 30 Sekunden
+const TURBO_UNLOCK = 10000;
 
 // Free Spins
 let freespinsLeft    = 0;
 let freespinActive   = false;
 let freespinPending  = false;
+let freespinBet      = 100;
+let pendingFreespinBet = 100;
+let freespinBought   = false;
+let freespinRipenMulti = 1.5;
+let freespinPlateUsed  = false;
 const FREESPIN_COUNT = 8;
-const FREESPIN_MULTI = 1.5;
+const FREESPIN_START_MULTI = 1.5;
+const FREESPIN_RIPEN_STEP  = 0.25;
+const FREESPIN_RIPEN_CAP   = 2.25;
+const FREESPIN_BUY_COST    = 10000;
+const FREESPIN_BUY_BET     = 100;
+const FREESPIN_BUY_UNLOCK  = 50000;
+const CHEESE_PLATE_TARGETS = ['roquefort', 'parmesan', 'golden'];
+const CHEESE_PLATE_MELTS   = [1.1, 1.25, 1.5];
 
 // Auto Spin
 const AUTO_SPIN_MAX = 10;
@@ -3370,12 +3438,85 @@ function spinReel(reelIdx, result, duration) {
   });
 }
 
+function formatMulti(value) {
+  return `${Number(value).toFixed(2)}×`;
+}
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function findCheesePlate(results) {
+  if (!freespinActive || freespinPlateUsed) return null;
+  for (const targetId of CHEESE_PLATE_TARGETS) {
+    const targetIdx = results
+      .map((r, i) => r.id === targetId ? i : -1)
+      .filter(i => i >= 0);
+    const mozzIdx = results
+      .map((r, i) => r.id === 'mozz' ? i : -1)
+      .filter(i => i >= 0);
+
+    if (targetIdx.length === 2) {
+      const openIdx = [0,1,2].find(i => !targetIdx.includes(i));
+      if (openIdx !== undefined && results[openIdx].id !== 'mozz') {
+        return { targetId, hold: targetIdx, open: openIdx, label: CHEESES.find(c => c.id === targetId) };
+      }
+    }
+
+    if (targetIdx.length === 1 && mozzIdx.length === 1) {
+      const hold = [targetIdx[0], mozzIdx[0]];
+      const openIdx = [0,1,2].find(i => !hold.includes(i));
+      if (openIdx !== undefined && results[openIdx].id !== targetId) {
+        return { targetId, hold, open: openIdx, label: CHEESES.find(c => c.id === targetId), hasMozzarella: true };
+      }
+    }
+  }
+  return null;
+}
+
+async function runCheesePlate(results, spinBet) {
+  const plate = findCheesePlate(results);
+  if (!plate) return null;
+
+  freespinPlateUsed = true;
+  const target = plate.label;
+  plate.hold.forEach(i => document.getElementById(`reel-${i}`).classList.add('plate-locked'));
+  document.getElementById(`reel-${plate.open}`).classList.add('plate-open');
+  setResult(`🫕 KÄSEPLATTE! ${target.emoji} ${target.name} bleibt liegen — 3 Nachdrehs!`, 'freespin');
+  playWinSound(false);
+  await wait(700);
+
+  for (let attempt = 0; attempt < CHEESE_PLATE_MELTS.length; attempt++) {
+    const next = rndCheese();
+    results[plate.open] = next;
+    setResult(`🫕 Käseplatte Nachdreh ${attempt + 1}/3 · Melt ${formatMulti(CHEESE_PLATE_MELTS[attempt])}`, 'freespin');
+    await spinReel(plate.open, next, turboActive ? 900 : 1350);
+
+    if (next.id === plate.targetId || next.id === 'mozz') {
+      const melt = CHEESE_PLATE_MELTS[attempt];
+      const plateWin = calcWin(results, spinBet);
+      document.getElementById(`reel-${plate.open}`).classList.add('melt-hit');
+      setResult(`🫕 DIE PLATTE SCHMILZT! ${target.emoji} ${target.name} vollendet · Melt ${formatMulti(melt)}`, 'win');
+      startConfetti(70);
+      return {
+        amount: Math.floor(plateWin.amount * melt),
+        msg: `${target.emoji} Käseplatte Melt ${formatMulti(melt)}`,
+        melt,
+        targetId: plate.targetId
+      };
+    }
+  }
+
+  setResult(`🫕 Käseplatte hält — kein Melt-Treffer. Der sichere Gewinn bleibt.`, 'freespin');
+  return { amount: 0, msg: '', melt: 1, targetId: plate.targetId };
+}
+
 // ── HAUPT-SPIN ───────────────────────────────────────────────
 async function doSpin() {
   if (spinning || freespinPending || schimmelPending || pendingSchimmelAmount) return;
 
   // ⚠️ BET LOCK — Einsatz JETZT einfrieren, bevor irgendetwas passiert
-  const spinBet = bet;
+  const spinBet = freespinActive ? freespinBet : bet;
 
   if (!freespinActive) {
     if (credits < spinBet) {
@@ -3386,6 +3527,7 @@ async function doSpin() {
   }
 
   spinning = true;
+  updateFeatureButtons();
   document.getElementById('win-val').textContent = '—';
 
   // Bet-Buttons während Spin sperren (verhindert Bug)
@@ -3395,11 +3537,11 @@ async function doSpin() {
   spinBtn.disabled = true;
 
   [0,1,2].forEach(i => {
-    document.getElementById(`reel-${i}`).classList.remove('winning', 'wild-win');
+    document.getElementById(`reel-${i}`).classList.remove('winning', 'wild-win', 'plate-locked', 'plate-open', 'melt-hit');
   });
 
   const fsLabel = freespinActive
-    ? `🔵 FREISPIEL ${FREESPIN_COUNT - freespinsLeft + 1}/${FREESPIN_COUNT} dreht…`
+    ? `💙 REIFEKAMMER dreht… ${freespinsLeft} übrig · Schimmelgrad ${formatMulti(freespinRipenMulti)}`
     : spinMsgPool[Math.floor(Math.random() * spinMsgPool.length)];
   setResult(fsLabel, freespinActive ? 'freespin' : '');
 
@@ -3415,11 +3557,23 @@ async function doSpin() {
 
   // Gewinn mit gelocketem Einsatz berechnen
   const win = calcWin(results, spinBet);
+  const activeRipenMulti = freespinActive ? freespinRipenMulti : 1;
+
+  if (freespinActive) {
+    const plateWin = await runCheesePlate(results, spinBet);
+    if (plateWin && plateWin.amount > 0) {
+      win.amount += plateWin.amount;
+      win.msg = `${win.msg} + ${plateWin.msg}`;
+      win.winReels = [0,1,2];
+      win.isWild = true;
+      if (plateWin.targetId === 'golden') win.isJackpot = true;
+    }
+  }
 
   // Free-Spin Multiplikator anwenden
   if (freespinActive && win.amount > 0) {
-    win.amount = Math.floor(win.amount * FREESPIN_MULTI);
-    win.msg    = `${win.msg} ×${FREESPIN_MULTI}`;
+    win.amount = Math.floor(win.amount * activeRipenMulti);
+    win.msg    = `${win.msg} · Reife ${formatMulti(activeRipenMulti)}`;
   }
 
   if (win.amount > 0) {
@@ -3444,9 +3598,13 @@ async function doSpin() {
     }
     addTicker(results, win, freespinActive);
     updateLeaderboard(playerName, credits, win.amount);
+    if (freespinActive) freespinRipenMulti = FREESPIN_START_MULTI;
   } else {
+    if (freespinActive) {
+      freespinRipenMulti = Math.min(FREESPIN_RIPEN_CAP, freespinRipenMulti + FREESPIN_RIPEN_STEP);
+    }
     document.getElementById('win-val').textContent = '0';
-    setResult(freespinActive ? '🔵 Kein Gewinn — weiter geht\'s!' : lossMsg(), freespinActive ? 'freespin' : '');
+    setResult(freespinActive ? `💙 Kein Gewinn — der Roquefort reift weiter auf ${formatMulti(freespinRipenMulti)}.` : lossMsg(), freespinActive ? 'freespin' : '');
     playLossSound();
     addTicker(results, null, freespinActive);
     updateLeaderboard(playerName, credits, 0);
@@ -3467,6 +3625,7 @@ async function doSpin() {
   // Free Spins triggern?
   if (win.triggerFreespins && !freespinActive) {
     freespinPending = true;
+    pendingFreespinBet = spinBet;
     setTimeout(() => {
       document.getElementById('freespin-start-overlay').classList.add('show');
     }, 1000);
@@ -3604,6 +3763,7 @@ async function doSpin() {
 
   spinning = false;
   spinBtn.disabled = false;
+  updateFeatureButtons();
   setTimeout(triggerVisibleWinAnimations, 120);
 
   if (autoOn && !freespinPending) {
@@ -3644,25 +3804,36 @@ function resumeAutoAfterSchimmel() {
 }
 
 // ── FREE SPINS STEUERUNG ─────────────────────────────────────
-function startFreespinRound() {
+function startFreespinRound(options = {}) {
   document.getElementById('freespin-start-overlay').classList.remove('show');
   freespinPending = false;
   freespinActive  = true;
   freespinsLeft   = FREESPIN_COUNT;
+  freespinBet     = Math.max(1, Math.floor(options.bet || pendingFreespinBet || bet || 1));
+  freespinBought  = options.bought === true;
+  freespinRipenMulti = FREESPIN_START_MULTI;
+  freespinPlateUsed  = false;
   document.getElementById('reels-frame').classList.add('freespin-mode');
   document.getElementById('spin-btn').classList.add('freespin-btn');
   document.getElementById('spin-btn').textContent = '🔵 FREISPIN!';
   updateFreespinUI();
-  setResult(`🔵 FREISPIEL MODUS GESTARTET! ${FREESPIN_COUNT} Spins · 1.5×!`, 'freespin');
+  updateFeatureButtons();
+  setResult(`💙 REIFEKAMMER GEÖFFNET! ${FREESPIN_COUNT} Spins · Einsatz ${freespinBet} · Start ${formatMulti(FREESPIN_START_MULTI)}!`, 'freespin');
   startConfetti(150);
 }
 
 function updateFreespinUI() {
   const banner  = document.getElementById('freespin-banner');
   const counter = document.getElementById('fs-counter');
+  const multi   = document.getElementById('fs-multi');
+  const fsBet   = document.getElementById('fs-bet');
+  const plate   = document.getElementById('fs-plate-pill');
   if (freespinActive && freespinsLeft > 0) {
     banner.classList.add('show');
     counter.textContent = freespinsLeft;
+    if (multi) multi.textContent = formatMulti(freespinRipenMulti);
+    if (fsBet) fsBet.textContent = freespinBet;
+    if (plate) plate.textContent = freespinPlateUsed ? 'Käseplatte verbraucht' : 'Käseplatte bereit';
   } else {
     banner.classList.remove('show');
   }
@@ -3670,12 +3841,34 @@ function updateFreespinUI() {
 
 function endFreespins() {
   freespinActive = false;
+  freespinBought = false;
+  freespinRipenMulti = FREESPIN_START_MULTI;
+  freespinPlateUsed  = false;
   document.getElementById('reels-frame').classList.remove('freespin-mode');
   const spinBtn = document.getElementById('spin-btn');
   spinBtn.classList.remove('freespin-btn');
   spinBtn.textContent = '🎰 DREHEN! 🎰';
   document.getElementById('freespin-banner').classList.remove('show');
-  setResult('🔵 Freispiele beendet! Weiter geht\'s!', 'win');
+  setResult('💙 Reifekammer geschlossen! Weiter geht\'s!', 'win');
+  updateFeatureButtons();
+}
+
+function buyFreespins() {
+  if (spinning || freespinActive || freespinPending || schimmelPending || pendingSchimmelAmount) return;
+  if (currentRankScore() < FREESPIN_BUY_UNLOCK) {
+    setResult('🔒 Die Reifekammer öffnet erst ab Käsebaron (50.000🪙).', '');
+    return;
+  }
+  if (credits < FREESPIN_BUY_COST) {
+    setResult(`💙 Nicht genug Coins! Die Reifekammer kostet ${FREESPIN_BUY_COST.toLocaleString()}🪙.`, '');
+    return;
+  }
+  if (autoOn) toggleAuto();
+  credits -= FREESPIN_BUY_COST;
+  pendingFreespinBet = FREESPIN_BUY_BET;
+  refreshUI();
+  setResult(`💙 ${FREESPIN_BUY_COST.toLocaleString()}🪙 Eintritt gezahlt. Die Reifekammer öffnet sich...`, 'freespin');
+  setTimeout(() => startFreespinRound({ bought: true, bet: FREESPIN_BUY_BET }), 800);
 }
 
 // ── GEWINNBERECHNUNG ─────────────────────────────────────────
@@ -4128,7 +4321,34 @@ function refreshUI(options = {}) {
     b.classList.toggle('active', Number(b.dataset.bet) === bet);
   });
   updatePlayerTag();
+  updateFeatureButtons();
   if (options.persist !== false) saveCurrentPlayerState(options.reason || 'ui');
+}
+
+function currentRankScore() {
+  const lbEntry = (lbCache.coins || []).find(e => e.name === playerName);
+  const stored  = lbEntry ? lbEntry.score : 0;
+  return Math.max(credits, stored, myBestCoins || 0);
+}
+
+function updateFeatureButtons() {
+  const turboBtn = document.getElementById('turbo-btn');
+  if (turboBtn && !turboActive) {
+    const turboUnlocked = currentRankScore() >= TURBO_UNLOCK;
+    turboBtn.disabled = !turboUnlocked || credits < TURBO_COST || spinning || freespinActive || freespinPending;
+    turboBtn.textContent = turboUnlocked
+      ? `⚡ TURBO (${TURBO_COST.toLocaleString()}🪙)`
+      : '🔒 TURBO ab Käsemeister';
+  }
+
+  const fsBtn = document.getElementById('buy-freespin-btn');
+  if (fsBtn) {
+    const chamberUnlocked = currentRankScore() >= FREESPIN_BUY_UNLOCK;
+    fsBtn.disabled = !chamberUnlocked || credits < FREESPIN_BUY_COST || spinning || freespinActive || freespinPending;
+    fsBtn.textContent = chamberUnlocked
+      ? `💙 REIFEKAMMER (${FREESPIN_BUY_COST.toLocaleString()}🪙)`
+      : '🔒 REIFEKAMMER ab Käsebaron';
+  }
 }
 
 function updatePlayerTag() {
@@ -4136,9 +4356,7 @@ function updatePlayerTag() {
   // Rang ist abhängig vom höchsten je erreichten Guthaben:
   // entweder aktuelles credits, persönlicher Best-Wert (myBestCoins) oder
   // gespeicherter Serverwert in der Coins-Rangliste — was auch immer größer ist.
-  const lbEntry  = (lbCache.coins || []).find(e => e.name === playerName);
-  const stored   = lbEntry ? lbEntry.score : 0;
-  const highest  = Math.max(credits, stored, myBestCoins || 0);
+  const highest  = currentRankScore();
   const rank     = getRank(highest);
   const rankSlot = document.getElementById('player-rank-slot');
   if (rankSlot) {
@@ -4170,6 +4388,8 @@ function resetGame() {
   ogMilestonesShown.clear();
   rangMilestonesShown.clear();
   freespinActive = false; freespinsLeft = 0; freespinPending = false;
+  freespinBet = 100; pendingFreespinBet = 100; freespinBought = false;
+  freespinRipenMulti = FREESPIN_START_MULTI; freespinPlateUsed = false;
   autoSpinCount = 0;
   schimmelPending = false;
   pendingSchimmelAmount = 0;
@@ -4585,7 +4805,7 @@ function buildPaytable() {
      </div>
      <div class="pt-row special" style="grid-column:span 2">
        <span class="pt-emoji">💙💙💙</span>
-       <span class="pt-name">Roquefort 3× → 8 FREISPIELE · 1.5×</span>
+       <span class="pt-name">Roquefort 3× → 8× REIFEKAMMER · ab 1.50×</span>
        <span class="pt-mult special">🔵</span>
      </div>
      <div class="pt-row" style="grid-column:span 2;border-color:rgba(153,102,255,0.3);background:rgba(80,40,160,0.08)">
@@ -4808,10 +5028,6 @@ function handleWeekBoundaryIfNeeded() {
     fetchFromServer().then(() => updateLeaderboard(playerName, credits, 0));
   }
 }
-
-// Persönliche Bestwerte (verhindert unnötige API-Writes)
-let myBestCoins = 0;
-let myBestWin   = 0;
 
 async function updateLeaderboard(name, totalCoins, singleWin) {
   lbCache = normalizeLeaderboard(lbCache);
@@ -5347,6 +5563,11 @@ function toggleRankLegend() {
 // ── TURBO WALZEN ──────────────────────────────────────────────
 function buyTurbo() {
   if (turboActive) return;
+  if (spinning || freespinActive || freespinPending || schimmelPending || pendingSchimmelAmount) return;
+  if (currentRankScore() < TURBO_UNLOCK) {
+    setResult('🔒 Turbo-Walzen werden erst ab Käsemeister (10.000🪙) freigeschaltet.', '');
+    return;
+  }
   if (credits < TURBO_COST) {
     setResult(`⚡ Nicht genug Coins! Turbo kostet ${TURBO_COST}🪙.`, '');
     return;
@@ -5358,7 +5579,7 @@ function buyTurbo() {
   document.getElementById('reels-frame').classList.add('turbo-mode');
   const btn = document.getElementById('turbo-btn');
   btn.classList.add('active');
-  setResult('⚡ TURBO-WALZEN aktiviert — 7 Minuten Hochgeschwindigkeit!', 'win');
+  setResult('⚡ TURBO-WALZEN aktiviert — 3:30 Minuten Hochgeschwindigkeit!', 'win');
   updateTurboBtn();
   clearInterval(turboCountdown);
   turboCountdown = setInterval(() => {
@@ -5371,6 +5592,7 @@ function buyTurbo() {
       b.classList.remove('active');
       b.textContent = `⚡ TURBO (${TURBO_COST.toLocaleString()}🪙)`;
       setResult('⚡ Turbo-Walzen abgelaufen. Normale Geschwindigkeit.', '');
+      updateFeatureButtons();
     } else {
       updateTurboBtn(rem);
     }
