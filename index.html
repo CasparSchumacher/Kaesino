@@ -689,7 +689,7 @@ body {
 /* ── WOCHENCHAT ── */
 .chat-launch {
   position: fixed;
-  right: 18px;
+  left: max(18px, env(safe-area-inset-left));
   bottom: 18px;
   z-index: 9300;
   display: none;
@@ -723,7 +723,7 @@ body {
 }
 .chat-panel {
   position: fixed;
-  right: 18px;
+  left: max(18px, env(safe-area-inset-left));
   bottom: 74px;
   z-index: 9301;
   display: none;
@@ -824,7 +824,7 @@ body {
 }
 .chat-toast {
   position: fixed;
-  right: 18px;
+  left: max(18px, env(safe-area-inset-left));
   bottom: 74px;
   z-index: 9299;
   display: none;
@@ -841,9 +841,9 @@ body {
 .chat-toast.show { display: block; }
 .chat-toast strong { color: var(--gold); }
 @media (max-width: 560px) {
-  .chat-launch { right: 12px; bottom: 12px; }
-  .chat-panel { right: 12px; bottom: 66px; max-height: calc(100vh - 82px); }
-  .chat-toast { right: 12px; bottom: 66px; }
+  .chat-launch { left: max(12px, env(safe-area-inset-left)); bottom: 12px; }
+  .chat-panel { left: max(12px, env(safe-area-inset-left)); bottom: 66px; max-height: calc(100vh - 82px); }
+  .chat-toast { left: max(12px, env(safe-area-inset-left)); bottom: 66px; }
   .chat-messages { max-height: 320px; }
 }
 
