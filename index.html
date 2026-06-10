@@ -785,6 +785,13 @@ body {
   padding: 8px 0;
   border-bottom: 1px solid rgba(255,255,255,0.045);
 }
+.chat-msg.is-croupier {
+  margin: 4px 0 8px;
+  padding: 9px 10px;
+  border: 1px solid rgba(255,215,0,0.16);
+  border-radius: 8px;
+  background: rgba(255,215,0,0.055);
+}
 .chat-msg:last-child { border-bottom: none; }
 .chat-msg-head {
   display: flex;
@@ -3037,14 +3044,7 @@ let chatPollTimer  = null;
 let chatPulseTimer = null;
 const CHAT_POLL_MS = 3500;
 const CHAT_PRESENCE_MS = 20000;
-const CHAT_SUGGESTIONS = [
-  'Was ist euer Lieblingskäse?',
-  'Wie mögt ihr euren Obatzda am liebsten?',
-  'Wer ist euer Zweitlieblingsoligarch?',
-  'Welcher Käse ist massiv unterschätzt?',
-  'Was ist der perfekte Snack zum Käsino?',
-  'Welche Oligarchenstrategie fährt ihr heute?'
-];
+let chatCurrentOpener = 'Was ist euer Lieblingskäse?';
 
 // ── SCHIMMELRISIKO ───────────────────────────────────────────
 let schimmelPending     = false;
@@ -3941,20 +3941,25 @@ function setResult(text, cls) {
 }
 
 // ── WOCHENCHAT ───────────────────────────────────────────────
-function randomChatSuggestion() {
-  return CHAT_SUGGESTIONS[Math.floor(Math.random() * CHAT_SUGGESTIONS.length)];
+function setChatSuggestion(text = chatCurrentOpener) {
+  const el = document.getElementById('chat-suggestion');
+  if (el) el.textContent = `Käsino-Croupier: ${text}`;
+  return text;
 }
 
-function setChatSuggestion(text = randomChatSuggestion()) {
-  const el = document.getElementById('chat-suggestion');
-  if (el) el.textContent = `Gesprächsstarter: ${text}`;
-  return text;
+function updateChatOpener(text) {
+  const opener = String(text || '').trim();
+  if (!opener) return;
+  chatCurrentOpener = opener;
+  setChatSuggestion(opener);
+  const toastText = document.getElementById('chat-toast-text');
+  if (toastText) toastText.textContent = opener;
 }
 
 function fillChatSuggestion() {
   const input = document.getElementById('chat-input');
   const suggestion = (document.getElementById('chat-suggestion')?.textContent || '')
-    .replace(/^Gesprächsstarter:\s*/, '');
+    .replace(/^Käsino-Croupier:\s*/, '');
   if (input && suggestion) {
     input.value = suggestion;
     input.focus();
@@ -3995,6 +4000,7 @@ function renderChatMessages(messages = []) {
     const item = document.createElement('div');
     item.className = 'chat-msg';
     item.dataset.chatId = String(message.id);
+    if (message.name === 'Käsino-Croupier') item.classList.add('is-croupier');
 
     const head = document.createElement('div');
     head.className = 'chat-msg-head';
@@ -4033,6 +4039,7 @@ async function pollChat(initial = false) {
       const wrap = document.getElementById('chat-messages');
       if (wrap) wrap.innerHTML = '<div class="chat-empty">Noch keine Käsegespräche.</div>';
     }
+    updateChatOpener(data.currentOpener);
     renderChatMessages(data.messages || []);
     setChatOnline(data.online || []);
   } catch (e) {
@@ -4071,9 +4078,9 @@ async function sendChatMessage(event) {
     if (!r.ok) throw new Error(`chat send ${r.status}`);
     const data = await r.json();
     if (input) input.value = '';
+    updateChatOpener(data.currentOpener);
     renderChatMessages(data.messages || (data.message ? [data.message] : []));
     setChatOnline(data.online || []);
-    setChatSuggestion();
     const wrap = document.getElementById('chat-messages');
     if (wrap) wrap.scrollTop = wrap.scrollHeight;
   } catch (e) {
@@ -4104,10 +4111,11 @@ function showChatHintOnce() {
   const key = `kaesino_chat_hint_${getWeekStart()}`;
   if (localStorage.getItem(key)) return;
   localStorage.setItem(key, '1');
-  const suggestion = randomChatSuggestion();
   const text = document.getElementById('chat-toast-text');
-  if (text) text.textContent = suggestion;
+  if (text) text.textContent = chatCurrentOpener;
   setTimeout(() => {
+    const delayedText = document.getElementById('chat-toast-text');
+    if (delayedText) delayedText.textContent = chatCurrentOpener;
     if (!chatOpen) document.getElementById('chat-toast')?.classList.add('show');
   }, 3200);
   setTimeout(() => document.getElementById('chat-toast')?.classList.remove('show'), 12000);

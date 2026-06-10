@@ -7,6 +7,16 @@ const CORS_HEADERS = {
 const CHAT_LIMIT = 80;
 const CHAT_MAX_LENGTH = 260;
 const ONLINE_WINDOW_MS = 90000;
+const CHAT_OPENER_AUTHOR = 'Käsino-Croupier';
+const CHAT_OPENER_INTERVAL_MS = 6 * 60 * 60 * 1000;
+const CHAT_OPENERS = [
+  'Was ist euer Lieblingskäse?',
+  'Wie mögt ihr euren Obatzda am liebsten?',
+  'Wer ist euer Zweitlieblingsoligarch?',
+  'Welcher Käse ist massiv unterschätzt?',
+  'Was ist der perfekte Snack zum Käsino?',
+  'Welche Oligarchenstrategie fährt ihr heute?'
+];
 
 const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS meta (
@@ -44,6 +54,9 @@ const SCHEMA = [
   )`,
   `CREATE INDEX IF NOT EXISTS idx_chat_messages_week_id
     ON chat_messages (week_start, id)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_chat_messages_croupier_slot
+    ON chat_messages (week_start, created_at)
+    WHERE name = 'Käsino-Croupier'`,
   `CREATE TABLE IF NOT EXISTS online_presence (
     week_start TEXT NOT NULL,
     name TEXT NOT NULL,
@@ -126,9 +139,11 @@ async function handleApi(request, env, url) {
   if (request.method === 'GET' && url.pathname === '/api/chat') {
     const weekStart = await ensureCurrentWeek(env.DB);
     const after = Math.max(0, toInt(url.searchParams.get('after'), 0));
+    const opener = await ensureChatOpener(env.DB, weekStart);
     return json({
       ok: true,
       weekStart,
+      currentOpener: opener.body,
       messages: await getChatMessages(env.DB, weekStart, after),
       online: await getOnlinePlayers(env.DB, weekStart)
     });
@@ -139,13 +154,16 @@ async function handleApi(request, env, url) {
     const name = cleanName(payload.name);
     const body = cleanChatBody(payload.body);
     if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
+    if (name === CHAT_OPENER_AUTHOR) return json({ ok: false, error: 'Dieser Chatname ist reserviert.' }, 400);
     if (!body) return json({ ok: false, error: 'Nachricht fehlt.' }, 400);
     const weekStart = await ensureCurrentWeek(env.DB);
+    const opener = await ensureChatOpener(env.DB, weekStart);
     await updatePresence(env.DB, weekStart, name);
     const message = await insertChatMessage(env.DB, weekStart, name, body);
     return json({
       ok: true,
       weekStart,
+      currentOpener: opener.body,
       message,
       messages: [message],
       online: await getOnlinePlayers(env.DB, weekStart)
@@ -436,8 +454,32 @@ async function getChatMessages(db, weekStart, after = 0) {
   }));
 }
 
-async function insertChatMessage(db, weekStart, name, body) {
-  const createdAt = Date.now();
+async function ensureChatOpener(db, weekStart) {
+  const now = Date.now();
+  const slotStart = Math.floor(now / CHAT_OPENER_INTERVAL_MS) * CHAT_OPENER_INTERVAL_MS;
+  const body = CHAT_OPENERS[Math.floor(now / CHAT_OPENER_INTERVAL_MS) % CHAT_OPENERS.length];
+
+  await db.prepare(
+    `INSERT OR IGNORE INTO chat_messages (week_start, name, body, created_at)
+     VALUES (?, ?, ?, ?)`
+  ).bind(weekStart, CHAT_OPENER_AUTHOR, body, slotStart).run();
+
+  const row = await db.prepare(
+    `SELECT id, name, body, created_at AS createdAt
+     FROM chat_messages
+     WHERE week_start = ? AND name = ? AND created_at = ?
+     LIMIT 1`
+  ).bind(weekStart, CHAT_OPENER_AUTHOR, slotStart).first();
+
+  return {
+    id: Number(row?.id || 0),
+    name: row?.name || CHAT_OPENER_AUTHOR,
+    body: row?.body || body,
+    createdAt: Number(row?.createdAt || slotStart)
+  };
+}
+
+async function insertChatMessage(db, weekStart, name, body, createdAt = Date.now()) {
   const result = await db.prepare(
     `INSERT INTO chat_messages (week_start, name, body, created_at)
      VALUES (?, ?, ?, ?)`
