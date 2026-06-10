@@ -867,6 +867,37 @@ body {
 .feature-card.unlocked .feature-body {
   color: rgba(220,235,255,0.86);
 }
+.feature-details {
+  margin-top: 8px;
+  border-top: 1px solid rgba(120,130,180,0.16);
+  padding-top: 7px;
+}
+.feature-details summary {
+  cursor: pointer;
+  color: rgba(255,215,0,0.72);
+  font-size: 0.72em;
+  user-select: none;
+  list-style: none;
+}
+.feature-details summary::-webkit-details-marker {
+  display: none;
+}
+.feature-details summary::after {
+  content: ' ▼';
+  color: rgba(180,190,230,0.48);
+}
+.feature-details[open] summary::after {
+  content: ' ▲';
+}
+.feature-details p {
+  margin: 7px 0 0;
+  color: rgba(210,220,245,0.72);
+  font-size: 0.72em;
+  line-height: 1.42;
+}
+.feature-card.unlocked .feature-details p {
+  color: rgba(225,240,255,0.84);
+}
 
 /* ── LEADERBOARD ── */
 .leaderboard-section {
@@ -2687,10 +2718,18 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
       <div class="feature-card locked" id="turbo-feature-card">
         <div class="feature-title" id="turbo-feature-title">🔒 Käsemeister-Privileg</div>
         <div class="feature-body" id="turbo-feature-body">Ab 10.000 Coins: Turbo-Walzen für schnelle High-Risk-Runden.</div>
+        <details class="feature-details">
+          <summary>Was passiert?</summary>
+          <p>Turbo kostet 5.000 Coins und macht die Walzen 3:30 Minuten schneller. Keine Extra-Gewinne, keine Zauberei: einfach weniger Warten, mehr Druck, mehr Käse pro Minute.</p>
+        </details>
       </div>
       <div class="feature-card locked" id="reifekammer-feature-card">
         <div class="feature-title" id="reifekammer-feature-title">🔒 Käsebaron-Privileg</div>
         <div class="feature-body" id="reifekammer-feature-body">Ab 50.000 Coins: Reifekammer kaufen und um den großen Melt spielen.</div>
+        <details class="feature-details">
+          <summary>Was passiert?</summary>
+          <p>Die Reifekammer kostet 10.000 Coins und läuft mit Einsatz 100. Nieten erhöhen den Schimmelgrad jetzt um 0.50× bis 2.25×. Premium-Paare können zur Käseplatte werden; bei Max-Reife kann einmal der Schimmelbruch eine Walze neu aufreißen.</p>
+        </details>
       </div>
     </div>
   </div>
@@ -3363,7 +3402,7 @@ let freespinPlateUsed  = false;
 let freespinSchimmelbruchUsed = false;
 const FREESPIN_COUNT = 8;
 const FREESPIN_START_MULTI = 1.5;
-const FREESPIN_RIPEN_STEP  = 0.25;
+const FREESPIN_RIPEN_STEP  = 0.5;
 const FREESPIN_RIPEN_CAP   = 2.25;
 const FREESPIN_BUY_COST    = 10000;
 const FREESPIN_BUY_BET     = 100;
