@@ -303,10 +303,94 @@ body {
   border-color: var(--blue);
   box-shadow: inset 0 0 40px rgba(0,0,0,0.9), 0 0 24px rgba(34,68,170,0.55);
 }
+.reels-frame.freespin-mode::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  pointer-events: none;
+  z-index: 8;
+  background:
+    radial-gradient(circle at 18% 82%, rgba(80,210,255,0.12), transparent 28%),
+    radial-gradient(circle at 82% 16%, rgba(120,255,220,0.08), transparent 32%),
+    linear-gradient(180deg, transparent 62%, rgba(32,120,150,0.16));
+  opacity: 0.65;
+  animation: chamberBreathe 3.2s ease-in-out infinite;
+}
+.reels-frame.ripen-175 {
+  border-color: #3f86d8;
+  box-shadow: inset 0 0 42px rgba(0,0,0,0.9), 0 0 30px rgba(40,120,220,0.62);
+}
+.reels-frame.ripen-200 {
+  border-color: #62d4d8;
+  box-shadow: inset 0 0 44px rgba(0,0,0,0.9), 0 0 38px rgba(80,210,255,0.72);
+}
+.reels-frame.ripen-225 {
+  border-color: #88ffff;
+  box-shadow: inset 0 0 48px rgba(0,0,0,0.92), 0 0 48px rgba(136,255,255,0.76), 0 0 0 1px rgba(255,215,0,0.24);
+}
+.reels-frame.schimmelbruch {
+  animation: chamberBreak 0.26s ease-in-out 6;
+}
+@keyframes chamberBreathe {
+  0%,100% { opacity: 0.45; filter: hue-rotate(0deg); }
+  50%     { opacity: 0.82; filter: hue-rotate(18deg); }
+}
+@keyframes chamberBreak {
+  0%,100% { transform: translateX(0); }
+  25%     { transform: translateX(-4px); }
+  75%     { transform: translateX(4px); }
+}
 .reels-wrapper {
   display: flex;
   gap: 6px;
   position: relative;
+}
+.chamber-title {
+  display: none;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 28;
+  padding: 4px 10px;
+  border: 1px solid rgba(136,255,255,0.42);
+  border-radius: 999px;
+  background: rgba(4,12,34,0.78);
+  color: #88ffff;
+  font-family: Arial, sans-serif;
+  font-size: 0.68em;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  box-shadow: 0 0 16px rgba(34,170,255,0.28);
+}
+.reels-frame.freespin-mode .chamber-title { display: block; }
+.ripen-pop {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  z-index: 46;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: rgba(4,18,45,0.9);
+  border: 1px solid rgba(136,255,255,0.58);
+  color: #88ffff;
+  font-family: Georgia, serif;
+  font-weight: bold;
+  letter-spacing: 1px;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 0 28px rgba(34,170,255,0.45);
+}
+.ripen-pop.show {
+  animation: ripenPop 1.15s ease-out;
+}
+@keyframes ripenPop {
+  0%   { opacity: 0; transform: translate(-50%, -42%) scale(0.86); }
+  18%  { opacity: 1; transform: translate(-50%, -54%) scale(1.08); }
+  72%  { opacity: 1; transform: translate(-50%, -58%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -70%) scale(0.96); }
 }
 .wl-left, .wl-right {
   position: absolute;
@@ -394,11 +478,78 @@ body {
 .reel.plate-locked {
   box-shadow: 0 0 0 3px rgba(136,255,255,0.42), 0 0 28px rgba(34,170,255,0.72) !important;
 }
+.reel.plate-locked::before {
+  content: 'KÄSEKLAMMER';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  height: auto;
+  transform: translateX(-50%);
+  z-index: 18;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(4,16,36,0.82);
+  border: 1px solid rgba(136,255,255,0.52);
+  color: #88ffff;
+  font-size: 0.56em;
+  font-family: Arial, sans-serif;
+  letter-spacing: 0.8px;
+  line-height: 1;
+  pointer-events: none;
+}
 .reel.plate-open {
   animation: plateOpenPulse 0.55s ease-in-out infinite;
 }
+.reel.plate-open::before {
+  content: attr(data-plate-spin);
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  height: auto;
+  transform: translateX(-50%);
+  z-index: 18;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(42,24,0,0.84);
+  border: 1px solid rgba(255,216,107,0.58);
+  color: #ffd86b;
+  font-size: 0.56em;
+  font-family: Arial, sans-serif;
+  letter-spacing: 0.8px;
+  line-height: 1;
+  pointer-events: none;
+}
 .reel.melt-hit {
   animation: meltHit 0.45s ease-in-out 4;
+}
+.reel.schimmelbruch-target {
+  box-shadow: 0 0 0 4px rgba(120,255,210,0.54), 0 0 36px rgba(80,255,220,0.82) !important;
+  animation: schimmelTarget 0.42s ease-in-out infinite;
+}
+.reel.schimmelbruch-target::after {
+  content: 'SCHIMMELBRUCH';
+  position: absolute;
+  bottom: 9px;
+  left: 50%;
+  right: auto;
+  top: auto;
+  height: auto;
+  transform: translateX(-50%);
+  z-index: 18;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(0,36,30,0.86);
+  border: 1px solid rgba(120,255,210,0.62);
+  color: #88ffcc;
+  font-size: 0.55em;
+  font-family: Arial, sans-serif;
+  letter-spacing: 0.8px;
+  line-height: 1;
+  pointer-events: none;
 }
 @keyframes reelWin {
   0%,100% { box-shadow: 0 0 0 2px var(--gold), 0 0 18px rgba(255,215,0,0.7); }
@@ -415,6 +566,10 @@ body {
 @keyframes meltHit {
   0%,100% { transform: translateY(0) scale(1); }
   50%     { transform: translateY(-4px) scale(1.035); }
+}
+@keyframes schimmelTarget {
+  0%,100% { filter: saturate(1); }
+  50%     { filter: saturate(1.45) brightness(1.15); }
 }
 
 /* ── FREE SPIN BANNER ── */
@@ -451,6 +606,31 @@ body {
   color: #88ffff;
   border-color: rgba(136,255,255,0.48);
   box-shadow: 0 0 12px rgba(34,170,255,0.18);
+}
+.ripen-meter {
+  position: relative;
+  height: 9px;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 8px;
+  background: rgba(4,10,24,0.72);
+  border: 1px solid rgba(136,255,255,0.22);
+}
+.ripen-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2258d8, #49d7e6, #88ffcc, #ffd86b);
+  box-shadow: 0 0 18px rgba(80,210,255,0.58);
+  transition: width 0.45s ease, filter 0.45s ease;
+}
+.ripen-meter.max .ripen-fill {
+  filter: brightness(1.25) saturate(1.25);
+  animation: ripenMax 0.8s ease-in-out infinite;
+}
+@keyframes ripenMax {
+  0%,100% { box-shadow: 0 0 14px rgba(80,210,255,0.55); }
+  50%     { box-shadow: 0 0 28px rgba(255,216,107,0.85); }
 }
 @keyframes freespinPulse {
   0%,100% { border-color: rgba(100,140,255,0.35); }
@@ -2450,6 +2630,8 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
     <div class="reels-frame" id="reels-frame">
       <span class="wl-left">◄</span>
       <span class="wl-right">►</span>
+      <div class="chamber-title">Roquefort-Schimmelkammer</div>
+      <div class="ripen-pop" id="ripen-pop">+0.25× REIFE</div>
       <div class="reels-wrapper">
         <div class="wl-line"></div>
         <div class="reel" id="reel-0"><div class="reel-strip" id="strip-0"></div></div>
@@ -2471,6 +2653,9 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
         <span class="fs-pill hot">Schimmelgrad <span id="fs-multi">1.50×</span></span>
         <span class="fs-pill">Bonus-Einsatz <span id="fs-bet">100</span>🪙</span>
         <span class="fs-pill" id="fs-plate-pill">Käseplatte bereit</span>
+      </div>
+      <div class="ripen-meter" id="ripen-meter">
+        <div class="ripen-fill" id="ripen-fill"></div>
       </div>
     </div>
 
@@ -3175,6 +3360,7 @@ let pendingFreespinBet = 100;
 let freespinBought   = false;
 let freespinRipenMulti = 1.5;
 let freespinPlateUsed  = false;
+let freespinSchimmelbruchUsed = false;
 const FREESPIN_COUNT = 8;
 const FREESPIN_START_MULTI = 1.5;
 const FREESPIN_RIPEN_STEP  = 0.25;
@@ -3494,6 +3680,36 @@ function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function updateChamberVisuals() {
+  const frame = document.getElementById('reels-frame');
+  if (!frame) return;
+  frame.classList.remove('ripen-150', 'ripen-175', 'ripen-200', 'ripen-225');
+  if (freespinActive) {
+    const stage = freespinRipenMulti >= 2.25 ? 'ripen-225'
+      : freespinRipenMulti >= 2 ? 'ripen-200'
+      : freespinRipenMulti >= 1.75 ? 'ripen-175'
+      : 'ripen-150';
+    frame.classList.add(stage);
+  }
+
+  const meter = document.getElementById('ripen-meter');
+  const fill = document.getElementById('ripen-fill');
+  const pct = freespinActive
+    ? ((freespinRipenMulti - FREESPIN_START_MULTI) / (FREESPIN_RIPEN_CAP - FREESPIN_START_MULTI)) * 100
+    : 0;
+  if (fill) fill.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+  if (meter) meter.classList.toggle('max', freespinActive && freespinRipenMulti >= FREESPIN_RIPEN_CAP);
+}
+
+function showRipenPop(text) {
+  const pop = document.getElementById('ripen-pop');
+  if (!pop) return;
+  pop.textContent = text;
+  pop.classList.remove('show');
+  void pop.offsetHeight;
+  pop.classList.add('show');
+}
+
 function findCheesePlate(results) {
   if (!freespinActive || freespinPlateUsed) return null;
   for (const targetId of CHEESE_PLATE_TARGETS) {
@@ -3529,7 +3745,9 @@ async function runCheesePlate(results, spinBet) {
   freespinPlateUsed = true;
   const target = plate.label;
   plate.hold.forEach(i => document.getElementById(`reel-${i}`).classList.add('plate-locked'));
-  document.getElementById(`reel-${plate.open}`).classList.add('plate-open');
+  const openReel = document.getElementById(`reel-${plate.open}`);
+  openReel.classList.add('plate-open');
+  openReel.dataset.plateSpin = 'NACHDREH 1/3';
   setResult(`🫕 KÄSEPLATTE! ${target.emoji} ${target.name} bleibt liegen — 3 Nachdrehs!`, 'freespin');
   playWinSound(false);
   await wait(700);
@@ -3537,13 +3755,16 @@ async function runCheesePlate(results, spinBet) {
   for (let attempt = 0; attempt < CHEESE_PLATE_MELTS.length; attempt++) {
     const next = rndCheese();
     results[plate.open] = next;
+    openReel.dataset.plateSpin = `NACHDREH ${attempt + 1}/3`;
     setResult(`🫕 Käseplatte Nachdreh ${attempt + 1}/3 · Melt ${formatMulti(CHEESE_PLATE_MELTS[attempt])}`, 'freespin');
     await spinReel(plate.open, next, turboActive ? 900 : 1350);
 
     if (next.id === plate.targetId || next.id === 'mozz') {
       const melt = CHEESE_PLATE_MELTS[attempt];
       const plateWin = calcWin(results, spinBet);
-      document.getElementById(`reel-${plate.open}`).classList.add('melt-hit');
+      openReel.classList.remove('plate-open');
+      delete openReel.dataset.plateSpin;
+      openReel.classList.add('melt-hit');
       setResult(`🫕 DIE PLATTE SCHMILZT! ${target.emoji} ${target.name} vollendet · Melt ${formatMulti(melt)}`, 'win');
       startConfetti(70);
       return {
@@ -3555,8 +3776,65 @@ async function runCheesePlate(results, spinBet) {
     }
   }
 
+  openReel.classList.remove('plate-open');
+  delete openReel.dataset.plateSpin;
   setResult(`🫕 Käseplatte hält — kein Melt-Treffer. Der sichere Gewinn bleibt.`, 'freespin');
   return { amount: 0, msg: '', melt: 1, targetId: plate.targetId };
+}
+
+async function runSchimmelbruch(results, spinBet) {
+  if (!freespinActive || freespinSchimmelbruchUsed || freespinRipenMulti < FREESPIN_RIPEN_CAP) return null;
+  freespinSchimmelbruchUsed = true;
+  updateFreespinUI();
+
+  const frame = document.getElementById('reels-frame');
+  if (frame) frame.classList.add('schimmelbruch');
+  showRipenPop('SCHIMMELBRUCH!');
+
+  const candidates = results
+    .map((r, i) => (!CHEESE_PLATE_TARGETS.includes(r.id) && r.id !== 'mozz') ? i : -1)
+    .filter(i => i >= 0);
+  const idx = candidates.length
+    ? candidates[Math.floor(Math.random() * candidates.length)]
+    : Math.floor(Math.random() * 3);
+  const reel = document.getElementById(`reel-${idx}`);
+  if (reel) reel.classList.add('schimmelbruch-target');
+
+  setResult('🧫 SCHIMMELBRUCH! Die Kammer reißt eine Walze wieder auf...', 'freespin');
+  playWinSound(false);
+  await wait(850);
+
+  const next = rndCheese();
+  results[idx] = next;
+  await spinReel(idx, next, turboActive ? 950 : 1500);
+
+  if (reel) reel.classList.remove('schimmelbruch-target');
+  if (frame) setTimeout(() => frame.classList.remove('schimmelbruch'), 600);
+
+  let breakWin = calcWin(results, spinBet);
+  if (breakWin.amount > 0) {
+    breakWin.msg = `🧫 Schimmelbruch! ${breakWin.msg}`;
+    breakWin.winReels = breakWin.winReels.length ? breakWin.winReels : [0,1,2];
+    startConfetti(90);
+    return breakWin;
+  }
+
+  const plateWin = await runCheesePlate(results, spinBet);
+  if (plateWin && plateWin.amount > 0) {
+    return {
+      amount: plateWin.amount,
+      msg: `🧫 Schimmelbruch + ${plateWin.msg}`,
+      winReels: [0,1,2],
+      isJackpot: plateWin.targetId === 'golden',
+      isWild: true,
+      triggerFreespins: false,
+      triggerSenfbombe: false,
+      comboId: plateWin.targetId
+    };
+  }
+
+  setResult('🧫 Der Schimmel war laut, aber nutzlos. Die Reife bleibt maximal.', 'freespin');
+  return null;
 }
 
 // ── HAUPT-SPIN ───────────────────────────────────────────────
@@ -3585,7 +3863,9 @@ async function doSpin() {
   spinBtn.disabled = true;
 
   [0,1,2].forEach(i => {
-    document.getElementById(`reel-${i}`).classList.remove('winning', 'wild-win', 'plate-locked', 'plate-open', 'melt-hit');
+    const reel = document.getElementById(`reel-${i}`);
+    reel.classList.remove('winning', 'wild-win', 'plate-locked', 'plate-open', 'melt-hit', 'schimmelbruch-target');
+    delete reel.dataset.plateSpin;
   });
 
   const fsLabel = freespinActive
@@ -3611,10 +3891,17 @@ async function doSpin() {
     const plateWin = await runCheesePlate(results, spinBet);
     if (plateWin && plateWin.amount > 0) {
       win.amount += plateWin.amount;
-      win.msg = `${win.msg} + ${plateWin.msg}`;
+      win.msg = win.msg ? `${win.msg} + ${plateWin.msg}` : plateWin.msg;
       win.winReels = [0,1,2];
       win.isWild = true;
       if (plateWin.targetId === 'golden') win.isJackpot = true;
+    }
+
+    if (win.amount <= 0 && freespinRipenMulti >= FREESPIN_RIPEN_CAP && !freespinSchimmelbruchUsed) {
+      const breakWin = await runSchimmelbruch(results, spinBet);
+      if (breakWin && breakWin.amount > 0) {
+        Object.assign(win, breakWin);
+      }
     }
   }
 
@@ -3646,10 +3933,21 @@ async function doSpin() {
     }
     addTicker(results, win, freespinActive);
     updateLeaderboard(playerName, credits, win.amount);
-    if (freespinActive) freespinRipenMulti = FREESPIN_START_MULTI;
+    if (freespinActive) {
+      if (activeRipenMulti > FREESPIN_START_MULTI) showRipenPop(`REIFE ENTLADEN · ${formatMulti(activeRipenMulti)}`);
+      freespinRipenMulti = FREESPIN_START_MULTI;
+      updateFreespinUI();
+    }
   } else {
     if (freespinActive) {
+      const beforeRipen = freespinRipenMulti;
       freespinRipenMulti = Math.min(FREESPIN_RIPEN_CAP, freespinRipenMulti + FREESPIN_RIPEN_STEP);
+      if (freespinRipenMulti > beforeRipen) {
+        showRipenPop(`+${formatMulti(FREESPIN_RIPEN_STEP)} REIFE`);
+      } else if (!freespinSchimmelbruchUsed) {
+        showRipenPop('MAXIMALE REIFE');
+      }
+      updateFreespinUI();
     }
     document.getElementById('win-val').textContent = '0';
     setResult(freespinActive ? `💙 Kein Gewinn — der Roquefort reift weiter auf ${formatMulti(freespinRipenMulti)}.` : lossMsg(), freespinActive ? 'freespin' : '');
@@ -3861,6 +4159,7 @@ function startFreespinRound(options = {}) {
   freespinBought  = options.bought === true;
   freespinRipenMulti = FREESPIN_START_MULTI;
   freespinPlateUsed  = false;
+  freespinSchimmelbruchUsed = false;
   document.getElementById('reels-frame').classList.add('freespin-mode');
   document.getElementById('spin-btn').classList.add('freespin-btn');
   document.getElementById('spin-btn').textContent = '🔵 FREISPIN!';
@@ -3881,10 +4180,15 @@ function updateFreespinUI() {
     counter.textContent = freespinsLeft;
     if (multi) multi.textContent = formatMulti(freespinRipenMulti);
     if (fsBet) fsBet.textContent = freespinBet;
-    if (plate) plate.textContent = freespinPlateUsed ? 'Käseplatte verbraucht' : 'Käseplatte bereit';
+    if (plate) {
+      plate.textContent = (!freespinSchimmelbruchUsed && freespinRipenMulti >= FREESPIN_RIPEN_CAP)
+        ? 'Schimmelbruch geladen'
+        : freespinPlateUsed ? 'Käseplatte verbraucht' : 'Käseplatte bereit';
+    }
   } else {
     banner.classList.remove('show');
   }
+  updateChamberVisuals();
 }
 
 function endFreespins() {
@@ -3892,7 +4196,14 @@ function endFreespins() {
   freespinBought = false;
   freespinRipenMulti = FREESPIN_START_MULTI;
   freespinPlateUsed  = false;
+  freespinSchimmelbruchUsed = false;
   document.getElementById('reels-frame').classList.remove('freespin-mode');
+  document.getElementById('reels-frame').classList.remove('ripen-150', 'ripen-175', 'ripen-200', 'ripen-225', 'schimmelbruch');
+  [0,1,2].forEach(i => {
+    const reel = document.getElementById(`reel-${i}`);
+    reel.classList.remove('plate-locked', 'plate-open', 'melt-hit', 'schimmelbruch-target');
+    delete reel.dataset.plateSpin;
+  });
   const spinBtn = document.getElementById('spin-btn');
   spinBtn.classList.remove('freespin-btn');
   spinBtn.textContent = '🎰 DREHEN! 🎰';
@@ -4472,7 +4783,7 @@ function resetGame() {
   rangMilestonesShown.clear();
   freespinActive = false; freespinsLeft = 0; freespinPending = false;
   freespinBet = 100; pendingFreespinBet = 100; freespinBought = false;
-  freespinRipenMulti = FREESPIN_START_MULTI; freespinPlateUsed = false;
+  freespinRipenMulti = FREESPIN_START_MULTI; freespinPlateUsed = false; freespinSchimmelbruchUsed = false;
   autoSpinCount = 0;
   schimmelPending = false;
   pendingSchimmelAmount = 0;
