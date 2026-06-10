@@ -651,6 +651,42 @@ body {
   opacity: 0.5;
   cursor: default;
 }
+.feature-unlocks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: -4px 0 16px;
+}
+.feature-card {
+  border: 1px solid rgba(120,130,180,0.2);
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: rgba(8,10,20,0.32);
+  font-family: Arial, sans-serif;
+  min-height: 74px;
+}
+.feature-card.unlocked {
+  border-color: rgba(136,255,255,0.38);
+  background: linear-gradient(135deg, rgba(34,68,170,0.14), rgba(255,215,0,0.06));
+  box-shadow: 0 0 18px rgba(34,68,170,0.16);
+}
+.feature-card.locked {
+  opacity: 0.72;
+}
+.feature-title {
+  font-size: 0.8em;
+  color: var(--gold);
+  margin-bottom: 5px;
+  letter-spacing: 0.5px;
+}
+.feature-body {
+  font-size: 0.74em;
+  color: rgba(180,190,230,0.72);
+  line-height: 1.35;
+}
+.feature-card.unlocked .feature-body {
+  color: rgba(220,235,255,0.86);
+}
 
 /* ── LEADERBOARD ── */
 .leaderboard-section {
@@ -2330,6 +2366,8 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
   .spin-btn { padding: 20px; font-size: 1.35em; letter-spacing: 2px; min-height: 64px; }
   .extras { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
   .extra-btn { padding: 10px 8px; font-size: 0.78em; min-height: 44px; text-align: center; }
+  .feature-unlocks { grid-template-columns: 1fr; }
+  .feature-card { min-height: 0; }
   .jackpot-box { width: min(96vw, 760px); border-radius: 16px; }
   .jk-content { padding: 28px 18px 24px; }
   .jk-og-card { padding: 20px 16px 22px; }
@@ -2458,7 +2496,17 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
       <button class="extra-btn" id="ig-btn"   onclick="showIgGate()">1.000 Gratis Coins? 🧀</button>
       <button class="extra-btn turbo-btn" id="turbo-btn" onclick="buyTurbo()">🔒 TURBO ab Käsemeister</button>
       <button class="extra-btn reifekammer-btn" id="buy-freespin-btn" onclick="buyFreespins()">🔒 REIFEKAMMER ab Käsebaron</button>
-      <button class="extra-btn"               onclick="resetGame()">🔃 RESET</button>
+    </div>
+
+    <div class="feature-unlocks" aria-live="polite">
+      <div class="feature-card locked" id="turbo-feature-card">
+        <div class="feature-title" id="turbo-feature-title">🔒 Käsemeister-Privileg</div>
+        <div class="feature-body" id="turbo-feature-body">Ab 10.000 Coins: Turbo-Walzen für schnelle High-Risk-Runden.</div>
+      </div>
+      <div class="feature-card locked" id="reifekammer-feature-card">
+        <div class="feature-title" id="reifekammer-feature-title">🔒 Käsebaron-Privileg</div>
+        <div class="feature-body" id="reifekammer-feature-body">Ab 50.000 Coins: Reifekammer kaufen und um den großen Melt spielen.</div>
+      </div>
     </div>
   </div>
 
@@ -4332,22 +4380,57 @@ function currentRankScore() {
 }
 
 function updateFeatureButtons() {
+  const rankScore = currentRankScore();
   const turboBtn = document.getElementById('turbo-btn');
   if (turboBtn && !turboActive) {
-    const turboUnlocked = currentRankScore() >= TURBO_UNLOCK;
+    const turboUnlocked = rankScore >= TURBO_UNLOCK;
     turboBtn.disabled = !turboUnlocked || credits < TURBO_COST || spinning || freespinActive || freespinPending;
-    turboBtn.textContent = turboUnlocked
-      ? `⚡ TURBO (${TURBO_COST.toLocaleString()}🪙)`
-      : '🔒 TURBO ab Käsemeister';
+    if (!turboUnlocked) {
+      turboBtn.textContent = '🔒 TURBO ab Käsemeister';
+    } else if (credits < TURBO_COST) {
+      turboBtn.textContent = `⚡ TURBO braucht ${TURBO_COST.toLocaleString()}🪙`;
+    } else {
+      turboBtn.textContent = `⚡ TURBO 3:30 (${TURBO_COST.toLocaleString()}🪙)`;
+    }
   }
 
   const fsBtn = document.getElementById('buy-freespin-btn');
   if (fsBtn) {
-    const chamberUnlocked = currentRankScore() >= FREESPIN_BUY_UNLOCK;
+    const chamberUnlocked = rankScore >= FREESPIN_BUY_UNLOCK;
     fsBtn.disabled = !chamberUnlocked || credits < FREESPIN_BUY_COST || spinning || freespinActive || freespinPending;
-    fsBtn.textContent = chamberUnlocked
-      ? `💙 REIFEKAMMER (${FREESPIN_BUY_COST.toLocaleString()}🪙)`
-      : '🔒 REIFEKAMMER ab Käsebaron';
+    if (!chamberUnlocked) {
+      fsBtn.textContent = '🔒 REIFEKAMMER ab Käsebaron';
+    } else if (credits < FREESPIN_BUY_COST) {
+      fsBtn.textContent = `💙 REIFEKAMMER braucht ${FREESPIN_BUY_COST.toLocaleString()}🪙`;
+    } else {
+      fsBtn.textContent = `💙 REIFEKAMMER RISK (${FREESPIN_BUY_COST.toLocaleString()}🪙)`;
+    }
+  }
+
+  const turboCard = document.getElementById('turbo-feature-card');
+  const turboTitle = document.getElementById('turbo-feature-title');
+  const turboBody = document.getElementById('turbo-feature-body');
+  const turboUnlocked = rankScore >= TURBO_UNLOCK;
+  if (turboCard && turboTitle && turboBody) {
+    turboCard.classList.toggle('unlocked', turboUnlocked);
+    turboCard.classList.toggle('locked', !turboUnlocked);
+    turboTitle.textContent = turboUnlocked ? '⚡ Turbo freigeschaltet' : '🔒 Käsemeister-Privileg';
+    turboBody.textContent = turboUnlocked
+      ? `3:30 Minuten schnelle Walzen für ${TURBO_COST.toLocaleString()} Coins. Ideal, wenn du Druck aufbauen willst.`
+      : `Noch ${(TURBO_UNLOCK - Math.min(rankScore, TURBO_UNLOCK)).toLocaleString()} Coins bis Turbo-Walzen.`;
+  }
+
+  const chamberCard = document.getElementById('reifekammer-feature-card');
+  const chamberTitle = document.getElementById('reifekammer-feature-title');
+  const chamberBody = document.getElementById('reifekammer-feature-body');
+  const chamberUnlocked = rankScore >= FREESPIN_BUY_UNLOCK;
+  if (chamberCard && chamberTitle && chamberBody) {
+    chamberCard.classList.toggle('unlocked', chamberUnlocked);
+    chamberCard.classList.toggle('locked', !chamberUnlocked);
+    chamberTitle.textContent = chamberUnlocked ? '💙 Reifekammer offen' : '🔒 Käsebaron-Privileg';
+    chamberBody.textContent = chamberUnlocked
+      ? `10.000 Coins Eintritt, Einsatz 100, Schimmelgrad und Käseplatte. Selten zahm.`
+      : `Noch ${(FREESPIN_BUY_UNLOCK - Math.min(rankScore, FREESPIN_BUY_UNLOCK)).toLocaleString()} Coins bis zur Reifekammer.`;
   }
 }
 
