@@ -3847,7 +3847,7 @@ async function runSchimmelbruch(results, spinBet) {
       winReels: [0,1,2],
       isJackpot: plateWin.targetId === 'golden',
       isWild: true,
-      triggerFreespins: false,
+      triggerFreespins: plateWin.targetId === 'roquefort',
       triggerSenfbombe: false,
       comboId: plateWin.targetId
     };
@@ -3862,6 +3862,7 @@ async function doSpin() {
   if (spinning || freespinPending || schimmelPending || pendingSchimmelAmount) return;
 
   // ⚠️ BET LOCK — Einsatz JETZT einfrieren, bevor irgendetwas passiert
+  const spinStartedInFreespins = freespinActive;
   const spinBet = freespinActive ? freespinBet : bet;
 
   if (!freespinActive) {
@@ -3915,6 +3916,7 @@ async function doSpin() {
       win.winReels = [0,1,2];
       win.isWild = true;
       if (plateWin.targetId === 'golden') win.isJackpot = true;
+      if (plateWin.targetId === 'roquefort') win.triggerFreespins = true;
     }
 
     if (win.amount <= 0 && freespinRipenMulti >= FREESPIN_RIPEN_CAP && !freespinSchimmelbruchUsed) {
@@ -3979,26 +3981,25 @@ async function doSpin() {
   refreshUI();
   checkMilestones();
 
-  // Free Spins Zähler
-  if (freespinActive) {
+  // Free Spins triggern / zählen
+  if (spinStartedInFreespins) {
     freespinsLeft--;
-    updateFreespinUI();
+    if (win.triggerFreespins) {
+      freespinsLeft += FREESPIN_COUNT;
+      updateFreespinUI();
+      setResult(`🔵 RE-TRIGGER! +${FREESPIN_COUNT} Reifekammer-Spins! 🎉`, 'freespin');
+    } else {
+      updateFreespinUI();
+    }
     if (freespinsLeft <= 0) {
       endFreespins();
     }
-  }
-
-  // Free Spins triggern?
-  if (win.triggerFreespins && !freespinActive) {
+  } else if (win.triggerFreespins) {
     freespinPending = true;
     pendingFreespinBet = spinBet;
     setTimeout(() => {
       document.getElementById('freespin-start-overlay').classList.add('show');
     }, 1000);
-  } else if (win.triggerFreespins && freespinActive) {
-    freespinsLeft += 5;
-    updateFreespinUI();
-    setResult('🔵 RE-TRIGGER! +5 Freispiele! 🎉', 'freespin');
   }
 
   // Senfbombe-Overlay + Spray
@@ -4047,7 +4048,7 @@ async function doSpin() {
   // ── Near-Miss Teaser (2× Roquefort oder 2× Senf) ──
   const roqCount  = results.filter(r => r.id === 'roquefort').length;
   const senfCount = results.filter(r => r.id === 'senf').length;
-  if (roqCount === 2 && !win.triggerFreespins) {
+  if (!spinStartedInFreespins && roqCount === 2 && !win.triggerFreespins) {
     setTimeout(() => showNearMissTeaser('roquefort'), 120);
     [0,1,2].forEach(i => {
       if (results[i].id === 'roquefort') {
@@ -4056,7 +4057,7 @@ async function doSpin() {
       }
     });
   }
-  if (senfCount === 2 && !win.triggerSenfbombe) {
+  if (!spinStartedInFreespins && senfCount === 2 && !win.triggerSenfbombe) {
     setTimeout(() => showNearMissTeaser('senf'), 120);
     [0,1,2].forEach(i => {
       if (results[i].id === 'senf') {
@@ -4875,6 +4876,7 @@ function senfBombeMsg() {
 
 // ── NEAR-MISS TEASER ─────────────────────────────────────────
 function showNearMissTeaser(type, count) {
+  if (freespinActive) return;
   const banner = document.getElementById('near-miss-banner');
   if (!banner) return;
   if (type === 'roquefort') {
