@@ -686,6 +686,167 @@ body {
 .lb-score { color: var(--gold); font-family: 'Courier New'; font-weight: bold; font-size: 0.9em; white-space: nowrap; }
 .lb-empty { padding: 16px 10px; text-align: center; color: var(--muted); font-size: 0.76em; font-family: Arial; font-style: italic; }
 
+/* ── WOCHENCHAT ── */
+.chat-launch {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 9300;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255,215,0,0.55);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(15,18,38,0.96), rgba(50,18,45,0.96));
+  color: var(--gold);
+  font-family: Arial, sans-serif;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.38), 0 0 18px rgba(255,215,0,0.16);
+}
+.chat-launch.show { display: flex; }
+.chat-launch:hover { transform: translateY(-1px); border-color: var(--gold); }
+.chat-online-dot {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(60,200,130,0.16);
+  border: 1px solid rgba(100,255,190,0.38);
+  color: #8cffcc;
+  font-size: 0.78em;
+}
+.chat-panel {
+  position: fixed;
+  right: 18px;
+  bottom: 74px;
+  z-index: 9301;
+  display: none;
+  width: min(420px, calc(100vw - 24px));
+  max-height: min(620px, calc(100vh - 98px));
+  background: rgba(10,12,28,0.97);
+  border: 1px solid rgba(184,40,72,0.45);
+  border-radius: 8px;
+  box-shadow: 0 18px 44px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,215,0,0.08);
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+.chat-panel.show { display: flex; flex-direction: column; }
+.chat-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(184,40,72,0.22);
+  background: rgba(184,40,72,0.1);
+}
+.chat-title { color: var(--gold); font-weight: 900; letter-spacing: 0.5px; flex: 1; }
+.chat-close {
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.22);
+  color: rgba(230,235,255,0.78);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.chat-suggestion {
+  margin: 10px 12px 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(255,215,0,0.18);
+  border-radius: 8px;
+  background: rgba(255,215,0,0.07);
+  color: rgba(255,230,120,0.9);
+  font-size: 0.86em;
+  line-height: 1.35;
+  cursor: pointer;
+}
+.chat-messages {
+  flex: 1;
+  min-height: 180px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: #352340 transparent;
+}
+.chat-empty {
+  color: rgba(180,190,230,0.55);
+  font-size: 0.88em;
+  text-align: center;
+  padding: 28px 12px;
+}
+.chat-msg {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.045);
+}
+.chat-msg:last-child { border-bottom: none; }
+.chat-msg-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+.chat-msg-name { color: #ff7090; font-weight: 800; font-size: 0.84em; }
+.chat-msg-time { color: rgba(180,190,230,0.42); font-size: 0.72em; font-family: 'Courier New', monospace; }
+.chat-msg-body { color: rgba(230,235,255,0.86); font-size: 0.9em; line-height: 1.35; overflow-wrap: anywhere; }
+.chat-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid rgba(184,40,72,0.22);
+}
+.chat-input {
+  min-width: 0;
+  border: 1px solid rgba(184,40,72,0.35);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.32);
+  color: var(--text);
+  padding: 10px 11px;
+  font-size: 16px;
+  outline: none;
+}
+.chat-input:focus { border-color: rgba(255,215,0,0.55); }
+.chat-send {
+  border: 1px solid rgba(255,215,0,0.58);
+  border-radius: 8px;
+  background: rgba(184,40,72,0.28);
+  color: var(--gold);
+  padding: 0 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.chat-toast {
+  position: fixed;
+  right: 18px;
+  bottom: 74px;
+  z-index: 9299;
+  display: none;
+  width: min(360px, calc(100vw - 24px));
+  padding: 13px 14px;
+  border: 1px solid rgba(255,215,0,0.34);
+  border-radius: 8px;
+  background: rgba(16,18,36,0.97);
+  color: rgba(230,235,255,0.86);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.45);
+  font-family: Arial, sans-serif;
+  cursor: pointer;
+}
+.chat-toast.show { display: block; }
+.chat-toast strong { color: var(--gold); }
+@media (max-width: 560px) {
+  .chat-launch { right: 12px; bottom: 12px; }
+  .chat-panel { right: 12px; bottom: 66px; max-height: calc(100vh - 82px); }
+  .chat-toast { right: 12px; bottom: 66px; }
+  .chat-messages { max-height: 320px; }
+}
+
 /* ── PAYTABLE ── */
 .paytable-wrap { max-width: 500px; width: 100%; margin-top: 8px; }
 .paytable-toggle {
@@ -2308,6 +2469,33 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
 
 </div><!-- /game-screen -->
 
+<!-- Wochenchat -->
+<button class="chat-launch" id="chat-launch" type="button" onclick="toggleChatPanel()" aria-label="Wochenchat öffnen">
+  <span>🧀 Chat</span>
+  <span class="chat-online-dot" id="chat-online-count">0</span>
+</button>
+
+<div class="chat-panel" id="chat-panel" aria-live="polite">
+  <div class="chat-head">
+    <div class="chat-title">Wochenchat</div>
+    <div class="chat-online-dot" id="chat-panel-online">0</div>
+    <button class="chat-close" type="button" onclick="closeChatPanel()" aria-label="Chat schließen">×</button>
+  </div>
+  <div class="chat-suggestion" id="chat-suggestion" onclick="fillChatSuggestion()"></div>
+  <div class="chat-messages" id="chat-messages">
+    <div class="chat-empty">Noch keine Käsegespräche.</div>
+  </div>
+  <form class="chat-form" onsubmit="sendChatMessage(event)">
+    <input class="chat-input" id="chat-input" maxlength="260" autocomplete="off" placeholder="Käsige Nachricht schreiben...">
+    <button class="chat-send" type="submit">Senden</button>
+  </form>
+</div>
+
+<div class="chat-toast" id="chat-toast" onclick="openChatPanel()">
+  <strong>Neu: Wochenchat!</strong><br>
+  <span id="chat-toast-text">Was ist euer Lieblingskäse?</span>
+</div>
+
 <!-- ═══════════════════════════════════════════════ -->
 <!--  OVERLAYS                                       -->
 <!-- ═══════════════════════════════════════════════ -->
@@ -2703,6 +2891,11 @@ function kasinoApiAvailable() {
   return location.protocol === 'http:' || location.protocol === 'https:' || !!KASINO_API_BASE;
 }
 
+const KAESINO_DEBUG = localStorage.getItem('kaesino_debug') === '1';
+function logSoftError(scope, error) {
+  if (KAESINO_DEBUG) console.warn(`[kaesino:${scope}]`, error);
+}
+
 // ── WAVE HINTERGRUND ────────────────────────────────────────
 (function () {
   try {
@@ -2833,8 +3026,25 @@ let autoOn             = false;
 let autoTimer          = null;
 let playerName         = '';
 let milestone1000Shown = false;
+let restoredProgressNoticeShown = false;
 const ogMilestonesShown   = new Set();
 const rangMilestonesShown = new Set();
+
+// Wochenchat
+let chatOpen       = false;
+let chatLastId     = 0;
+let chatPollTimer  = null;
+let chatPulseTimer = null;
+const CHAT_POLL_MS = 3500;
+const CHAT_PRESENCE_MS = 20000;
+const CHAT_SUGGESTIONS = [
+  'Was ist euer Lieblingskäse?',
+  'Wie mögt ihr euren Obatzda am liebsten?',
+  'Wer ist euer Zweitlieblingsoligarch?',
+  'Welcher Käse ist massiv unterschätzt?',
+  'Was ist der perfekte Snack zum Käsino?',
+  'Welche Oligarchenstrategie fährt ihr heute?'
+];
 
 // ── SCHIMMELRISIKO ───────────────────────────────────────────
 let schimmelPending     = false;
@@ -2977,7 +3187,7 @@ function queuePlayerProgressServerSave(entry, immediate = false) {
 async function savePlayerProgressToServer(entry, keepalive = false) {
   if (!entry || !playerName || !kasinoApiAvailable()) return;
   try {
-    await fetch(kasinoApiUrl('/api/player'), {
+    const response = await fetch(kasinoApiUrl('/api/player'), {
       method: 'PUT',
       keepalive,
       headers: { 'Content-Type': 'application/json' },
@@ -2988,21 +3198,37 @@ async function savePlayerProgressToServer(entry, keepalive = false) {
         updatedAt: entry.updatedAt || Date.now()
       })
     });
-  } catch (e) {}
+    if (!response.ok) throw new Error(`player save ${response.status}`);
+  } catch (e) {
+    logSoftError('player-save', e);
+  }
 }
 
-function savePlayerProgress() {
-  if (!playerName) return;
+function saveCurrentPlayerState(reason = 'state', options = {}) {
+  if (!playerName) return null;
   try {
     purgePlayerProgressForCurrentWeek();
     const all  = JSON.parse(localStorage.getItem('kaesino_progress') || '{}');
     const week = getWeekStart();
     // Spielstand = aktueller Stand, nicht Wochen-Höchststand.
-    const entry = { week, credits: Math.max(0, credits), updatedAt: Date.now() };
+    const entry = {
+      week,
+      credits: Math.max(0, Math.floor(credits || 0)),
+      updatedAt: options.updatedAt || Date.now(),
+      reason
+    };
     all[playerName] = entry;
     localStorage.setItem('kaesino_progress', JSON.stringify(all));
-    queuePlayerProgressServerSave(entry);
-  } catch (e) {}
+    if (options.server !== false) queuePlayerProgressServerSave(entry, !!options.immediate);
+    return entry;
+  } catch (e) {
+    logSoftError('player-local-save', e);
+  }
+  return null;
+}
+
+function savePlayerProgress(reason = 'legacy', options = {}) {
+  return saveCurrentPlayerState(reason, options);
 }
 function clearPlayerProgress() {
   if (!playerName) return;
@@ -3010,7 +3236,9 @@ function clearPlayerProgress() {
     const all = JSON.parse(localStorage.getItem('kaesino_progress') || '{}');
     delete all[playerName];
     localStorage.setItem('kaesino_progress', JSON.stringify(all));
-  } catch (e) {}
+  } catch (e) {
+    logSoftError('player-clear', e);
+  }
 }
 
 // ── COUNTDOWN ───────────────────────────────────────────────
@@ -3047,6 +3275,7 @@ function startGame() {
   if (!suffix) { errEl.textContent = 'Bitte gib einen Namen ein! z.B. "König"'; return; }
   if (suffix.length < 2) { errEl.textContent = 'Mindestens 2 Zeichen bitte!'; return; }
   playerName = 'Käse-' + suffix;
+  restoredProgressNoticeShown = false;
   localStorage.setItem('kaesino_player', playerName);
   document.getElementById('player-display').textContent = playerName;
   // Spielstand dieser Woche wiederherstellen (gleicher Name → aktueller alter Stand)
@@ -3060,10 +3289,12 @@ function startGame() {
   initGame();
   startMusic();
   setTimeout(() => showKaesebaer(), 300);
-  // Hinweis wenn ein gespeicherter Spielstand wiederhergestellt wurde
-  if (savedCredits !== null && savedCredits > 100) {
-    setTimeout(() => setResult(`🧀 Willkommen zurück, ${playerName}! Spielstand wiederhergestellt: ${credits}🪙`, 'win'), 1400);
-  }
+}
+
+function maybeShowRestoredProgressMessage() {
+  if (restoredProgressNoticeShown || !playerName || credits <= 100) return;
+  restoredProgressNoticeShown = true;
+  setTimeout(() => setResult(`🧀 Willkommen zurück, ${playerName}! Spielstand wiederhergestellt: ${credits}🪙`, 'win'), 900);
 }
 
 // ── INIT ────────────────────────────────────────────────────
@@ -3075,8 +3306,11 @@ function initGame() {
   // Beim Start: erst localStorage zeigen (sofort), dann Server laden (1 API-Read)
   loadLeaderboard().then(lb => { renderLeaderboard(lb); if (lb.lastWeek) renderPrevWinner(lb.lastWeek); });
   fetchFromServer().then(() => {
+    maybeShowRestoredProgressMessage();
     // Login zählt für die aktuelle Wochenrangliste, auch bevor der erste Spin passiert.
     updateLeaderboard(playerName, credits, 0);
+    initChat();
+    showChatHintOnce();
   });
   if (sessionStorage.getItem('ig_credited')) {
     const btn = document.getElementById('ig-btn');
@@ -3084,7 +3318,7 @@ function initGame() {
     btn.disabled = true;
   }
   // Täglicher Käse-Bonus nach kurzem Delay (nach Käsebär)
-  setTimeout(checkDailyBonus, 2200);
+  setTimeout(checkDailyBonus, 2600);
 }
 
 function rndCheese() {
@@ -3705,14 +3939,188 @@ function setResult(text, cls) {
     queueJackpotOverlay(null, 600);
   }
 }
-function refreshUI() {
+
+// ── WOCHENCHAT ───────────────────────────────────────────────
+function randomChatSuggestion() {
+  return CHAT_SUGGESTIONS[Math.floor(Math.random() * CHAT_SUGGESTIONS.length)];
+}
+
+function setChatSuggestion(text = randomChatSuggestion()) {
+  const el = document.getElementById('chat-suggestion');
+  if (el) el.textContent = `Gesprächsstarter: ${text}`;
+  return text;
+}
+
+function fillChatSuggestion() {
+  const input = document.getElementById('chat-input');
+  const suggestion = (document.getElementById('chat-suggestion')?.textContent || '')
+    .replace(/^Gesprächsstarter:\s*/, '');
+  if (input && suggestion) {
+    input.value = suggestion;
+    input.focus();
+  }
+}
+
+function initChat() {
+  if (!playerName || !kasinoApiAvailable()) return;
+  document.getElementById('chat-launch')?.classList.add('show');
+  setChatSuggestion();
+  pollChat(true);
+  pulsePresence();
+  clearInterval(chatPollTimer);
+  clearInterval(chatPulseTimer);
+  chatPollTimer = setInterval(() => pollChat(false), CHAT_POLL_MS);
+  chatPulseTimer = setInterval(pulsePresence, CHAT_PRESENCE_MS);
+}
+
+function setChatOnline(online = []) {
+  const count = Array.isArray(online) ? online.length : 0;
+  const label = count > 99 ? '99+' : String(count);
+  const launch = document.getElementById('chat-online-count');
+  const panel  = document.getElementById('chat-panel-online');
+  if (launch) launch.textContent = label;
+  if (panel)  panel.textContent = label;
+}
+
+function renderChatMessages(messages = []) {
+  const wrap = document.getElementById('chat-messages');
+  if (!wrap) return;
+  const empty = wrap.querySelector('.chat-empty');
+  if (empty && messages.length) empty.remove();
+
+  messages.forEach(message => {
+    if (!message || !message.id || wrap.querySelector(`[data-chat-id="${message.id}"]`)) return;
+    chatLastId = Math.max(chatLastId, Number(message.id || 0));
+
+    const item = document.createElement('div');
+    item.className = 'chat-msg';
+    item.dataset.chatId = String(message.id);
+
+    const head = document.createElement('div');
+    head.className = 'chat-msg-head';
+
+    const name = document.createElement('span');
+    name.className = 'chat-msg-name';
+    name.textContent = message.name || 'Käse-Gast';
+
+    const time = document.createElement('span');
+    time.className = 'chat-msg-time';
+    const d = new Date(Number(message.createdAt || Date.now()));
+    time.textContent = d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+
+    const body = document.createElement('div');
+    body.className = 'chat-msg-body';
+    body.textContent = message.body || '';
+
+    head.appendChild(name);
+    head.appendChild(time);
+    item.appendChild(head);
+    item.appendChild(body);
+    wrap.appendChild(item);
+  });
+
+  if (chatOpen && messages.length) wrap.scrollTop = wrap.scrollHeight;
+}
+
+async function pollChat(initial = false) {
+  if (!playerName || !kasinoApiAvailable()) return;
+  try {
+    const r = await fetch(kasinoApiUrl(`/api/chat?after=${initial ? 0 : chatLastId}`));
+    if (!r.ok) throw new Error(`chat poll ${r.status}`);
+    const data = await r.json();
+    if (initial) {
+      chatLastId = 0;
+      const wrap = document.getElementById('chat-messages');
+      if (wrap) wrap.innerHTML = '<div class="chat-empty">Noch keine Käsegespräche.</div>';
+    }
+    renderChatMessages(data.messages || []);
+    setChatOnline(data.online || []);
+  } catch (e) {
+    logSoftError('chat-poll', e);
+  }
+}
+
+async function pulsePresence() {
+  if (!playerName || !kasinoApiAvailable()) return;
+  try {
+    const r = await fetch(kasinoApiUrl('/api/presence'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: playerName })
+    });
+    if (!r.ok) throw new Error(`presence ${r.status}`);
+    const data = await r.json();
+    setChatOnline(data.online || []);
+  } catch (e) {
+    logSoftError('presence', e);
+  }
+}
+
+async function sendChatMessage(event) {
+  if (event) event.preventDefault();
+  const input = document.getElementById('chat-input');
+  const body = (input?.value || '').trim();
+  if (!body || !playerName || !kasinoApiAvailable()) return;
+
+  try {
+    const r = await fetch(kasinoApiUrl('/api/chat'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: playerName, body })
+    });
+    if (!r.ok) throw new Error(`chat send ${r.status}`);
+    const data = await r.json();
+    if (input) input.value = '';
+    renderChatMessages(data.messages || (data.message ? [data.message] : []));
+    setChatOnline(data.online || []);
+    setChatSuggestion();
+    const wrap = document.getElementById('chat-messages');
+    if (wrap) wrap.scrollTop = wrap.scrollHeight;
+  } catch (e) {
+    logSoftError('chat-send', e);
+    setResult('🧀 Chat-Nachricht konnte gerade nicht gesendet werden. Versuch es gleich nochmal.', '');
+  }
+}
+
+function openChatPanel() {
+  chatOpen = true;
+  document.getElementById('chat-panel')?.classList.add('show');
+  document.getElementById('chat-toast')?.classList.remove('show');
+  pollChat(false);
+  setTimeout(() => document.getElementById('chat-input')?.focus(), 60);
+}
+
+function closeChatPanel() {
+  chatOpen = false;
+  document.getElementById('chat-panel')?.classList.remove('show');
+}
+
+function toggleChatPanel() {
+  chatOpen ? closeChatPanel() : openChatPanel();
+}
+
+function showChatHintOnce() {
+  if (!playerName || !kasinoApiAvailable()) return;
+  const key = `kaesino_chat_hint_${getWeekStart()}`;
+  if (localStorage.getItem(key)) return;
+  localStorage.setItem(key, '1');
+  const suggestion = randomChatSuggestion();
+  const text = document.getElementById('chat-toast-text');
+  if (text) text.textContent = suggestion;
+  setTimeout(() => {
+    if (!chatOpen) document.getElementById('chat-toast')?.classList.add('show');
+  }, 3200);
+  setTimeout(() => document.getElementById('chat-toast')?.classList.remove('show'), 12000);
+}
+
+function refreshUI(options = {}) {
   document.getElementById('credits-val').textContent = credits;
   document.getElementById('bet-val').textContent     = bet;
   document.querySelectorAll('.bet-btn').forEach(b => {
     b.classList.toggle('active', Number(b.dataset.bet) === bet);
   });
   updatePlayerTag();
-  savePlayerProgress();
+  if (options.persist !== false) saveCurrentPlayerState(options.reason || 'ui');
 }
 
 function updatePlayerTag() {
@@ -4258,8 +4666,10 @@ function applyServerPlayerProgress(serverEntry) {
     const all = JSON.parse(localStorage.getItem('kaesino_progress') || '{}');
     all[playerName] = remote;
     localStorage.setItem('kaesino_progress', JSON.stringify(all));
-  } catch (e) {}
-  refreshUI();
+  } catch (e) {
+    logSoftError('player-reconcile-cache', e);
+  }
+  refreshUI({ persist: false });
   return true;
 }
 
@@ -4311,7 +4721,9 @@ async function fetchFromServer() {
       if (lbCache.lastWeek) renderPrevWinner(lbCache.lastWeek);
       if (d.player) applyServerPlayerProgress(d.player);
     }
-  } catch(e) {}
+  } catch(e) {
+    logSoftError('state-fetch', e);
+  }
   return lbCache;
 }
 
@@ -4342,7 +4754,9 @@ async function saveToServer(data, keepalive = false) {
         if (lbCache.lastWeek) renderPrevWinner(lbCache.lastWeek);
       }
     }
-  } catch(e) {}
+  } catch(e) {
+    logSoftError('leaderboard-save', e);
+  }
 }
 
 // Rangliste laden — gibt immer sofort den Cache zurück, KEIN API-Call
@@ -4373,6 +4787,9 @@ function handleWeekBoundaryIfNeeded() {
   localStorage.setItem('kaesino_lb', JSON.stringify(lbCache));
   renderLeaderboard(lbCache);
   if (lbCache.lastWeek) renderPrevWinner(lbCache.lastWeek);
+  chatLastId = 0;
+  const chatWrap = document.getElementById('chat-messages');
+  if (chatWrap) chatWrap.innerHTML = '<div class="chat-empty">Neue Woche, neues Käsegespräch.</div>';
 
   if (playerName) {
     credits = 100;

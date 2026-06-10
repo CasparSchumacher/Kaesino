@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kaesino Animation Test</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #070915;
+      color: #f4e7a3;
+      font-family: Arial, sans-serif;
+    }
+    .toolbar {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 10;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      background: rgba(5, 6, 18, 0.92);
+      border-bottom: 1px solid rgba(255, 215, 0, 0.25);
+      backdrop-filter: blur(10px);
+    }
+    button {
+      border: 1px solid rgba(255, 215, 0, 0.55);
+      border-radius: 8px;
+      background: #1b1930;
+      color: #ffd700;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover { background: #28233d; }
+    .hint {
+      margin-left: auto;
+      color: rgba(230, 235, 255, 0.68);
+      font-size: 13px;
+    }
+    iframe {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      border: 0;
+      padding-top: 54px;
+      background: #070915;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button onclick="testCheddarPure()">3x Cheddar testen</button>
+    <button onclick="testCheddarWild()">Cheddar + Mozzarella testen</button>
+    <button onclick="testJackpot()">Jackpot testen</button>
+    <button onclick="testJackpotStep()">Jackpot weiter</button>
+    <button onclick="reloadGame()">Neu laden</button>
+    <div class="hint">Lokale Testseite: keine Spins noetig.</div>
+  </div>
+  <iframe id="game" src="index.html"></iframe>
+
+  <script>
+    function gameWindow() {
+      return document.getElementById('game').contentWindow;
+    }
+    function cheese(id) {
+      return gameWindow().eval(`CHEESES.find(c => c.id === ${JSON.stringify(id)})`);
+    }
+    function assertResult(name, ok) {
+      console.log(`${ok ? 'OK' : 'FAIL'} ${name}`);
+      if (!ok) alert(`Test fehlgeschlagen: ${name}`);
+    }
+    function testCheddarPure() {
+      const game = gameWindow();
+      game.closeJackpot?.();
+      const results = [cheese('cheddar'), cheese('cheddar'), cheese('cheddar')];
+      const win = game.calcWin(results, 100);
+      assertResult('3x Cheddar comboId', win.comboId === 'cheddar');
+      assertResult('3x Cheddar trigger', game.isCheddarAnimationWin(results, win));
+      game.queueCheddarOverlay?.(0);
+    }
+    function testCheddarWild() {
+      const game = gameWindow();
+      game.closeJackpot?.();
+      const results = [cheese('cheddar'), cheese('mozz'), cheese('cheddar')];
+      const win = game.calcWin(results, 100);
+      assertResult('Cheddar Wild comboId', win.comboId === 'cheddar');
+      assertResult('Cheddar Wild trigger', game.isCheddarAnimationWin(results, win));
+      game.queueCheddarOverlay?.(0);
+    }
+    function testJackpot() {
+      const game = gameWindow();
+      game.closeCheddar?.();
+      const results = [cheese('golden'), cheese('golden'), cheese('golden')];
+      const win = game.calcWin(results, 100);
+      assertResult('Jackpot flag', win.isJackpot === true);
+      game.queueJackpotOverlay?.(win, 0);
+    }
+    function testJackpotStep() {
+      gameWindow().advanceJackpot?.();
+    }
+    function reloadGame() {
+      document.getElementById('game').contentWindow.location.reload();
+    }
+  </script>
+</body>
+</html>

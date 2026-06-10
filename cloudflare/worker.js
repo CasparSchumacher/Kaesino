@@ -1,8 +1,12 @@
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET,POST,PUT,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type,X-Reset-Secret'
+  'Access-Control-Allow-Headers': 'Content-Type,X-Reset-Secret,X-Import-Secret'
 };
+
+const CHAT_LIMIT = 80;
+const CHAT_MAX_LENGTH = 260;
+const ONLINE_WINDOW_MS = 90000;
 
 const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS meta (
@@ -30,7 +34,24 @@ const SCHEMA = [
     biggest_win_name TEXT,
     biggest_win_score INTEGER,
     archived_at INTEGER NOT NULL
-  )`
+  )`,
+  `CREATE TABLE IF NOT EXISTS chat_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    week_start TEXT NOT NULL,
+    name TEXT NOT NULL,
+    body TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_chat_messages_week_id
+    ON chat_messages (week_start, id)`,
+  `CREATE TABLE IF NOT EXISTS online_presence (
+    week_start TEXT NOT NULL,
+    name TEXT NOT NULL,
+    last_seen INTEGER NOT NULL,
+    PRIMARY KEY (week_start, name)
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_online_presence_week_seen
+    ON online_presence (week_start, last_seen DESC)`
 ];
 
 let schemaReady = false;
@@ -100,6 +121,48 @@ async function handleApi(request, env, url) {
       updatedAt: payload.player?.updatedAt ? toInt(payload.player.updatedAt, Date.now()) : Date.now()
     });
     return json(await buildState(env.DB, name));
+  }
+
+  if (request.method === 'GET' && url.pathname === '/api/chat') {
+    const weekStart = await ensureCurrentWeek(env.DB);
+    const after = Math.max(0, toInt(url.searchParams.get('after'), 0));
+    return json({
+      ok: true,
+      weekStart,
+      messages: await getChatMessages(env.DB, weekStart, after),
+      online: await getOnlinePlayers(env.DB, weekStart)
+    });
+  }
+
+  if (request.method === 'POST' && url.pathname === '/api/chat') {
+    const payload = await request.json();
+    const name = cleanName(payload.name);
+    const body = cleanChatBody(payload.body);
+    if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
+    if (!body) return json({ ok: false, error: 'Nachricht fehlt.' }, 400);
+    const weekStart = await ensureCurrentWeek(env.DB);
+    await updatePresence(env.DB, weekStart, name);
+    const message = await insertChatMessage(env.DB, weekStart, name, body);
+    return json({
+      ok: true,
+      weekStart,
+      message,
+      messages: [message],
+      online: await getOnlinePlayers(env.DB, weekStart)
+    });
+  }
+
+  if (request.method === 'POST' && url.pathname === '/api/presence') {
+    const payload = await request.json();
+    const name = cleanName(payload.name);
+    if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
+    const weekStart = await ensureCurrentWeek(env.DB);
+    await updatePresence(env.DB, weekStart, name);
+    return json({
+      ok: true,
+      weekStart,
+      online: await getOnlinePlayers(env.DB, weekStart)
+    });
   }
 
   if ((request.method === 'POST' || request.method === 'GET')
@@ -191,6 +254,8 @@ async function archiveAndReset(db, oldWeek, currentWeek) {
 
   await db.batch([
     db.prepare('DELETE FROM players WHERE week_start <> ?').bind(currentWeek),
+    db.prepare('DELETE FROM chat_messages WHERE week_start <> ?').bind(currentWeek),
+    db.prepare('DELETE FROM online_presence WHERE week_start <> ?').bind(currentWeek),
     db.prepare(
       `INSERT INTO meta (key, value) VALUES ('week_start', ?)
        ON CONFLICT(key) DO UPDATE SET value = excluded.value`
@@ -355,6 +420,59 @@ async function buildLeaderboard(db, weekStart) {
   };
 }
 
+async function getChatMessages(db, weekStart, after = 0) {
+  const rows = await db.prepare(
+    `SELECT id, name, body, created_at AS createdAt
+     FROM chat_messages
+     WHERE week_start = ? AND id > ?
+     ORDER BY id ASC
+     LIMIT ?`
+  ).bind(weekStart, after, CHAT_LIMIT).all();
+  return (rows.results || []).map(row => ({
+    id: Number(row.id || 0),
+    name: row.name,
+    body: row.body,
+    createdAt: Number(row.createdAt || 0)
+  }));
+}
+
+async function insertChatMessage(db, weekStart, name, body) {
+  const createdAt = Date.now();
+  const result = await db.prepare(
+    `INSERT INTO chat_messages (week_start, name, body, created_at)
+     VALUES (?, ?, ?, ?)`
+  ).bind(weekStart, name, body, createdAt).run();
+  return {
+    id: Number(result.meta?.last_row_id || 0),
+    name,
+    body,
+    createdAt
+  };
+}
+
+async function updatePresence(db, weekStart, name) {
+  await db.prepare(
+    `INSERT INTO online_presence (week_start, name, last_seen)
+     VALUES (?, ?, ?)
+     ON CONFLICT(week_start, name) DO UPDATE SET last_seen = excluded.last_seen`
+  ).bind(weekStart, name, Date.now()).run();
+}
+
+async function getOnlinePlayers(db, weekStart) {
+  const cutoff = Date.now() - ONLINE_WINDOW_MS;
+  const rows = await db.prepare(
+    `SELECT name, last_seen AS lastSeen
+     FROM online_presence
+     WHERE week_start = ? AND last_seen >= ?
+     ORDER BY last_seen DESC
+     LIMIT 30`
+  ).bind(weekStart, cutoff).all();
+  return (rows.results || []).map(row => ({
+    name: row.name,
+    lastSeen: Number(row.lastSeen || 0)
+  }));
+}
+
 async function getPlayer(db, weekStart, name) {
   const row = await db.prepare(
     `SELECT week_start AS week, name, credits, best_coins AS bestCoins,
@@ -406,6 +524,13 @@ async function setMeta(db, key, value) {
 
 function cleanName(name) {
   return String(name || '').trim().slice(0, 80);
+}
+
+function cleanChatBody(body) {
+  return String(body || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, CHAT_MAX_LENGTH);
 }
 
 function toInt(value, fallback) {
