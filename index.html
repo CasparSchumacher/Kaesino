@@ -1029,17 +1029,6 @@ body {
   border-radius: 8px;
   cursor: pointer;
 }
-.chat-suggestion {
-  margin: 10px 12px 0;
-  padding: 9px 10px;
-  border: 1px solid rgba(255,215,0,0.18);
-  border-radius: 8px;
-  background: rgba(255,215,0,0.07);
-  color: rgba(255,230,120,0.9);
-  font-size: 0.86em;
-  line-height: 1.35;
-  cursor: pointer;
-}
 .chat-messages {
   flex: 1;
   min-height: 180px;
@@ -1061,10 +1050,11 @@ body {
 }
 .chat-msg.is-croupier {
   margin: 4px 0 8px;
-  padding: 9px 10px;
-  border: 1px solid rgba(255,215,0,0.16);
+  padding: 10px 11px;
+  border: 1px solid rgba(255,215,0,0.42);
   border-radius: 8px;
-  background: rgba(255,215,0,0.055);
+  background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(184,40,72,0.08));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.035), 0 8px 18px rgba(0,0,0,0.18);
 }
 .chat-msg:last-child { border-bottom: none; }
 .chat-msg-head {
@@ -1074,14 +1064,64 @@ body {
   margin-bottom: 3px;
 }
 .chat-msg-name { color: #ff7090; font-weight: 800; font-size: 0.84em; }
+.chat-msg.is-croupier .chat-msg-name {
+  color: var(--gold);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.chat-msg.is-croupier .chat-msg-name::before {
+  content: 'Croupier';
+  color: #130b02;
+  background: linear-gradient(135deg, #ffe76f, #d69c00);
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-size: 0.68em;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
 .chat-msg-time { color: rgba(180,190,230,0.42); font-size: 0.72em; font-family: 'Courier New', monospace; }
 .chat-msg-body { color: rgba(230,235,255,0.86); font-size: 0.9em; line-height: 1.35; overflow-wrap: anywhere; }
+.chat-msg.is-croupier .chat-msg-body { color: rgba(255,238,155,0.94); }
+.chat-mention {
+  font-weight: 900;
+  border-bottom: 1px solid currentColor;
+}
 .chat-form {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 8px;
   padding: 12px;
   border-top: 1px solid rgba(184,40,72,0.22);
+  position: relative;
+}
+.mention-menu {
+  grid-column: 1 / -1;
+  display: none;
+  margin-bottom: 2px;
+  padding: 5px;
+  border: 1px solid rgba(255,215,0,0.22);
+  border-radius: 8px;
+  background: rgba(8,10,24,0.98);
+  box-shadow: 0 12px 26px rgba(0,0,0,0.38);
+  max-height: 148px;
+  overflow-y: auto;
+}
+.mention-menu.show { display: block; }
+.mention-option {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(230,235,255,0.9);
+  padding: 7px 8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.mention-option.active,
+.mention-option:hover {
+  background: rgba(255,215,0,0.12);
 }
 .chat-input {
   min-width: 0;
@@ -2038,6 +2078,9 @@ body {
   margin:8px auto 12px;
   position:relative;
   filter:drop-shadow(0 8px 18px rgba(0,0,0,0.75));
+  transform-origin:center bottom;
+  transform:translate3d(0,0,0) rotate(-6deg) scale(0.82);
+  will-change:transform;
 }
 .schimmel-side {
   position:absolute; inset:0; border-radius:50%;
@@ -2046,9 +2089,39 @@ body {
   gap:2px;
   border:4px solid rgba(0,0,0,0.25);
   opacity:0;
-  transition:opacity 0s;
+  transform:translateZ(0);
+  transition:opacity 0.16s ease;
 }
 .schimmel-flip-coin .schimmel-side-fresh { opacity:1; }
+.schimmel-flip-coin.show-fresh .schimmel-side-fresh { opacity:1; }
+.schimmel-flip-coin.show-fresh .schimmel-side-mold  { opacity:0; }
+.schimmel-flip-coin.show-mold .schimmel-side-fresh  { opacity:0; }
+.schimmel-flip-coin.show-mold .schimmel-side-mold   { opacity:1; }
+.schimmel-flip-coin.flipping {
+  animation: cheesePendulum 1.8s cubic-bezier(0.2,0.86,0.32,1) both;
+}
+.schimmel-flip-coin.flipping .schimmel-side-fresh { animation: freshPulse 1.8s steps(1,end) both; }
+.schimmel-flip-coin.flipping .schimmel-side-mold  { animation: moldPulse 1.8s steps(1,end) both; }
+@keyframes cheesePendulum {
+  0%   { transform:translate3d(0,0,0) rotate(-22deg) scale(0.78); }
+  12%  { transform:translate3d(0,-8px,0) rotate(24deg)  scale(0.96); }
+  24%  { transform:translate3d(0,-2px,0) rotate(-20deg) scale(1.05); }
+  38%  { transform:translate3d(0,-10px,0) rotate(16deg) scale(1.10); }
+  52%  { transform:translate3d(0,-2px,0) rotate(-12deg) scale(1.08); }
+  66%  { transform:translate3d(0,-7px,0) rotate(8deg)   scale(1.04); }
+  82%  { transform:translate3d(0,-1px,0) rotate(-4deg)  scale(1.01); }
+  100% { transform:translate3d(0,0,0) rotate(0deg)      scale(1); }
+}
+@keyframes freshPulse {
+  0%, 22%, 48%, 76% { opacity:1; }
+  23%, 47%, 77%, 99% { opacity:0; }
+  100% { opacity:1; }
+}
+@keyframes moldPulse {
+  0%, 22%, 48%, 76% { opacity:0; }
+  23%, 47%, 77%, 99% { opacity:1; }
+  100% { opacity:0; }
+}
 .schimmel-side-emoji { font-size:2.6em; line-height:1; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4)); }
 .schimmel-side-label {
   font-family:'Georgia',serif; font-weight:bold;
@@ -2101,12 +2174,6 @@ body {
 @keyframes schimmelStatusPulse {
   from { opacity:0.6; }
   to   { opacity:1; }
-}
-/* Flip-Illusion via scaleX: an jeder Edge-Position (scaleX=0) wechselt JS die sichtbare Seite */
-.schimmel-flip-coin {
-  transform-origin:center center;
-  transform:scaleX(1) scale(0.55);
-  transition:transform 0.18s linear;
 }
 .schimmel-flip-result {
   display:none;
@@ -2792,11 +2859,11 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
     <div class="chat-online-dot" id="chat-panel-online">0</div>
     <button class="chat-close" type="button" onclick="closeChatPanel()" aria-label="Chat schließen">×</button>
   </div>
-  <div class="chat-suggestion" id="chat-suggestion" onclick="fillChatSuggestion()"></div>
   <div class="chat-messages" id="chat-messages">
     <div class="chat-empty">Noch keine Käsegespräche.</div>
   </div>
   <form class="chat-form" onsubmit="sendChatMessage(event)">
+    <div class="mention-menu" id="mention-menu" role="listbox"></div>
     <input class="chat-input" id="chat-input" maxlength="260" autocomplete="off" placeholder="Käsige Nachricht schreiben...">
     <button class="chat-send" type="submit">Senden</button>
   </form>
@@ -2804,7 +2871,7 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
 
 <div class="chat-toast" id="chat-toast" onclick="openChatPanel()">
   <strong>Neu: Wochenchat!</strong><br>
-  <span id="chat-toast-text">Was ist euer Lieblingskäse?</span>
+  <span id="chat-toast-text">Käsige Gespräche laufen gerade.</span>
 </div>
 
 <!-- ═══════════════════════════════════════════════ -->
@@ -3352,6 +3419,8 @@ let chatPulseTimer = null;
 const CHAT_POLL_MS = 3500;
 const CHAT_PRESENCE_MS = 20000;
 let chatCurrentOpener = 'Was ist euer Lieblingskäse?';
+const chatKnownNames = new Set();
+let mentionActiveIndex = 0;
 
 // ── SCHIMMELRISIKO ───────────────────────────────────────────
 let schimmelPending     = false;
@@ -3729,20 +3798,38 @@ function showRipenPop(text) {
   pop.classList.add('show');
 }
 
+function cheesePlateValue(targetId) {
+  return CHEESES.find(c => c.id === targetId)?.threeX || 0;
+}
+
+function makeCheesePlateCandidate(results, targetId, hold, open, hasMozzarella = false) {
+  return {
+    targetId,
+    hold,
+    open,
+    label: CHEESES.find(c => c.id === targetId),
+    hasMozzarella,
+    value: cheesePlateValue(targetId),
+    priority: CHEESE_PLATE_TARGETS.indexOf(targetId)
+  };
+}
+
 function findCheesePlate(results) {
   if (!freespinActive) return null;
+  const candidates = [];
+  const mozzIdx = results
+    .map((r, i) => r.id === 'mozz' ? i : -1)
+    .filter(i => i >= 0);
+
   for (const targetId of CHEESE_PLATE_TARGETS) {
     const targetIdx = results
       .map((r, i) => r.id === targetId ? i : -1)
-      .filter(i => i >= 0);
-    const mozzIdx = results
-      .map((r, i) => r.id === 'mozz' ? i : -1)
       .filter(i => i >= 0);
 
     if (targetIdx.length === 2) {
       const openIdx = [0,1,2].find(i => !targetIdx.includes(i));
       if (openIdx !== undefined && results[openIdx].id !== 'mozz') {
-        return { targetId, hold: targetIdx, open: openIdx, label: CHEESES.find(c => c.id === targetId) };
+        candidates.push(makeCheesePlateCandidate(results, targetId, targetIdx, openIdx));
       }
     }
 
@@ -3750,11 +3837,13 @@ function findCheesePlate(results) {
       const hold = [targetIdx[0], mozzIdx[0]];
       const openIdx = [0,1,2].find(i => !hold.includes(i));
       if (openIdx !== undefined && results[openIdx].id !== targetId) {
-        return { targetId, hold, open: openIdx, label: CHEESES.find(c => c.id === targetId), hasMozzarella: true };
+        candidates.push(makeCheesePlateCandidate(results, targetId, hold, openIdx, true));
       }
     }
   }
-  return null;
+
+  candidates.sort((a, b) => (b.value - a.value) || (b.priority - a.priority));
+  return candidates[0] || null;
 }
 
 async function runCheesePlate(results, spinBet) {
@@ -4085,14 +4174,14 @@ async function doSpin() {
     }
   }
 
-  // ── Schimmelrisiko: NUR bei den 5 höchsten möglichen Gewinnen (Multi ≥ 22×) ──
+  // ── Schimmelrisiko: hohe Gewinne ab 22×, auch in der Reifekammer ──
   //  1. Parmigiano 3× (200×)
   //  2. Golden 2×    (60×)
   //  3. Mozzarella 3× (50×)
   //  4. Senf 3×       (40×)
   //  5. Emmentaler 3× (22×)
   //  Ausgeschlossen: Jackpot (Golden 3×) und Freispiele (Roquefort 3×)
-  if (win.amount >= spinBet * 22 && !freespinActive && !win.isJackpot && !win.triggerFreespins) {
+  if (win.amount >= spinBet * 22 && !win.isJackpot && !win.triggerFreespins) {
     queueSchimmelrisiko(win.amount, 2600);
   }
 
@@ -4514,35 +4603,154 @@ function setResult(text, cls) {
 }
 
 // ── WOCHENCHAT ───────────────────────────────────────────────
-function setChatSuggestion(text = chatCurrentOpener) {
-  const el = document.getElementById('chat-suggestion');
-  if (el) el.textContent = `Käsino-Croupier: ${text}`;
-  return text;
-}
-
 function updateChatOpener(text) {
-  const opener = String(text || '').trim();
+  const opener = String(typeof text === 'object' ? (text?.body || '') : (text || '')).trim();
   if (!opener) return;
   chatCurrentOpener = opener;
-  setChatSuggestion(opener);
-  const toastText = document.getElementById('chat-toast-text');
-  if (toastText) toastText.textContent = opener;
 }
 
-function fillChatSuggestion() {
-  const input = document.getElementById('chat-input');
-  const suggestion = (document.getElementById('chat-suggestion')?.textContent || '')
-    .replace(/^Käsino-Croupier:\s*/, '');
-  if (input && suggestion) {
-    input.value = suggestion;
-    input.focus();
+function chatNameFromOnline(entry) {
+  return typeof entry === 'string' ? entry : String(entry?.name || '').trim();
+}
+
+function rememberChatName(name) {
+  const clean = String(name || '').trim();
+  if (!clean || clean === 'Käsino-Croupier') return;
+  chatKnownNames.add(clean);
+}
+
+function hashChatName(name) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
+  return Math.abs(hash);
+}
+
+function chatNameColor(name) {
+  if (name === 'Käsino-Croupier') return '#FFD700';
+  const palette = ['#ff7090', '#6ee7ff', '#a7ff83', '#ffbf69', '#c792ea', '#7dd3fc', '#fda4af', '#86efac'];
+  return palette[hashChatName(name) % palette.length];
+}
+
+function renderMentionedText(bodyEl, text) {
+  bodyEl.textContent = '';
+  const source = String(text || '');
+  const mentionRe = /@([\p{L}\p{N}_.-]{2,32})/gu;
+  let last = 0;
+  for (const match of source.matchAll(mentionRe)) {
+    if (match.index > last) bodyEl.appendChild(document.createTextNode(source.slice(last, match.index)));
+    const mention = document.createElement('span');
+    mention.className = 'chat-mention';
+    mention.style.color = chatNameColor(match[1]);
+    mention.textContent = match[0];
+    bodyEl.appendChild(mention);
+    last = match.index + match[0].length;
   }
+  if (last < source.length) bodyEl.appendChild(document.createTextNode(source.slice(last)));
+}
+
+function getMentionContext() {
+  const input = document.getElementById('chat-input');
+  if (!input) return null;
+  const cursor = input.selectionStart ?? input.value.length;
+  const prefix = input.value.slice(0, cursor);
+  const match = prefix.match(/(^|\s)@([\p{L}\p{N}_.-]*)$/u);
+  if (!match) return null;
+  const start = cursor - match[2].length - 1;
+  return { input, cursor, start, query: match[2].toLowerCase() };
+}
+
+function getMentionMatches(query = '') {
+  const names = Array.from(chatKnownNames);
+  if (playerName) names.push(playerName);
+  return Array.from(new Set(names))
+    .filter(name => name.toLowerCase().includes(query))
+    .sort((a, b) => a.localeCompare(b, 'de'))
+    .slice(0, 6);
+}
+
+function hideMentionMenu() {
+  const menu = document.getElementById('mention-menu');
+  if (menu) menu.classList.remove('show');
+}
+
+function insertMention(name) {
+  const ctx = getMentionContext();
+  if (!ctx) return;
+  const before = ctx.input.value.slice(0, ctx.start);
+  const after = ctx.input.value.slice(ctx.cursor);
+  const insert = `@${name} `;
+  ctx.input.value = before + insert + after;
+  const nextCursor = before.length + insert.length;
+  ctx.input.focus();
+  ctx.input.setSelectionRange(nextCursor, nextCursor);
+  hideMentionMenu();
+}
+
+function updateMentionMenu() {
+  const menu = document.getElementById('mention-menu');
+  const ctx = getMentionContext();
+  if (!menu || !ctx) {
+    hideMentionMenu();
+    return;
+  }
+  const matches = getMentionMatches(ctx.query);
+  if (!matches.length) {
+    hideMentionMenu();
+    return;
+  }
+  mentionActiveIndex = Math.min(mentionActiveIndex, matches.length - 1);
+  menu.innerHTML = '';
+  matches.forEach((name, idx) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'mention-option' + (idx === mentionActiveIndex ? ' active' : '');
+    btn.style.color = chatNameColor(name);
+    btn.textContent = `@${name}`;
+    btn.addEventListener('mousedown', event => {
+      event.preventDefault();
+      insertMention(name);
+    });
+    menu.appendChild(btn);
+  });
+  menu.classList.add('show');
+}
+
+function setupMentionAutocomplete() {
+  const input = document.getElementById('chat-input');
+  if (!input || input.dataset.mentionReady) return;
+  input.dataset.mentionReady = '1';
+  input.addEventListener('input', () => {
+    mentionActiveIndex = 0;
+    updateMentionMenu();
+  });
+  input.addEventListener('keydown', event => {
+    const menu = document.getElementById('mention-menu');
+    if (!menu?.classList.contains('show')) return;
+    const options = Array.from(menu.querySelectorAll('.mention-option'));
+    if (!options.length) return;
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      mentionActiveIndex = (mentionActiveIndex + 1) % options.length;
+      updateMentionMenu();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      mentionActiveIndex = (mentionActiveIndex - 1 + options.length) % options.length;
+      updateMentionMenu();
+    } else if (event.key === 'Enter' || event.key === 'Tab') {
+      event.preventDefault();
+      insertMention(options[mentionActiveIndex]?.textContent?.replace(/^@/, '') || '');
+    } else if (event.key === 'Escape') {
+      hideMentionMenu();
+    }
+  });
+  input.addEventListener('blur', () => setTimeout(hideMentionMenu, 120));
 }
 
 function initChat() {
   if (!playerName || !kasinoApiAvailable()) return;
   document.getElementById('chat-launch')?.classList.add('show');
-  setChatSuggestion();
+  setupMentionAutocomplete();
+  rememberChatName(playerName);
   pollChat(true);
   pulsePresence();
   clearInterval(chatPollTimer);
@@ -4558,6 +4766,8 @@ function setChatOnline(online = []) {
   const panel  = document.getElementById('chat-panel-online');
   if (launch) launch.textContent = label;
   if (panel)  panel.textContent = label;
+  if (Array.isArray(online)) online.map(chatNameFromOnline).forEach(rememberChatName);
+  updateMentionMenu();
 }
 
 function renderChatMessages(messages = []) {
@@ -4569,6 +4779,7 @@ function renderChatMessages(messages = []) {
   messages.forEach(message => {
     if (!message || !message.id || wrap.querySelector(`[data-chat-id="${message.id}"]`)) return;
     chatLastId = Math.max(chatLastId, Number(message.id || 0));
+    rememberChatName(message.name);
 
     const item = document.createElement('div');
     item.className = 'chat-msg';
@@ -4581,6 +4792,7 @@ function renderChatMessages(messages = []) {
     const name = document.createElement('span');
     name.className = 'chat-msg-name';
     name.textContent = message.name || 'Käse-Gast';
+    name.style.color = chatNameColor(message.name || 'Käse-Gast');
 
     const time = document.createElement('span');
     time.className = 'chat-msg-time';
@@ -4589,7 +4801,7 @@ function renderChatMessages(messages = []) {
 
     const body = document.createElement('div');
     body.className = 'chat-msg-body';
-    body.textContent = message.body || '';
+    renderMentionedText(body, message.body || '');
 
     head.appendChild(name);
     head.appendChild(time);
@@ -4651,6 +4863,7 @@ async function sendChatMessage(event) {
     if (!r.ok) throw new Error(`chat send ${r.status}`);
     const data = await r.json();
     if (input) input.value = '';
+    hideMentionMenu();
     updateChatOpener(data.currentOpener);
     renderChatMessages(data.messages || (data.message ? [data.message] : []));
     setChatOnline(data.online || []);
@@ -4685,10 +4898,10 @@ function showChatHintOnce() {
   if (localStorage.getItem(key)) return;
   localStorage.setItem(key, '1');
   const text = document.getElementById('chat-toast-text');
-  if (text) text.textContent = chatCurrentOpener;
+  if (text) text.textContent = 'Käsige Gespräche laufen gerade.';
   setTimeout(() => {
     const delayedText = document.getElementById('chat-toast-text');
-    if (delayedText) delayedText.textContent = chatCurrentOpener;
+    if (delayedText) delayedText.textContent = 'Käsige Gespräche laufen gerade.';
     if (!chatOpen) document.getElementById('chat-toast')?.classList.add('show');
   }, 3200);
   setTimeout(() => document.getElementById('chat-toast')?.classList.remove('show'), 12000);
@@ -5716,10 +5929,8 @@ function resetSchimmelOverlay() {
     coin._schimmelTimers.forEach(clearTimeout);
     coin._schimmelTimers = [];
   }
-  coin.style.transform = 'scaleX(1) scale(0.55)';
-  // Fresh-Seite initial sichtbar
-  coin.querySelector('.schimmel-side-fresh').style.opacity = '1';
-  coin.querySelector('.schimmel-side-mold').style.opacity  = '0';
+  coin.classList.remove('flipping', 'show-fresh', 'show-mold');
+  coin.classList.add('show-fresh');
   document.getElementById('schimmel-flip-result').className = 'schimmel-flip-result';
   document.getElementById('schimmel-flip-result').textContent = '';
   document.getElementById('schimmel-flip-status').textContent = 'Der Käsewürfel rollt…';
@@ -5770,80 +5981,30 @@ function resolveSchimmel(accept) {
 }
 
 function playSchimmelTicks() {
-  // Tick-Sounds parallel zur Animation: schnell starten, dann auseinanderziehen.
-  // Erste Ticks dicht (matched front-loaded rotation), dann immer langsamer.
-  const offsets = [0, 0.1, 0.2, 0.32, 0.46, 0.62, 0.8, 1.0, 1.25, 1.55, 1.9, 2.3, 2.7, 2.95];
-  offsets.forEach((t, i) => tone(420 - i * 12, 0.05, 'square', 0.07, t));
+  const offsets = [0, 0.18, 0.42, 0.72, 1.08, 1.48];
+  offsets.forEach((t, i) => tone(430 - i * 22, 0.045, 'square', 0.065, t));
 }
 
 function startSchimmelFlip(gewonnen) {
-  // Buttons und Timer ausblenden, Flip-Bühne anzeigen
   document.querySelector('#schimmel-overlay .schimmel-btns').style.display      = 'none';
   document.querySelector('#schimmel-overlay .schimmel-timer-bar').style.display = 'none';
   document.getElementById('schimmel-amount').textContent = 'Der Käse entscheidet…';
   const stage  = document.getElementById('schimmel-flip-stage');
   const coin   = document.getElementById('schimmel-flip-coin');
-  const fresh  = coin.querySelector('.schimmel-side-fresh');
-  const mold   = coin.querySelector('.schimmel-side-mold');
   const status = document.getElementById('schimmel-flip-status');
   stage.classList.add('active');
+  status.textContent = '50:50 im Käsekeller…';
+  coin.classList.remove('show-fresh', 'show-mold', 'flipping');
+  void coin.offsetHeight;
+  coin.classList.add('flipping');
 
-  // Status-Text rotieren
-  const statusMessages = ['Der Käsewürfel rollt…', 'Frisch oder verschimmelt?', 'Spannung im Käsekeller…', 'Gleich fällt die Entscheidung…'];
-  let msgIdx = 0;
-  status.textContent = statusMessages[0];
-  const statusTimer = setInterval(() => {
-    msgIdx++;
-    if (msgIdx < statusMessages.length) status.textContent = statusMessages[msgIdx];
-  }, 700);
-
-  // Flip-Timings: front-loaded — viele Flips am Anfang, dann immer langsamer
-  // Jeder Wert ist der Zeitpunkt (ms) an dem die Münze auf der Kante ist (scaleX=0) und die Seite wechselt
-  const edges = [
-    {at: 0,    side:'fresh', scale:0.55},
-    {at: 90,   side:'edge',  scale:0.7},   // → swap
-    {at: 180,  side:'mold',  scale:0.85},
-    {at: 280,  side:'edge',  scale:0.95},
-    {at: 380,  side:'fresh', scale:1.05},
-    {at: 510,  side:'edge',  scale:1.12},
-    {at: 640,  side:'mold',  scale:1.18},
-    {at: 800,  side:'edge',  scale:1.20},
-    {at: 970,  side:'fresh', scale:1.20},
-    {at: 1170, side:'edge',  scale:1.18},
-    {at: 1380, side:'mold',  scale:1.15},
-    {at: 1620, side:'edge',  scale:1.12},
-    {at: 1880, side:'fresh', scale:1.08},
-    {at: 2160, side:'edge',  scale:1.05},
-    {at: 2440, side:'mold',  scale:1.02},
-    {at: 2700, side:'edge',  scale:1.01},
-    {at: 2920, side:gewonnen ? 'fresh' : 'mold', scale:1},
-  ];
-
-  let edgeTimers = [];
-  edges.forEach(({at, side, scale}) => {
-    edgeTimers.push(setTimeout(() => {
-      if (side === 'edge') {
-        coin.style.transform = `scaleX(0.02) scale(${scale})`;
-      } else if (side === 'fresh') {
-        fresh.style.opacity = '1';
-        mold.style.opacity  = '0';
-        coin.style.transform = `scaleX(1) scale(${scale})`;
-      } else { // mold
-        fresh.style.opacity = '0';
-        mold.style.opacity  = '1';
-        coin.style.transform = `scaleX(1) scale(${scale})`;
-      }
-    }, at));
-  });
-
-  // Nach 3.0s ist die Animation fertig
-  edgeTimers.push(setTimeout(() => {
-    clearInterval(statusTimer);
-    edgeTimers.forEach(clearTimeout);
+  const revealTimer = setTimeout(() => {
+    coin.classList.remove('flipping');
+    coin.classList.add(gewonnen ? 'show-fresh' : 'show-mold');
+    status.textContent = gewonnen ? 'Frisch geblieben!' : 'Der Schimmel gewinnt…';
     revealSchimmelResult(gewonnen);
-  }, 3000));
-  // Timer-Liste merken damit Reset sie killen kann
-  coin._schimmelTimers = edgeTimers;
+  }, 1850);
+  coin._schimmelTimers = [revealTimer];
 }
 
 function revealSchimmelResult(gewonnen) {

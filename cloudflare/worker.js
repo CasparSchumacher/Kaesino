@@ -8,7 +8,7 @@ const CHAT_LIMIT = 80;
 const CHAT_MAX_LENGTH = 260;
 const ONLINE_WINDOW_MS = 90000;
 const CHAT_OPENER_AUTHOR = 'Käsino-Croupier';
-const CHAT_OPENER_INTERVAL_MS = 6 * 60 * 60 * 1000;
+const CHAT_OPENER_INTERVAL_MS = 12 * 60 * 60 * 1000;
 const CHAT_OPENERS = [
   'Was ist euer Lieblingskäse?',
   'Wie mögt ihr euren Obatzda am liebsten?',
