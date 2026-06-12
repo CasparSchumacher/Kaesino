@@ -1309,20 +1309,23 @@ body {
   position:fixed;
   inset:0;
   z-index:10080;
-  align-items:center;
-  justify-content:center;
+  align-items:flex-start;
+  justify-content:flex-start;
   padding:18px;
-  background:radial-gradient(circle at 50% 35%, rgba(255,215,0,0.16), rgba(2,3,12,0.92) 58%);
+  pointer-events:none;
 }
 #couture-overlay.show { display:flex; }
 .couture-box {
-  width:min(430px, 100%);
+  width:min(440px, calc(100vw - 24px));
+  max-height:calc(100vh - 36px);
+  overflow:auto;
   border:2px solid rgba(255,215,0,0.52);
-  border-radius:14px;
-  padding:20px;
+  border-radius:12px;
+  padding:16px;
   background:linear-gradient(145deg, rgba(12,12,25,0.98), rgba(45,18,42,0.98));
-  text-align:center;
+  text-align:left;
   box-shadow:0 22px 60px rgba(0,0,0,0.7), 0 0 34px rgba(255,215,0,0.22);
+  pointer-events:auto;
 }
 .couture-title {
   color:var(--gold);
@@ -1330,10 +1333,54 @@ body {
   font-size:1.25em;
   letter-spacing:1px;
 }
+.couture-copy {
+  margin-top:8px;
+  color:rgba(225,232,255,0.82);
+  font-family:Arial,sans-serif;
+  font-size:0.9em;
+  line-height:1.35;
+}
+.couture-topline {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.couture-icon-close {
+  width:36px;
+  height:36px;
+  border:1px solid rgba(255,215,0,0.32);
+  border-radius:8px;
+  background:rgba(255,255,255,0.04);
+  color:rgba(230,235,255,0.9);
+  font-size:1.25em;
+  cursor:pointer;
+}
+.couture-rarity-grid {
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0, 1fr));
+  gap:6px;
+  margin:12px 0;
+}
+.couture-rarity-pill {
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:8px;
+  padding:7px 5px;
+  background:rgba(255,255,255,0.045);
+  color:rgba(235,240,255,0.82);
+  text-align:center;
+  font-family:Arial,sans-serif;
+  font-size:0.72em;
+}
+.couture-rarity-pill strong {
+  display:block;
+  color:var(--gold);
+  font-size:1.08em;
+}
 .couture-crate {
   width:148px;
   height:112px;
-  margin:18px auto;
+  margin:14px auto;
   border-radius:16px;
   border:2px solid rgba(255,215,0,0.45);
   background:
@@ -1342,6 +1389,19 @@ body {
   position:relative;
   box-shadow:inset 0 0 22px rgba(0,0,0,0.55), 0 0 22px rgba(255,215,0,0.25);
   animation:cratePulse 1.1s ease-in-out infinite alternate;
+}
+.couture-crate::after {
+  content:'';
+  position:absolute;
+  left:50%;
+  top:-16px;
+  width:72px;
+  height:30px;
+  border-radius:52% 52% 44% 44%;
+  transform:translateX(-50%);
+  background:linear-gradient(145deg, #f9d654, #8b5b00);
+  border:2px solid rgba(255,230,115,0.6);
+  box-shadow:0 0 14px rgba(255,215,0,0.35);
 }
 .couture-crate::before {
   content:'';
@@ -1363,9 +1423,10 @@ body {
   100% { transform:scale(1.02) rotate(0deg); filter:brightness(1.15); }
 }
 .couture-result {
-  min-height:96px;
+  min-height:86px;
   color:rgba(230,235,255,0.86);
   font-family:Arial,sans-serif;
+  text-align:center;
 }
 .couture-result .seal-badge {
   font-size:1em;
@@ -1386,6 +1447,31 @@ body {
   padding:9px 14px;
   font-weight:900;
   cursor:pointer;
+}
+.couture-panel-actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+.couture-panel-actions .prestige-btn {
+  min-height:42px;
+}
+.couture-panel-section-title {
+  margin-top:12px;
+  color:rgba(255,215,0,0.82);
+  font-family:Arial,sans-serif;
+  font-size:0.78em;
+  font-weight:900;
+  letter-spacing:0.8px;
+  text-transform:uppercase;
+}
+.couture-error {
+  margin-top:8px;
+  min-height:20px;
+  color:#ff86a8;
+  font-family:Arial,sans-serif;
+  font-size:0.82em;
 }
 
 /* ── PAYTABLE ── */
@@ -2847,6 +2933,9 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
   .extra-btn { padding: 10px 8px; font-size: 0.78em; min-height: 44px; text-align: center; }
   .feature-unlocks { grid-template-columns: 1fr; }
   .feature-card { min-height: 0; }
+  #couture-overlay { padding:10px; }
+  .couture-box { width:calc(100vw - 20px); max-height:calc(100vh - 20px); }
+  .couture-rarity-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
   .jackpot-box { width: min(96vw, 760px); border-radius: 16px; }
   .jk-content { padding: 28px 18px 24px; }
   .jk-og-card { padding: 20px 16px 22px; }
@@ -3014,8 +3103,7 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
         <div class="feature-title" id="prestige-feature-title">🔒 Oligarchen-Couture</div>
         <div class="feature-body" id="prestige-feature-body">Ab 100.000 Coins: Kisten öffnen, Siegel sammeln, im Chat flexen.</div>
         <div class="prestige-actions">
-          <button class="prestige-btn" id="open-couture-btn" onclick="openCoutureBox()">Couture-Kiste 100.000🪙</button>
-          <button class="prestige-btn" id="upgrade-seal-btn" onclick="upgradeActiveSeal()">10 Splitter veredeln</button>
+          <button class="prestige-btn" id="open-couture-panel-btn" type="button" onclick="openCouturePanel()">Couture-Tresor öffnen</button>
         </div>
         <div class="seal-collection" id="seal-collection"></div>
         <details class="feature-details">
@@ -3126,10 +3214,30 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
 <!-- Oligarchen-Couture Kiste -->
 <div id="couture-overlay">
   <div class="couture-box">
-    <div class="couture-title">Oligarchen-Couture-Kiste</div>
+    <div class="couture-topline">
+      <div>
+        <div class="couture-title">Oligarchen-Couture-Tresor</div>
+        <div class="couture-copy">100.000 Coins werden zu Status veredelt: Ziehe permanente Siegel, sammle Splitter bei Duplikaten und lass dein aktives Badge im Chat und in der Rangliste glänzen.</div>
+      </div>
+      <button class="couture-icon-close" type="button" onclick="closeCouturePanel()" aria-label="Couture schließen">×</button>
+    </div>
+    <div class="couture-rarity-grid" aria-label="Drop-Chancen">
+      <div class="couture-rarity-pill"><strong>50%</strong>Common</div>
+      <div class="couture-rarity-pill"><strong>30%</strong>Rare</div>
+      <div class="couture-rarity-pill"><strong>15%</strong>Epic</div>
+      <div class="couture-rarity-pill"><strong>5%</strong>Legendary</div>
+    </div>
+    <div class="couture-panel-actions">
+      <button class="prestige-btn" id="open-couture-btn" type="button" onclick="openCoutureBox()">Käselaib knacken · 100.000🪙</button>
+      <button class="prestige-btn" id="upgrade-seal-btn" type="button" onclick="upgradeActiveSeal()">10 Splitter veredeln</button>
+    </div>
+    <div class="couture-error" id="couture-error"></div>
+    <div class="couture-panel-section-title">Deine Couture</div>
+    <div class="seal-collection" id="seal-collection-panel"></div>
+    <div class="couture-panel-section-title">Käse-Tresor</div>
     <div class="couture-crate" id="couture-crate"></div>
-    <div class="couture-result" id="couture-result">Der Tresor kaut auf deinen 100.000 Coins…</div>
-    <button class="couture-close" onclick="closeCoutureOverlay()">Ehre annehmen</button>
+    <div class="couture-result" id="couture-result">Der Käselaib ist versiegelt. Erst knacken, dann flexen.</div>
+    <button class="couture-close" type="button" onclick="closeCouturePanel()">Ehre annehmen</button>
   </div>
 </div>
 
@@ -3699,6 +3807,7 @@ const SEAL_BY_ID = Object.fromEntries(SEAL_DEFS.map(seal => [seal.id, seal]));
 const GLOW_NAMES = ['Normal', 'Glänzend', 'Senfvergoldet', 'Walhalla'];
 let currentProfile = { seals: [], activeSeal: '', sealShards: 0, sealGlow: {}, openedBoxes: 0 };
 let profileCache = {};
+let coutureOpening = false;
 
 // ── SCHIMMELRISIKO ───────────────────────────────────────────
 let schimmelPending     = false;
@@ -3723,6 +3832,7 @@ let freespinActive   = false;
 let freespinPending  = false;
 let freespinBet      = 100;
 let pendingFreespinBet = 100;
+let freespinReturnBet = null;
 let freespinBought   = false;
 let freespinRipenMulti = 1.5;
 let freespinPlateCount = 0;
@@ -4558,6 +4668,8 @@ function startFreespinRound(options = {}) {
   freespinsLeft   = FREESPIN_COUNT;
   freespinBet     = Math.max(1, Math.floor(options.bet || pendingFreespinBet || bet || 1));
   freespinBought  = options.bought === true;
+  freespinReturnBet = bet;
+  bet = freespinBet;
   freespinRipenMulti = FREESPIN_START_MULTI;
   freespinPlateCount = 0;
   freespinSchimmelbruchUsed = false;
@@ -4565,6 +4677,7 @@ function startFreespinRound(options = {}) {
   document.getElementById('spin-btn').classList.add('freespin-btn');
   document.getElementById('spin-btn').textContent = '🔵 FREISPIN!';
   updateFreespinUI();
+  refreshUI({ persist: false });
   updateFeatureButtons();
   setResult(`💙 REIFEKAMMER GEÖFFNET! ${FREESPIN_COUNT} Spins · Einsatz ${freespinBet} · Start ${formatMulti(FREESPIN_START_MULTI)}!`, 'freespin');
   startConfetti(150);
@@ -4596,6 +4709,10 @@ function endFreespins() {
   const boughtRound = freespinBought;
   freespinActive = false;
   freespinBought = false;
+  if (freespinReturnBet !== null) {
+    bet = Math.max(1, Math.min(freespinReturnBet, credits || 1));
+    freespinReturnBet = null;
+  }
   freespinRipenMulti = FREESPIN_START_MULTI;
   freespinPlateCount = 0;
   freespinSchimmelbruchUsed = false;
@@ -4612,6 +4729,7 @@ function endFreespins() {
   document.getElementById('freespin-banner').classList.remove('show');
   if (boughtRound) startFreespinBuyCooldown();
   setResult('💙 Reifekammer geschlossen! Weiter geht\'s!', 'win');
+  refreshUI({ persist: false });
   updateFeatureButtons();
 }
 
@@ -5248,7 +5366,8 @@ function refreshUI(options = {}) {
   document.querySelectorAll('.bet-btn').forEach(b => {
     const betValue = Number(b.dataset.bet);
     const highRollerLocked = betValue > 100 && currentRankScore() < OLIGARCH_UNLOCK;
-    b.disabled = highRollerLocked || betValue > credits || spinning;
+    const betLocked = spinning || freespinActive || freespinPending;
+    b.disabled = highRollerLocked || betValue > credits || betLocked;
     b.classList.toggle('active', betValue === bet);
   });
   document.getElementById('oligarch-bet-row')?.classList.toggle('show', currentRankScore() >= OLIGARCH_UNLOCK);
@@ -5430,13 +5549,21 @@ function sealBadgeHTML(sealId, profile = currentProfile, options = {}) {
 }
 
 function renderPrestigePanel() {
+  const panelBtn = document.getElementById('open-couture-panel-btn');
   const openBtn = document.getElementById('open-couture-btn');
   const upgradeBtn = document.getElementById('upgrade-seal-btn');
   const collection = document.getElementById('seal-collection');
+  const panelCollection = document.getElementById('seal-collection-panel');
   const unlocked = currentRankScore() >= OLIGARCH_UNLOCK;
+  if (panelBtn) {
+    panelBtn.disabled = !unlocked;
+    panelBtn.textContent = unlocked ? 'Couture-Tresor öffnen' : 'Couture ab 100.000🪙';
+  }
   if (openBtn) {
-    openBtn.disabled = !unlocked || credits < PRESTIGE_BOX_COST || spinning || freespinActive || freespinPending;
-    openBtn.textContent = credits >= PRESTIGE_BOX_COST ? 'Couture-Kiste 100.000🪙' : 'Kiste braucht 100.000🪙';
+    openBtn.disabled = coutureOpening || !unlocked || credits < PRESTIGE_BOX_COST || spinning || freespinActive || freespinPending;
+    openBtn.textContent = coutureOpening
+      ? 'Käselaib knackt…'
+      : credits >= PRESTIGE_BOX_COST ? 'Käselaib knacken · 100.000🪙' : 'Kiste braucht 100.000🪙';
   }
   if (upgradeBtn) {
     const canUpgrade = currentProfile.activeSeal && (currentProfile.sealShards || 0) >= PRESTIGE_UPGRADE_COST
@@ -5444,25 +5571,42 @@ function renderPrestigePanel() {
     upgradeBtn.disabled = !canUpgrade;
     upgradeBtn.textContent = `${currentProfile.sealShards || 0} Splitter · Veredeln`;
   }
-  if (!collection) return;
-  if (!currentProfile.seals?.length) {
-    collection.innerHTML = '<span class="feature-body">Noch keine Couture. Der Tresor wartet.</span>';
-    return;
-  }
-  collection.innerHTML = currentProfile.seals.map(id => {
-    const active = id === currentProfile.activeSeal ? ' aria-pressed="true"' : '';
-    return `<button class="prestige-btn" type="button"${active} onclick="setActiveSeal('${id}')">${sealBadgeHTML(id, currentProfile)}</button>`;
-  }).join('');
+  const collectionHtml = currentProfile.seals?.length
+    ? currentProfile.seals.map(id => {
+        const active = id === currentProfile.activeSeal ? ' aria-pressed="true"' : '';
+        return `<button class="prestige-btn" type="button"${active} onclick="setActiveSeal('${id}')">${sealBadgeHTML(id, currentProfile)}</button>`;
+      }).join('')
+    : '<span class="feature-body">Noch keine Couture. Der Tresor wartet.</span>';
+  if (collection) collection.innerHTML = collectionHtml;
+  if (panelCollection) panelCollection.innerHTML = collectionHtml;
 }
 
-function showCoutureOverlay(result) {
+function setCoutureError(message = '') {
+  const error = document.getElementById('couture-error');
+  if (error) error.textContent = message;
+}
+
+function openCouturePanel() {
   const overlay = document.getElementById('couture-overlay');
   const crate = document.getElementById('couture-crate');
   const out = document.getElementById('couture-result');
   if (!overlay || !crate || !out) return;
+  setCoutureError('');
+  renderPrestigePanel();
+  crate.classList.remove('open');
+  out.textContent = currentProfile.activeSeal
+    ? 'Aktives Siegel sitzt. Der nächste Käselaib wartet.'
+    : 'Der Käselaib ist versiegelt. Erst knacken, dann flexen.';
+  overlay.classList.add('show');
+}
+
+function showCoutureBoxResult(result) {
+  openCouturePanel();
+  const crate = document.getElementById('couture-crate');
+  const out = document.getElementById('couture-result');
+  if (!crate || !out) return;
   crate.classList.remove('open');
   out.textContent = 'Der Tresor kaut auf deinen 100.000 Coins…';
-  overlay.classList.add('show');
   setTimeout(() => {
     crate.classList.add('open');
     const profile = currentProfile;
@@ -5480,24 +5624,38 @@ function showCoutureOverlay(result) {
   }, 650);
 }
 
-function closeCoutureOverlay() {
+function closeCouturePanel() {
   document.getElementById('couture-overlay')?.classList.remove('show');
+  setCoutureError('');
   stopConfetti();
 }
 
 async function openCoutureBox() {
+  if (coutureOpening) return;
   if (!playerName || !kasinoApiAvailable()) {
+    openCouturePanel();
+    setCoutureError('Couture braucht kurz den Käsino-Server.');
     setResult('💎 Couture braucht kurz den Käsino-Server.', '');
     return;
   }
   if (currentRankScore() < OLIGARCH_UNLOCK) {
+    openCouturePanel();
+    setCoutureError('Der Tresor öffnet erst ab 100.000 Coins.');
     setResult('🔒 Couture-Kisten öffnen erst für Oligarchen ab 100.000🪙.', '');
     return;
   }
   if (credits < PRESTIGE_BOX_COST) {
+    openCouturePanel();
+    setCoutureError('Nicht genug Coins für diesen Käselaib.');
     setResult('💎 Nicht genug Coins für die Couture-Kiste.', '');
     return;
   }
+  openCouturePanel();
+  setCoutureError('');
+  coutureOpening = true;
+  renderPrestigePanel();
+  const out = document.getElementById('couture-result');
+  if (out) out.textContent = 'Der Tresor prüft deine Oligarchen-Bonität…';
   const localEntry = saveCurrentPlayerState('prestige-open', { immediate: true });
   try {
     const r = await fetch(kasinoApiUrl('/api/profile/open-box'), {
@@ -5521,12 +5679,17 @@ async function openCoutureBox() {
       cacheProfiles(data.leaderboard.profiles || {});
       renderLeaderboard(lbCache);
     }
-    showCoutureOverlay(data.result);
+    showCoutureBoxResult(data.result);
     setResult(`💎 Couture-Kiste geöffnet! ${data.result.duplicate ? `+${data.result.shards} Splitter` : 'Neues Siegel!'}`, 'win');
   } catch (e) {
     logSoftError('prestige-open', e);
     if (localEntry) queuePlayerProgressServerSave(localEntry, true);
+    openCouturePanel();
+    setCoutureError(e.message || 'Couture-Kiste klemmt gerade.');
     setResult('💎 Couture-Kiste klemmt gerade. Versuch es gleich nochmal.', '');
+  } finally {
+    coutureOpening = false;
+    renderPrestigePanel();
   }
 }
 
@@ -5555,6 +5718,8 @@ async function upgradeActiveSeal() {
   const sealId = currentProfile.activeSeal;
   if (!sealId || (currentProfile.sealShards || 0) < PRESTIGE_UPGRADE_COST) return;
   if (!kasinoApiAvailable()) {
+    openCouturePanel();
+    setCoutureError('Veredelung braucht den Käsino-Server.');
     setResult('💎 Veredelung braucht den Käsino-Server.', '');
     return;
   }
@@ -5577,7 +5742,7 @@ async function upgradeActiveSeal() {
   }
 }
 function setBet(v) {
-  if (spinning) return; // Bet-Änderung während Spin blockieren
+  if (spinning || freespinActive || freespinPending) return; // Bet-Änderung während Spin/Reifekammer blockieren
   if (v > 100 && currentRankScore() < OLIGARCH_UNLOCK) {
     setResult('🔒 Der Oligarchen-Tisch öffnet erst ab 100.000🪙.', '');
     return;
