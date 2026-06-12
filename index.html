@@ -717,6 +717,29 @@ body {
   color: var(--gold);
   box-shadow: 0 0 10px rgba(255,215,0,0.25);
 }
+.oligarch-bet-row {
+  display: none;
+  margin-top: 7px;
+  padding: 7px;
+  border: 1px solid rgba(255,215,0,0.18);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(184,40,72,0.08));
+}
+.oligarch-bet-row.show {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+.oligarch-bet-row .bet-btn {
+  border-color: rgba(255,215,0,0.42);
+  color: rgba(255,235,135,0.85);
+  background: rgba(255,215,0,0.07);
+}
+.oligarch-bet-row .bet-btn.active {
+  color: #140a02;
+  background: linear-gradient(135deg, #ffe66d, #c89400);
+  box-shadow: 0 0 16px rgba(255,215,0,0.38);
+}
 
 /* ── SPIN BUTTON ── */
 .spin-btn {
@@ -812,6 +835,39 @@ body {
   opacity: 0.5;
   cursor: default;
 }
+.chamber-tier-menu {
+  display: none;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  max-width: 500px;
+  margin: -8px auto 14px;
+}
+.chamber-tier-menu.show { display: grid; }
+.chamber-tier-btn {
+  border: 1px solid rgba(100,160,255,0.32);
+  border-radius: 8px;
+  background: rgba(34,68,170,0.1);
+  color: rgba(220,235,255,0.9);
+  padding: 8px 6px;
+  font-family: Arial, sans-serif;
+  cursor: pointer;
+}
+.chamber-tier-btn strong {
+  display: block;
+  color: var(--gold);
+  font-size: 0.86em;
+}
+.chamber-tier-btn small {
+  display: block;
+  margin-top: 2px;
+  color: rgba(180,205,255,0.7);
+  font-size: 0.68em;
+}
+.chamber-tier-btn:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
 .feature-unlocks {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -879,6 +935,85 @@ body {
 .feature-card.unlocked .feature-details p {
   color: rgba(225,240,255,0.84);
 }
+.prestige-card {
+  grid-column: 1 / -1;
+}
+.prestige-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.prestige-btn {
+  border: 1px solid rgba(255,215,0,0.38);
+  border-radius: 8px;
+  background: rgba(255,215,0,0.1);
+  color: var(--gold);
+  padding: 7px 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.prestige-btn:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+.seal-collection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+.seal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  padding: 2px 7px;
+  background: rgba(255,255,255,0.055);
+  color: rgba(230,235,255,0.88);
+  font-size: 0.72em;
+  line-height: 1.45;
+  vertical-align: middle;
+}
+.seal-badge.common { border-color: rgba(230,235,255,0.16); }
+.seal-badge.rare { border-color: rgba(90,180,255,0.45); box-shadow: 0 0 8px rgba(90,180,255,0.14); }
+.seal-badge.epic { border-color: rgba(190,110,255,0.48); box-shadow: 0 0 9px rgba(190,110,255,0.18); }
+.seal-badge.legendary { border-color: rgba(255,215,0,0.62); box-shadow: 0 0 12px rgba(255,215,0,0.32); color: #fff1a8; }
+.seal-badge.glow-1 { filter: brightness(1.12); }
+.seal-badge.glow-2 { box-shadow: 0 0 12px rgba(255,210,60,0.32), inset 0 0 8px rgba(255,210,60,0.12); }
+.seal-badge.glow-3 { animation: sealWalhalla 1.4s ease-in-out infinite alternate; }
+@keyframes sealWalhalla {
+  from { box-shadow: 0 0 8px rgba(255,215,0,0.3), 0 0 0 rgba(136,200,255,0); }
+  to { box-shadow: 0 0 18px rgba(255,215,0,0.6), 0 0 18px rgba(136,200,255,0.28); }
+}
+.seal-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+}
+.durag-icon {
+  width: 20px;
+  height: 13px;
+  border-radius: 70% 70% 46% 46%;
+  display: inline-block;
+  position: relative;
+  transform: skewX(-8deg);
+}
+.durag-icon::after {
+  content: '';
+  position: absolute;
+  right: -5px;
+  top: 6px;
+  width: 9px;
+  height: 5px;
+  border-radius: 0 8px 8px 0;
+}
+.durag-icon.black { background:#050505; border:1px solid #cfd3dc; }
+.durag-icon.black::after { background:#050505; border-right:1px solid #cfd3dc; border-bottom:1px solid #cfd3dc; }
+.durag-icon.white { background:#fff; border:1px solid #ffd85a; box-shadow:0 0 10px rgba(255,215,0,0.65); }
+.durag-icon.white::after { background:#fff; border-right:1px solid #ffd85a; border-bottom:1px solid #ffd85a; }
 
 /* ── LEADERBOARD ── */
 .leaderboard-section {
@@ -1166,6 +1301,91 @@ body {
   .chat-panel { left: max(12px, env(safe-area-inset-left)); bottom: 66px; max-height: calc(100vh - 82px); }
   .chat-toast { left: max(12px, env(safe-area-inset-left)); bottom: 66px; }
   .chat-messages { max-height: 320px; }
+}
+
+/* ── OLIGARCHEN-COUTURE OVERLAY ── */
+#couture-overlay {
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:10080;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:radial-gradient(circle at 50% 35%, rgba(255,215,0,0.16), rgba(2,3,12,0.92) 58%);
+}
+#couture-overlay.show { display:flex; }
+.couture-box {
+  width:min(430px, 100%);
+  border:2px solid rgba(255,215,0,0.52);
+  border-radius:14px;
+  padding:20px;
+  background:linear-gradient(145deg, rgba(12,12,25,0.98), rgba(45,18,42,0.98));
+  text-align:center;
+  box-shadow:0 22px 60px rgba(0,0,0,0.7), 0 0 34px rgba(255,215,0,0.22);
+}
+.couture-title {
+  color:var(--gold);
+  font-family:Georgia,serif;
+  font-size:1.25em;
+  letter-spacing:1px;
+}
+.couture-crate {
+  width:148px;
+  height:112px;
+  margin:18px auto;
+  border-radius:16px;
+  border:2px solid rgba(255,215,0,0.45);
+  background:
+    linear-gradient(90deg, transparent 46%, rgba(255,215,0,0.22) 48%, rgba(255,215,0,0.22) 52%, transparent 54%),
+    linear-gradient(145deg, #221100, #7a4a00 50%, #1b0e00);
+  position:relative;
+  box-shadow:inset 0 0 22px rgba(0,0,0,0.55), 0 0 22px rgba(255,215,0,0.25);
+  animation:cratePulse 1.1s ease-in-out infinite alternate;
+}
+.couture-crate::before {
+  content:'';
+  position:absolute;
+  inset:14px;
+  border:1px solid rgba(255,215,0,0.42);
+  border-radius:10px;
+}
+.couture-crate.open {
+  animation:crateOpen 0.7s ease-out both;
+}
+@keyframes cratePulse {
+  from { transform:translateY(0) scale(1); }
+  to { transform:translateY(-4px) scale(1.03); }
+}
+@keyframes crateOpen {
+  0% { transform:scale(1) rotate(0deg); filter:brightness(1); }
+  50% { transform:scale(1.13) rotate(-2deg); filter:brightness(1.6); }
+  100% { transform:scale(1.02) rotate(0deg); filter:brightness(1.15); }
+}
+.couture-result {
+  min-height:96px;
+  color:rgba(230,235,255,0.86);
+  font-family:Arial,sans-serif;
+}
+.couture-result .seal-badge {
+  font-size:1em;
+  margin:8px auto;
+}
+.couture-rarity {
+  text-transform:uppercase;
+  font-size:0.72em;
+  letter-spacing:1.4px;
+  color:rgba(255,215,0,0.75);
+}
+.couture-close {
+  margin-top:12px;
+  border:1px solid rgba(255,215,0,0.42);
+  border-radius:8px;
+  background:rgba(255,215,0,0.12);
+  color:var(--gold);
+  padding:9px 14px;
+  font-weight:900;
+  cursor:pointer;
 }
 
 /* ── PAYTABLE ── */
@@ -2749,6 +2969,11 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
         <button class="bet-btn" data-bet="50"  onclick="setBet(50)">50🪙</button>
         <button class="bet-btn" data-bet="100" onclick="setBet(100)">100🪙</button>
       </div>
+      <div class="oligarch-bet-row" id="oligarch-bet-row" aria-live="polite">
+        <button class="bet-btn" data-bet="250"  onclick="setBet(250)">250🪙</button>
+        <button class="bet-btn" data-bet="500"  onclick="setBet(500)">500🪙</button>
+        <button class="bet-btn" data-bet="1000" onclick="setBet(1000)">1000🪙</button>
+      </div>
     </div>
 
     <button class="spin-btn" id="spin-btn" onclick="doSpin()">🎰 DREHEN! 🎰</button>
@@ -2759,6 +2984,13 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
       <button class="extra-btn" id="ig-btn"   onclick="showIgGate()">1.000 Gratis Coins? 🧀</button>
       <button class="extra-btn turbo-btn" id="turbo-btn" onclick="buyTurbo()">🔒 TURBO ab Käsemeister</button>
       <button class="extra-btn reifekammer-btn" id="buy-freespin-btn" onclick="buyFreespins()">🔒 REIFEKAMMER ab Käsebaron</button>
+    </div>
+
+    <div class="chamber-tier-menu" id="chamber-tier-menu" aria-live="polite">
+      <button class="chamber-tier-btn" data-cost="10000" data-bet="100" onclick="buyFreespinTier(10000,100)"><strong>10k Eintritt</strong><small>Bonus-Einsatz 100</small></button>
+      <button class="chamber-tier-btn" data-cost="25000" data-bet="250" onclick="buyFreespinTier(25000,250)"><strong>25k Eintritt</strong><small>Bonus-Einsatz 250</small></button>
+      <button class="chamber-tier-btn" data-cost="50000" data-bet="500" onclick="buyFreespinTier(50000,500)"><strong>50k Eintritt</strong><small>Bonus-Einsatz 500</small></button>
+      <button class="chamber-tier-btn" data-cost="100000" data-bet="1000" onclick="buyFreespinTier(100000,1000)"><strong>100k Eintritt</strong><small>Bonus-Einsatz 1000</small></button>
     </div>
 
     <div class="feature-unlocks" aria-live="polite">
@@ -2775,7 +3007,20 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
         <div class="feature-body" id="reifekammer-feature-body">Ab 50.000 Coins: Reifekammer kaufen und um den großen Melt spielen.</div>
         <details class="feature-details">
           <summary>Was passiert?</summary>
-          <p>Die Reifekammer kostet 10.000 Coins und läuft mit Einsatz 100. Nieten erhöhen den Schimmelgrad um 0.50× bis 2.25×. 2× Emmentaler, Senf, Roquefort, Parmigiano oder Golden Käse können zur Käseplatte werden; bei Max-Reife kann einmal der Schimmelbruch eine Walze neu aufreißen.</p>
+          <p>Die Reifekammer gibt es als 10k/25k/50k/100k-Tier mit Bonus-Einsatz 100/250/500/1000. Nach gekaufter Reifekammer muss der Käsekeller 5 Minuten auslüften; natürlich erspielte Roquefort-Freispiele bleiben sofort möglich.</p>
+        </details>
+      </div>
+      <div class="feature-card locked prestige-card" id="prestige-feature-card">
+        <div class="feature-title" id="prestige-feature-title">🔒 Oligarchen-Couture</div>
+        <div class="feature-body" id="prestige-feature-body">Ab 100.000 Coins: Kisten öffnen, Siegel sammeln, im Chat flexen.</div>
+        <div class="prestige-actions">
+          <button class="prestige-btn" id="open-couture-btn" onclick="openCoutureBox()">Couture-Kiste 100.000🪙</button>
+          <button class="prestige-btn" id="upgrade-seal-btn" onclick="upgradeActiveSeal()">10 Splitter veredeln</button>
+        </div>
+        <div class="seal-collection" id="seal-collection"></div>
+        <details class="feature-details">
+          <summary>Was passiert?</summary>
+          <p>100.000 Coins werden veredelt. Die Kiste gibt ein permanentes Oligarchen-Siegel oder Couture-Splitter bei Duplikaten. Siegel bleiben nach Wochenreset erhalten und erscheinen im Chat und in der Rangliste.</p>
         </details>
       </div>
     </div>
@@ -2877,6 +3122,16 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
 <!-- ═══════════════════════════════════════════════ -->
 <!--  OVERLAYS                                       -->
 <!-- ═══════════════════════════════════════════════ -->
+
+<!-- Oligarchen-Couture Kiste -->
+<div id="couture-overlay">
+  <div class="couture-box">
+    <div class="couture-title">Oligarchen-Couture-Kiste</div>
+    <div class="couture-crate" id="couture-crate"></div>
+    <div class="couture-result" id="couture-result">Der Tresor kaut auf deinen 100.000 Coins…</div>
+    <button class="couture-close" onclick="closeCoutureOverlay()">Ehre annehmen</button>
+  </div>
+</div>
 
 <!-- Jackpot -->
 <div class="overlay-bg" id="jackpot-overlay">
@@ -3422,6 +3677,29 @@ let chatCurrentOpener = 'Was ist euer Lieblingskäse?';
 const chatKnownNames = new Set();
 let mentionActiveIndex = 0;
 
+// Oligarchen-Couture
+const PRESTIGE_BOX_COST = 100000;
+const PRESTIGE_UPGRADE_COST = 10;
+const OLIGARCH_UNLOCK = 100000;
+const SEAL_DEFS = [
+  { id:'oligarchengedeck', rarity:'common', emoji:'🥃', name:'Oligarchengedeck' },
+  { id:'senf-depot', rarity:'common', emoji:'🟡', name:'Senf-Depot' },
+  { id:'fuego-lizenz', rarity:'common', emoji:'🚬', name:'Fuego-Lizenz' },
+  { id:'babybel-bankett', rarity:'common', emoji:'🧀', name:'Babybel-Bankett' },
+  { id:'zweitbarbour', rarity:'rare', emoji:'🧥', name:'Zweitbarbour' },
+  { id:'schwarzes-durag', rarity:'rare', emoji:'', name:'Schwarzes Durag', icon:'durag-black' },
+  { id:'sechseck-orden', rarity:'rare', emoji:'🔷', name:'Sechseck-Orden' },
+  { id:'fondue-fonds', rarity:'rare', emoji:'🫕', name:'Fondue-Fonds' },
+  { id:'oligarchenporsche', rarity:'epic', emoji:'🏎️', name:'Oligarchenporsche' },
+  { id:'roquefort-patina', rarity:'epic', emoji:'🟦', name:'Roquefort-Patina' },
+  { id:'parmigiano-aktie', rarity:'epic', emoji:'⭐', name:'Parmigiano-Aktie' },
+  { id:'weisses-durag', rarity:'legendary', emoji:'', name:'Weißes Durag', icon:'durag-white' }
+];
+const SEAL_BY_ID = Object.fromEntries(SEAL_DEFS.map(seal => [seal.id, seal]));
+const GLOW_NAMES = ['Normal', 'Glänzend', 'Senfvergoldet', 'Walhalla'];
+let currentProfile = { seals: [], activeSeal: '', sealShards: 0, sealGlow: {}, openedBoxes: 0 };
+let profileCache = {};
+
 // ── SCHIMMELRISIKO ───────────────────────────────────────────
 let schimmelPending     = false;
 let schimmelAmount      = 0;
@@ -3453,9 +3731,14 @@ const FREESPIN_COUNT = 8;
 const FREESPIN_START_MULTI = 1.5;
 const FREESPIN_RIPEN_STEP  = 0.5;
 const FREESPIN_RIPEN_CAP   = 2.25;
-const FREESPIN_BUY_COST    = 10000;
-const FREESPIN_BUY_BET     = 100;
 const FREESPIN_BUY_UNLOCK  = 50000;
+const FREESPIN_BUY_COOLDOWN_MS = 5 * 60 * 1000;
+const FREESPIN_BUY_TIERS = [
+  { cost: 10000, bet: 100 },
+  { cost: 25000, bet: 250 },
+  { cost: 50000, bet: 500 },
+  { cost: 100000, bet: 1000 }
+];
 const CHEESE_PLATE_TARGETS = ['emmental', 'senf', 'roquefort', 'parmesan', 'golden'];
 const CHEESE_PLATE_MELTS   = [1.1, 1.25, 1.5];
 
@@ -3646,6 +3929,9 @@ function updateCountdown() {
   el.textContent = `⏱ Reset in: ${d}T ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
 }
 setInterval(updateCountdown, 1000);
+setInterval(() => {
+  if (playerName) updateFeatureButtons();
+}, 1000);
 
 // ── NAME ENTRY ───────────────────────────────────────────────
 window.addEventListener('load', () => {
@@ -3667,6 +3953,7 @@ function startGame() {
   playerName = 'Käse-' + suffix;
   restoredProgressNoticeShown = false;
   localStorage.setItem('kaesino_player', playerName);
+  loadLocalProfile();
   document.getElementById('player-display').textContent = playerName;
   // Spielstand dieser Woche wiederherstellen (gleicher Name → aktueller alter Stand)
   const savedCredits = loadPlayerProgress(playerName);
@@ -4306,6 +4593,7 @@ function updateFreespinUI() {
 }
 
 function endFreespins() {
+  const boughtRound = freespinBought;
   freespinActive = false;
   freespinBought = false;
   freespinRipenMulti = FREESPIN_START_MULTI;
@@ -4322,26 +4610,62 @@ function endFreespins() {
   spinBtn.classList.remove('freespin-btn');
   spinBtn.textContent = '🎰 DREHEN! 🎰';
   document.getElementById('freespin-banner').classList.remove('show');
+  if (boughtRound) startFreespinBuyCooldown();
   setResult('💙 Reifekammer geschlossen! Weiter geht\'s!', 'win');
   updateFeatureButtons();
 }
 
 function buyFreespins() {
+  const menu = document.getElementById('chamber-tier-menu');
+  if (menu) menu.classList.toggle('show');
+  updateFeatureButtons();
+}
+
+function freespinCooldownKey() {
+  return `kaesino_reifekammer_cooldown_${playerName || 'gast'}`;
+}
+
+function getFreespinCooldownUntil() {
+  return Number(localStorage.getItem(freespinCooldownKey()) || 0);
+}
+
+function getFreespinCooldownRemaining() {
+  return Math.max(0, getFreespinCooldownUntil() - Date.now());
+}
+
+function startFreespinBuyCooldown() {
+  localStorage.setItem(freespinCooldownKey(), String(Date.now() + FREESPIN_BUY_COOLDOWN_MS));
+}
+
+function formatClock(ms) {
+  const total = Math.ceil(ms / 1000);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function buyFreespinTier(cost, tierBet) {
   if (spinning || freespinActive || freespinPending || schimmelPending || pendingSchimmelAmount) return;
   if (currentRankScore() < FREESPIN_BUY_UNLOCK) {
     setResult('🔒 Die Reifekammer öffnet erst ab Käsebaron (50.000🪙).', '');
     return;
   }
-  if (credits < FREESPIN_BUY_COST) {
-    setResult(`💙 Nicht genug Coins! Die Reifekammer kostet ${FREESPIN_BUY_COST.toLocaleString()}🪙.`, '');
+  const cooldown = getFreespinCooldownRemaining();
+  if (cooldown > 0) {
+    setResult(`🧀 Der Käsekeller muss auslüften. Noch ${formatClock(cooldown)} bis zur nächsten gekauften Reifekammer.`, '');
+    return;
+  }
+  if (credits < cost) {
+    setResult(`💙 Nicht genug Coins! Diese Reifekammer kostet ${cost.toLocaleString()}🪙.`, '');
     return;
   }
   if (autoOn) toggleAuto();
-  credits -= FREESPIN_BUY_COST;
-  pendingFreespinBet = FREESPIN_BUY_BET;
+  credits -= cost;
+  pendingFreespinBet = tierBet;
+  document.getElementById('chamber-tier-menu')?.classList.remove('show');
   refreshUI();
-  setResult(`💙 ${FREESPIN_BUY_COST.toLocaleString()}🪙 Eintritt gezahlt. Die Reifekammer öffnet sich...`, 'freespin');
-  setTimeout(() => startFreespinRound({ bought: true, bet: FREESPIN_BUY_BET }), 800);
+  setResult(`💙 ${cost.toLocaleString()}🪙 Eintritt gezahlt. Reifekammer mit Einsatz ${tierBet} öffnet sich...`, 'freespin');
+  setTimeout(() => startFreespinRound({ bought: true, bet: tierBet }), 800);
 }
 
 // ── GEWINNBERECHNUNG ─────────────────────────────────────────
@@ -4798,6 +5122,8 @@ function renderChatMessages(messages = []) {
     name.className = 'chat-msg-name';
     name.textContent = message.name || 'Käse-Gast';
     name.style.color = chatNameColor(message.name || 'Käse-Gast');
+    const badgeWrap = document.createElement('span');
+    badgeWrap.innerHTML = sealBadgeHTML(profileForName(message.name).activeSeal, profileForName(message.name), { compact: true });
 
     const time = document.createElement('span');
     time.className = 'chat-msg-time';
@@ -4809,6 +5135,7 @@ function renderChatMessages(messages = []) {
     renderMentionedText(body, message.body || '');
 
     head.appendChild(name);
+    if (badgeWrap.firstChild) head.appendChild(badgeWrap.firstChild);
     head.appendChild(time);
     item.appendChild(head);
     item.appendChild(body);
@@ -4830,6 +5157,7 @@ async function pollChat(initial = false) {
       if (wrap) wrap.innerHTML = '<div class="chat-empty">Noch keine Käsegespräche.</div>';
     }
     updateChatOpener(data.currentOpener);
+    cacheProfiles(data.profiles || {});
     renderChatMessages(data.messages || []);
     setChatOnline(data.online || []);
   } catch (e) {
@@ -4847,6 +5175,7 @@ async function pulsePresence() {
     });
     if (!r.ok) throw new Error(`presence ${r.status}`);
     const data = await r.json();
+    cacheProfiles(data.profiles || {});
     setChatOnline(data.online || []);
   } catch (e) {
     logSoftError('presence', e);
@@ -4870,6 +5199,7 @@ async function sendChatMessage(event) {
     if (input) input.value = '';
     hideMentionMenu();
     updateChatOpener(data.currentOpener);
+    cacheProfiles(data.profiles || {});
     renderChatMessages(data.messages || (data.message ? [data.message] : []));
     setChatOnline(data.online || []);
     const wrap = document.getElementById('chat-messages');
@@ -4916,10 +5246,15 @@ function refreshUI(options = {}) {
   document.getElementById('credits-val').textContent = credits;
   document.getElementById('bet-val').textContent     = bet;
   document.querySelectorAll('.bet-btn').forEach(b => {
-    b.classList.toggle('active', Number(b.dataset.bet) === bet);
+    const betValue = Number(b.dataset.bet);
+    const highRollerLocked = betValue > 100 && currentRankScore() < OLIGARCH_UNLOCK;
+    b.disabled = highRollerLocked || betValue > credits || spinning;
+    b.classList.toggle('active', betValue === bet);
   });
+  document.getElementById('oligarch-bet-row')?.classList.toggle('show', currentRankScore() >= OLIGARCH_UNLOCK);
   updatePlayerTag();
   updateFeatureButtons();
+  renderPrestigePanel();
   if (options.persist !== false) saveCurrentPlayerState(options.reason || 'ui');
 }
 
@@ -4947,15 +5282,24 @@ function updateFeatureButtons() {
   const fsBtn = document.getElementById('buy-freespin-btn');
   if (fsBtn) {
     const chamberUnlocked = rankScore >= FREESPIN_BUY_UNLOCK;
-    fsBtn.disabled = !chamberUnlocked || credits < FREESPIN_BUY_COST || spinning || freespinActive || freespinPending;
+    const cooldown = getFreespinCooldownRemaining();
+    const canAffordAnyTier = FREESPIN_BUY_TIERS.some(tier => credits >= tier.cost);
+    fsBtn.disabled = !chamberUnlocked || !canAffordAnyTier || spinning || freespinActive || freespinPending || cooldown > 0;
     if (!chamberUnlocked) {
       fsBtn.textContent = '🔒 REIFEKAMMER ab Käsebaron';
-    } else if (credits < FREESPIN_BUY_COST) {
-      fsBtn.textContent = `💙 REIFEKAMMER braucht ${FREESPIN_BUY_COST.toLocaleString()}🪙`;
+    } else if (cooldown > 0) {
+      fsBtn.textContent = `🧀 Käsekeller lüftet ${formatClock(cooldown)}`;
+    } else if (!canAffordAnyTier) {
+      fsBtn.textContent = `💙 REIFEKAMMER braucht 10.000🪙`;
     } else {
-      fsBtn.textContent = `💙 REIFEKAMMER RISK (${FREESPIN_BUY_COST.toLocaleString()}🪙)`;
+      fsBtn.textContent = `💙 REIFEKAMMER-TIERS`;
     }
   }
+  document.querySelectorAll('.chamber-tier-btn').forEach(btn => {
+    const cost = Number(btn.dataset.cost || 0);
+    const cooldown = getFreespinCooldownRemaining();
+    btn.disabled = rankScore < FREESPIN_BUY_UNLOCK || credits < cost || spinning || freespinActive || freespinPending || cooldown > 0;
+  });
 
   const turboCard = document.getElementById('turbo-feature-card');
   const turboTitle = document.getElementById('turbo-feature-title');
@@ -4979,8 +5323,23 @@ function updateFeatureButtons() {
     chamberCard.classList.toggle('locked', !chamberUnlocked);
     chamberTitle.textContent = chamberUnlocked ? '💙 Reifekammer offen' : '🔒 Käsebaron-Privileg';
     chamberBody.textContent = chamberUnlocked
-      ? `10.000 Coins Eintritt, Einsatz 100, Schimmelgrad und Käseplatte. Selten zahm.`
+      ? (getFreespinCooldownRemaining() > 0
+          ? `Der Käsekeller muss auslüften: noch ${formatClock(getFreespinCooldownRemaining())}. Natürliche Freispiele bleiben möglich.`
+          : `Wähle 10k/25k/50k/100k Eintritt für Bonus-Einsatz 100/250/500/1000.`)
       : `Noch ${(FREESPIN_BUY_UNLOCK - Math.min(rankScore, FREESPIN_BUY_UNLOCK)).toLocaleString()} Coins bis zur Reifekammer.`;
+  }
+
+  const prestigeCard = document.getElementById('prestige-feature-card');
+  const prestigeTitle = document.getElementById('prestige-feature-title');
+  const prestigeBody = document.getElementById('prestige-feature-body');
+  const prestigeUnlocked = rankScore >= OLIGARCH_UNLOCK;
+  if (prestigeCard && prestigeTitle && prestigeBody) {
+    prestigeCard.classList.toggle('unlocked', prestigeUnlocked);
+    prestigeCard.classList.toggle('locked', !prestigeUnlocked);
+    prestigeTitle.textContent = prestigeUnlocked ? '💎 Oligarchen-Couture-Tresor' : '🔒 Oligarchen-Couture';
+    prestigeBody.textContent = prestigeUnlocked
+      ? `${PRESTIGE_BOX_COST.toLocaleString()} Coins pro Kiste. Siegel: ${currentProfile.seals?.length || 0}/${SEAL_DEFS.length}. Splitter: ${currentProfile.sealShards || 0}.`
+      : `Noch ${(OLIGARCH_UNLOCK - Math.min(rankScore, OLIGARCH_UNLOCK)).toLocaleString()} Coins bis zur Couture-Kiste.`;
   }
 }
 
@@ -4993,9 +5352,7 @@ function updatePlayerTag() {
   const rank     = getRank(highest);
   const rankSlot = document.getElementById('player-rank-slot');
   if (rankSlot) {
-    rankSlot.innerHTML = rank
-      ? `<span class="rank-badge ${rank.cls}">${rank.emoji} ${rank.title}</span>`
-      : '';
+    rankSlot.innerHTML = `${rank ? `<span class="rank-badge ${rank.cls}">${rank.emoji} ${rank.title}</span>` : ''}${sealBadgeHTML(currentProfile.activeSeal, currentProfile, { compact: true })}`;
   }
   // Daily Streak aus localStorage
   const daily      = JSON.parse(localStorage.getItem('kaesino_daily') || '{}');
@@ -5006,12 +5363,232 @@ function updatePlayerTag() {
       : '';
   }
 }
+
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[ch]));
+}
+
+function normalizeProfile(profile, name = '') {
+  const seals = Array.isArray(profile?.seals) ? profile.seals.filter(id => SEAL_BY_ID[id]) : [];
+  const sealGlow = profile?.sealGlow && typeof profile.sealGlow === 'object' ? profile.sealGlow : {};
+  const activeSeal = SEAL_BY_ID[profile?.activeSeal] && seals.includes(profile.activeSeal)
+    ? profile.activeSeal
+    : (seals[seals.length - 1] || '');
+  return {
+    name: profile?.name || name,
+    seals,
+    activeSeal,
+    sealShards: Math.max(0, Math.floor(Number(profile?.sealShards || 0))),
+    sealGlow,
+    openedBoxes: Math.max(0, Math.floor(Number(profile?.openedBoxes || 0))),
+    updatedAt: Number(profile?.updatedAt || 0)
+  };
+}
+
+function cacheProfiles(profiles = {}) {
+  if (!profiles || typeof profiles !== 'object') return;
+  Object.entries(profiles).forEach(([name, profile]) => {
+    profileCache[name] = normalizeProfile(profile, name);
+  });
+  if (playerName && profileCache[playerName]) {
+    currentProfile = profileCache[playerName];
+    localStorage.setItem(`kaesino_profile_${playerName}`, JSON.stringify(currentProfile));
+  }
+  renderPrestigePanel();
+}
+
+function loadLocalProfile() {
+  if (!playerName) return;
+  try {
+    const raw = JSON.parse(localStorage.getItem(`kaesino_profile_${playerName}`) || '{}');
+    currentProfile = normalizeProfile(raw, playerName);
+    profileCache[playerName] = currentProfile;
+  } catch (_) {
+    currentProfile = normalizeProfile(null, playerName);
+  }
+}
+
+function profileForName(name) {
+  return profileCache[name] || normalizeProfile(null, name);
+}
+
+function sealIconHTML(seal) {
+  if (!seal) return '';
+  if (seal.icon === 'durag-black') return '<span class="seal-icon"><span class="durag-icon black"></span></span>';
+  if (seal.icon === 'durag-white') return '<span class="seal-icon"><span class="durag-icon white"></span></span>';
+  return `<span class="seal-icon">${seal.emoji || ''}</span>`;
+}
+
+function sealBadgeHTML(sealId, profile = currentProfile, options = {}) {
+  const seal = SEAL_BY_ID[sealId];
+  if (!seal) return '';
+  const glow = Math.max(0, Math.min(3, Math.floor(Number(profile?.sealGlow?.[sealId] || 0))));
+  const label = options.compact ? seal.name.replace(/^(Oligarchen|Parmigiano|Babybel)-?/, '') : seal.name;
+  return `<span class="seal-badge ${seal.rarity} glow-${glow}" title="${escapeHtml(seal.name)} · ${seal.rarity} · ${GLOW_NAMES[glow]}">${sealIconHTML(seal)}<span>${escapeHtml(label)}</span></span>`;
+}
+
+function renderPrestigePanel() {
+  const openBtn = document.getElementById('open-couture-btn');
+  const upgradeBtn = document.getElementById('upgrade-seal-btn');
+  const collection = document.getElementById('seal-collection');
+  const unlocked = currentRankScore() >= OLIGARCH_UNLOCK;
+  if (openBtn) {
+    openBtn.disabled = !unlocked || credits < PRESTIGE_BOX_COST || spinning || freespinActive || freespinPending;
+    openBtn.textContent = credits >= PRESTIGE_BOX_COST ? 'Couture-Kiste 100.000🪙' : 'Kiste braucht 100.000🪙';
+  }
+  if (upgradeBtn) {
+    const canUpgrade = currentProfile.activeSeal && (currentProfile.sealShards || 0) >= PRESTIGE_UPGRADE_COST
+      && Number(currentProfile.sealGlow?.[currentProfile.activeSeal] || 0) < 3;
+    upgradeBtn.disabled = !canUpgrade;
+    upgradeBtn.textContent = `${currentProfile.sealShards || 0} Splitter · Veredeln`;
+  }
+  if (!collection) return;
+  if (!currentProfile.seals?.length) {
+    collection.innerHTML = '<span class="feature-body">Noch keine Couture. Der Tresor wartet.</span>';
+    return;
+  }
+  collection.innerHTML = currentProfile.seals.map(id => {
+    const active = id === currentProfile.activeSeal ? ' aria-pressed="true"' : '';
+    return `<button class="prestige-btn" type="button"${active} onclick="setActiveSeal('${id}')">${sealBadgeHTML(id, currentProfile)}</button>`;
+  }).join('');
+}
+
+function showCoutureOverlay(result) {
+  const overlay = document.getElementById('couture-overlay');
+  const crate = document.getElementById('couture-crate');
+  const out = document.getElementById('couture-result');
+  if (!overlay || !crate || !out) return;
+  crate.classList.remove('open');
+  out.textContent = 'Der Tresor kaut auf deinen 100.000 Coins…';
+  overlay.classList.add('show');
+  setTimeout(() => {
+    crate.classList.add('open');
+    const profile = currentProfile;
+    const seal = SEAL_BY_ID[result.sealId];
+    const badge = sealBadgeHTML(result.sealId, profile);
+    out.innerHTML = result.duplicate
+      ? `<div class="couture-rarity">${escapeHtml(result.rarity)} Duplikat</div>${badge}<div>Schmilzt zu <strong>${result.shards} Couture-Splittern</strong>.</div>`
+      : `<div class="couture-rarity">${escapeHtml(result.rarity)} Drop</div>${badge}<div>Neues Siegel freigeschaltet!</div>`;
+    if (result.rarity === 'legendary') {
+      startConfetti(140);
+      playWinSound(true);
+    } else {
+      playWinSound(false);
+    }
+  }, 650);
+}
+
+function closeCoutureOverlay() {
+  document.getElementById('couture-overlay')?.classList.remove('show');
+  stopConfetti();
+}
+
+async function openCoutureBox() {
+  if (!playerName || !kasinoApiAvailable()) {
+    setResult('💎 Couture braucht kurz den Käsino-Server.', '');
+    return;
+  }
+  if (currentRankScore() < OLIGARCH_UNLOCK) {
+    setResult('🔒 Couture-Kisten öffnen erst für Oligarchen ab 100.000🪙.', '');
+    return;
+  }
+  if (credits < PRESTIGE_BOX_COST) {
+    setResult('💎 Nicht genug Coins für die Couture-Kiste.', '');
+    return;
+  }
+  const localEntry = saveCurrentPlayerState('prestige-open', { immediate: true });
+  try {
+    const r = await fetch(kasinoApiUrl('/api/profile/open-box'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: playerName,
+        credits,
+        bestCoins: Math.max(myBestCoins || 0, currentRankScore()),
+        bestSingleWin: myBestWin || 0,
+        updatedAt: Date.now()
+      })
+    });
+    const data = await r.json();
+    if (!r.ok || data.ok === false) throw new Error(data.error || `prestige ${r.status}`);
+    if (data.player) applyServerPlayerProgress(data.player);
+    if (data.profiles) cacheProfiles(data.profiles);
+    if (data.profile) cacheProfiles({ [playerName]: data.profile });
+    if (data.leaderboard) {
+      lbCache = normalizeLeaderboard(data.leaderboard);
+      cacheProfiles(data.leaderboard.profiles || {});
+      renderLeaderboard(lbCache);
+    }
+    showCoutureOverlay(data.result);
+    setResult(`💎 Couture-Kiste geöffnet! ${data.result.duplicate ? `+${data.result.shards} Splitter` : 'Neues Siegel!'}`, 'win');
+  } catch (e) {
+    logSoftError('prestige-open', e);
+    if (localEntry) queuePlayerProgressServerSave(localEntry, true);
+    setResult('💎 Couture-Kiste klemmt gerade. Versuch es gleich nochmal.', '');
+  }
+}
+
+async function setActiveSeal(sealId) {
+  if (!playerName || !currentProfile.seals?.includes(sealId)) return;
+  currentProfile.activeSeal = sealId;
+  profileCache[playerName] = currentProfile;
+  renderPrestigePanel();
+  updatePlayerTag();
+  renderLeaderboard(lbCache);
+  if (!kasinoApiAvailable()) return;
+  try {
+    const r = await fetch(kasinoApiUrl('/api/profile/active-seal'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: playerName, sealId })
+    });
+    const data = await r.json();
+    if (data.profile) cacheProfiles({ [playerName]: data.profile });
+  } catch (e) {
+    logSoftError('prestige-active', e);
+  }
+}
+
+async function upgradeActiveSeal() {
+  const sealId = currentProfile.activeSeal;
+  if (!sealId || (currentProfile.sealShards || 0) < PRESTIGE_UPGRADE_COST) return;
+  if (!kasinoApiAvailable()) {
+    setResult('💎 Veredelung braucht den Käsino-Server.', '');
+    return;
+  }
+  try {
+    const r = await fetch(kasinoApiUrl('/api/profile/upgrade-seal'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: playerName, sealId })
+    });
+    const data = await r.json();
+    if (!r.ok || data.ok === false) throw new Error(data.error || `upgrade ${r.status}`);
+    if (data.profile) cacheProfiles({ [playerName]: data.profile });
+    updatePlayerTag();
+    renderLeaderboard(lbCache);
+    setResult(`💎 ${SEAL_BY_ID[sealId].name} veredelt!`, 'win');
+    startConfetti(50);
+  } catch (e) {
+    logSoftError('prestige-upgrade', e);
+    setResult('💎 Veredelung hat nicht geklappt.', '');
+  }
+}
 function setBet(v) {
   if (spinning) return; // Bet-Änderung während Spin blockieren
-  bet = Math.min(v, credits || 1);
+  if (v > 100 && currentRankScore() < OLIGARCH_UNLOCK) {
+    setResult('🔒 Der Oligarchen-Tisch öffnet erst ab 100.000🪙.', '');
+    return;
+  }
+  bet = Math.max(1, Math.min(v, credits || 1));
   refreshUI();
 }
-function maxBet() { setBet(Math.min(100, credits)); }
+function maxBet() {
+  const options = currentRankScore() >= OLIGARCH_UNLOCK ? [1000, 500, 250, 100, 50, 25, 10, 5, 1] : [100, 50, 25, 10, 5, 1];
+  setBet(options.find(v => v <= credits) || 1);
+}
 
 function resetGame() {
   if (spinning) return;
@@ -5472,7 +6049,7 @@ const LB_WRITE_DEBOUNCE = 20000;  // 20 Sekunden zwischen Server-Writes
 const LB_READ_INTERVAL  = 300000; // 5 Minuten zwischen Server-Reads
 
 function createEmptyLeaderboard(weekStart = getWeekStart(), lastWeek = null, resetEpoch = '') {
-  return { weekStart, resetEpoch, coins: [], wins: [], lastWeek };
+  return { weekStart, resetEpoch, coins: [], wins: [], lastWeek, profiles: {} };
 }
 
 function normalizeLeaderboard(raw) {
@@ -5487,7 +6064,8 @@ function normalizeLeaderboard(raw) {
     resetEpoch: raw.resetEpoch || '',
     coins:      Array.isArray(raw.coins) ? raw.coins : [],
     wins:       Array.isArray(raw.wins)  ? raw.wins  : [],
-    lastWeek:   raw.lastWeek || null
+    lastWeek:   raw.lastWeek || null,
+    profiles:   raw.profiles && typeof raw.profiles === 'object' ? raw.profiles : {}
   };
 }
 
@@ -5572,12 +6150,15 @@ async function fetchFromServer() {
           resetEpoch: serverEpoch || local.resetEpoch,
           coins:      mergeLists(local.coins, stored.coins),
           wins:       mergeLists(local.wins,  stored.wins),
-          lastWeek:   stored.lastWeek || local.lastWeek || null
+          lastWeek:   stored.lastWeek || local.lastWeek || null,
+          profiles:   stored.profiles || local.profiles || {}
         };
       }
 
       lbCacheReady   = true;
       lbServerLoaded = true;
+      cacheProfiles(d.profiles || stored.profiles || {});
+      if (d.profile) cacheProfiles({ [playerName]: d.profile });
       localStorage.setItem('kaesino_lb', JSON.stringify(lbCache));
       renderLeaderboard(lbCache);
       if (lbCache.lastWeek) renderPrevWinner(lbCache.lastWeek);
@@ -5611,6 +6192,7 @@ async function saveToServer(data, keepalive = false) {
       const d = await r.json();
       if (d.leaderboard) {
         lbCache = normalizeLeaderboard(d.leaderboard);
+        cacheProfiles(d.profiles || d.leaderboard.profiles || {});
         localStorage.setItem('kaesino_lb', JSON.stringify(lbCache));
         renderLeaderboard(lbCache);
         if (lbCache.lastWeek) renderPrevWinner(lbCache.lastWeek);
@@ -5627,6 +6209,7 @@ function loadLeaderboard() {
     // Fallback: localStorage, aber niemals alte Wochenranglisten anzeigen.
     lbCache      = normalizeLeaderboard(JSON.parse(localStorage.getItem('kaesino_lb') || '{}'));
     lbCacheReady = true;
+    cacheProfiles(lbCache.profiles || {});
     localStorage.setItem('kaesino_lb', JSON.stringify(lbCache));
   }
   return Promise.resolve(lbCache);
@@ -5728,12 +6311,16 @@ function renderLeaderboard(lb) {
     if (!r) return '';
     return `<span class="rank-badge ${r.cls}">${r.emoji} ${r.title}</span>`;
   }
+  function profileBadge(name) {
+    const profile = profileForName(name);
+    return sealBadgeHTML(profile.activeSeal, profile, { compact: true });
+  }
   function rows(list) {
     if (!list || list.length === 0) return '<div class="lb-empty">Noch keine Einträge</div>';
     return list.map((e, i) =>
       `<div class="lb-row">
          <span class="lb-rank ${i<3?'top'+(i+1):''}">${medals[i]||'#'+(i+1)}</span>
-         <span class="lb-name ${e.name===playerName?'is-me':''}">${e.name}${rankBadge(e.name)}</span>
+         <span class="lb-name ${e.name===playerName?'is-me':''}">${escapeHtml(e.name)}${rankBadge(e.name)}${profileBadge(e.name)}</span>
          <span class="lb-score">${e.score}🪙</span>
        </div>`
     ).join('');

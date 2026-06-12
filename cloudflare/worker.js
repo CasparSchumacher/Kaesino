@@ -9,6 +9,29 @@ const CHAT_MAX_LENGTH = 260;
 const ONLINE_WINDOW_MS = 90000;
 const CHAT_OPENER_AUTHOR = 'Käsino-Croupier';
 const CHAT_OPENER_INTERVAL_MS = 12 * 60 * 60 * 1000;
+const PRESTIGE_BOX_COST = 100000;
+const SEAL_DEFS = [
+  { id: 'oligarchengedeck', rarity: 'common' },
+  { id: 'senf-depot', rarity: 'common' },
+  { id: 'fuego-lizenz', rarity: 'common' },
+  { id: 'babybel-bankett', rarity: 'common' },
+  { id: 'zweitbarbour', rarity: 'rare' },
+  { id: 'schwarzes-durag', rarity: 'rare' },
+  { id: 'sechseck-orden', rarity: 'rare' },
+  { id: 'fondue-fonds', rarity: 'rare' },
+  { id: 'oligarchenporsche', rarity: 'epic' },
+  { id: 'roquefort-patina', rarity: 'epic' },
+  { id: 'parmigiano-aktie', rarity: 'epic' },
+  { id: 'weisses-durag', rarity: 'legendary' }
+];
+const RARITY_WEIGHTS = [
+  { rarity: 'common', weight: 50 },
+  { rarity: 'rare', weight: 30 },
+  { rarity: 'epic', weight: 15 },
+  { rarity: 'legendary', weight: 5 }
+];
+const SHARDS_BY_RARITY = { common: 1, rare: 2, epic: 5, legendary: 12 };
+const SEAL_IDS = new Set(SEAL_DEFS.map(seal => seal.id));
 const CHAT_OPENERS = [
   'Was ist euer Lieblingskäse?',
   'Wie mögt ihr euren Obatzda am liebsten?',
@@ -64,7 +87,16 @@ const SCHEMA = [
     PRIMARY KEY (week_start, name)
   )`,
   `CREATE INDEX IF NOT EXISTS idx_online_presence_week_seen
-    ON online_presence (week_start, last_seen DESC)`
+    ON online_presence (week_start, last_seen DESC)`,
+  `CREATE TABLE IF NOT EXISTS player_profiles (
+    name TEXT PRIMARY KEY,
+    seals_json TEXT NOT NULL DEFAULT '[]',
+    active_seal TEXT,
+    seal_shards INTEGER NOT NULL DEFAULT 0,
+    seal_glow_json TEXT NOT NULL DEFAULT '{}',
+    opened_boxes INTEGER NOT NULL DEFAULT 0,
+    updated_at INTEGER NOT NULL
+  )`
 ];
 
 let schemaReady = false;
@@ -136,16 +168,58 @@ async function handleApi(request, env, url) {
     return json(await buildState(env.DB, name));
   }
 
+  if (request.method === 'POST' && url.pathname === '/api/profile/open-box') {
+    const payload = await request.json();
+    const name = cleanName(payload.name);
+    if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
+    await upsertPlayer(env.DB, {
+      name,
+      credits: toInt(payload.credits, 100),
+      bestCoins: toInt(payload.bestCoins ?? payload.credits, 100),
+      bestSingleWin: toInt(payload.bestSingleWin, 0),
+      updatedAt: toInt(payload.updatedAt, Date.now())
+    });
+    const result = await openPrestigeBox(env.DB, name);
+    return json(result, result.status || 200);
+  }
+
+  if (request.method === 'POST' && url.pathname === '/api/profile/active-seal') {
+    const payload = await request.json();
+    const name = cleanName(payload.name);
+    const sealId = cleanSealId(payload.sealId);
+    if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
+    if (!sealId) return json({ ok: false, error: 'Siegel fehlt.' }, 400);
+    const profile = await setActiveSeal(env.DB, name, sealId);
+    return json({ ok: true, profile, profiles: { [name]: profile } });
+  }
+
+  if (request.method === 'POST' && url.pathname === '/api/profile/upgrade-seal') {
+    const payload = await request.json();
+    const name = cleanName(payload.name);
+    const sealId = cleanSealId(payload.sealId);
+    if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
+    if (!sealId) return json({ ok: false, error: 'Siegel fehlt.' }, 400);
+    const profile = await upgradeSeal(env.DB, name, sealId);
+    return json({ ok: true, profile, profiles: { [name]: profile } });
+  }
+
   if (request.method === 'GET' && url.pathname === '/api/chat') {
     const weekStart = await ensureCurrentWeek(env.DB);
     const after = Math.max(0, toInt(url.searchParams.get('after'), 0));
     const opener = await ensureChatOpener(env.DB, weekStart);
+    const messages = await getChatMessages(env.DB, weekStart, after);
+    const online = await getOnlinePlayers(env.DB, weekStart);
+    const names = uniqueNames([
+      ...messages.map(message => message.name),
+      ...online.map(player => player.name)
+    ]);
     return json({
       ok: true,
       weekStart,
       currentOpener: opener.body,
-      messages: await getChatMessages(env.DB, weekStart, after),
-      online: await getOnlinePlayers(env.DB, weekStart)
+      messages,
+      online,
+      profiles: await getProfilesMap(env.DB, names)
     });
   }
 
@@ -160,13 +234,16 @@ async function handleApi(request, env, url) {
     const opener = await ensureChatOpener(env.DB, weekStart);
     await updatePresence(env.DB, weekStart, name);
     const message = await insertChatMessage(env.DB, weekStart, name, body);
+    const online = await getOnlinePlayers(env.DB, weekStart);
+    const names = uniqueNames([name, ...online.map(player => player.name)]);
     return json({
       ok: true,
       weekStart,
       currentOpener: opener.body,
       message,
       messages: [message],
-      online: await getOnlinePlayers(env.DB, weekStart)
+      online,
+      profiles: await getProfilesMap(env.DB, names)
     });
   }
 
@@ -176,10 +253,12 @@ async function handleApi(request, env, url) {
     if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
     const weekStart = await ensureCurrentWeek(env.DB);
     await updatePresence(env.DB, weekStart, name);
+    const online = await getOnlinePlayers(env.DB, weekStart);
     return json({
       ok: true,
       weekStart,
-      online: await getOnlinePlayers(env.DB, weekStart)
+      online,
+      profiles: await getProfilesMap(env.DB, uniqueNames([name, ...online.map(player => player.name)]))
     });
   }
 
@@ -404,10 +483,21 @@ async function importChampion(db, raw) {
 
 async function buildState(db, name = '') {
   const currentWeek = await ensureCurrentWeek(db);
+  const leaderboard = await buildLeaderboard(db, currentWeek);
+  const names = uniqueNames([
+    name,
+    ...((leaderboard.coins || []).map(row => row.name)),
+    ...((leaderboard.wins || []).map(row => row.name)),
+    leaderboard.lastWeek?.winner?.name,
+    leaderboard.lastWeek?.biggestWin?.name
+  ]);
+  const profiles = await getProfilesMap(db, names);
   return {
     ok: true,
-    leaderboard: await buildLeaderboard(db, currentWeek),
-    player: name ? await getPlayer(db, currentWeek, name) : null
+    leaderboard: { ...leaderboard, profiles },
+    player: name ? await getPlayer(db, currentWeek, name) : null,
+    profile: name ? (profiles[name] || defaultProfile(name)) : null,
+    profiles
   };
 }
 
@@ -436,6 +526,199 @@ async function buildLeaderboard(db, weekStart) {
     wins: (wins.results || []).map(row => ({ name: row.name, score: Number(row.score || 0) })),
     lastWeek: await getChampion(db, previousWeekStartFromKey(weekStart))
   };
+}
+
+function defaultProfile(name) {
+  return {
+    name,
+    seals: [],
+    activeSeal: '',
+    sealShards: 0,
+    sealGlow: {},
+    openedBoxes: 0,
+    updatedAt: 0
+  };
+}
+
+function safeJson(value, fallback) {
+  try {
+    const parsed = JSON.parse(value || '');
+    return parsed && typeof parsed === 'object' ? parsed : fallback;
+  } catch (_) {
+    return fallback;
+  }
+}
+
+function normalizeProfile(row, name = '') {
+  if (!row) return defaultProfile(name);
+  const seals = Array.isArray(safeJson(row.seals_json, []))
+    ? safeJson(row.seals_json, []).filter(id => SEAL_IDS.has(id))
+    : [];
+  const sealGlow = safeJson(row.seal_glow_json, {});
+  const cleanGlow = {};
+  for (const [id, value] of Object.entries(sealGlow)) {
+    if (SEAL_IDS.has(id)) cleanGlow[id] = Math.max(0, Math.min(3, toInt(value, 0)));
+  }
+  const activeSeal = SEAL_IDS.has(row.active_seal) && seals.includes(row.active_seal)
+    ? row.active_seal
+    : (seals[seals.length - 1] || '');
+  return {
+    name: row.name || name,
+    seals,
+    activeSeal,
+    sealShards: Math.max(0, toInt(row.seal_shards, 0)),
+    sealGlow: cleanGlow,
+    openedBoxes: Math.max(0, toInt(row.opened_boxes, 0)),
+    updatedAt: Math.max(0, toInt(row.updated_at, 0))
+  };
+}
+
+async function getProfile(db, name) {
+  const clean = cleanName(name);
+  if (!clean) return defaultProfile('');
+  const row = await db.prepare(
+    `SELECT name, seals_json, active_seal, seal_shards, seal_glow_json, opened_boxes, updated_at
+     FROM player_profiles
+     WHERE name = ?
+     LIMIT 1`
+  ).bind(clean).first();
+  return normalizeProfile(row, clean);
+}
+
+async function saveProfile(db, profile) {
+  const now = Date.now();
+  const activeSeal = profile.activeSeal && profile.seals.includes(profile.activeSeal)
+    ? profile.activeSeal
+    : (profile.seals[profile.seals.length - 1] || null);
+  await db.prepare(
+    `INSERT INTO player_profiles
+      (name, seals_json, active_seal, seal_shards, seal_glow_json, opened_boxes, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(name) DO UPDATE SET
+       seals_json = excluded.seals_json,
+       active_seal = excluded.active_seal,
+       seal_shards = excluded.seal_shards,
+       seal_glow_json = excluded.seal_glow_json,
+       opened_boxes = excluded.opened_boxes,
+       updated_at = excluded.updated_at`
+  ).bind(
+    profile.name,
+    JSON.stringify(profile.seals),
+    activeSeal,
+    Math.max(0, toInt(profile.sealShards, 0)),
+    JSON.stringify(profile.sealGlow || {}),
+    Math.max(0, toInt(profile.openedBoxes, 0)),
+    now
+  ).run();
+  return { ...profile, activeSeal: activeSeal || '', updatedAt: now };
+}
+
+async function getProfilesMap(db, names) {
+  const cleanNames = uniqueNames(names).filter(name => name && name !== CHAT_OPENER_AUTHOR);
+  const map = {};
+  if (!cleanNames.length) return map;
+  const placeholders = cleanNames.map(() => '?').join(',');
+  const rows = await db.prepare(
+    `SELECT name, seals_json, active_seal, seal_shards, seal_glow_json, opened_boxes, updated_at
+     FROM player_profiles
+     WHERE name IN (${placeholders})`
+  ).bind(...cleanNames).all();
+  for (const row of rows.results || []) {
+    map[row.name] = normalizeProfile(row, row.name);
+  }
+  for (const name of cleanNames) {
+    if (!map[name]) map[name] = defaultProfile(name);
+  }
+  return map;
+}
+
+function uniqueNames(names) {
+  return Array.from(new Set((names || []).map(cleanName).filter(Boolean)));
+}
+
+function pickRarity() {
+  const total = RARITY_WEIGHTS.reduce((sum, entry) => sum + entry.weight, 0);
+  let roll = Math.random() * total;
+  for (const entry of RARITY_WEIGHTS) {
+    roll -= entry.weight;
+    if (roll < 0) return entry.rarity;
+  }
+  return 'common';
+}
+
+function pickSealForRarity(rarity, owned) {
+  const pool = SEAL_DEFS.filter(seal => seal.rarity === rarity);
+  const fresh = pool.filter(seal => !owned.has(seal.id));
+  const choices = fresh.length ? fresh : pool;
+  return choices[Math.floor(Math.random() * choices.length)];
+}
+
+async function openPrestigeBox(db, name) {
+  const weekStart = await ensureCurrentWeek(db);
+  const player = await getPlayer(db, weekStart, name);
+  if (!player || player.credits < PRESTIGE_BOX_COST) {
+    return jsonLikeError('Nicht genug Coins für die Couture-Kiste.', 400);
+  }
+  const profile = await getProfile(db, name);
+  const rarity = pickRarity();
+  const seal = pickSealForRarity(rarity, new Set(profile.seals));
+  const duplicate = profile.seals.includes(seal.id);
+  const shards = duplicate ? (SHARDS_BY_RARITY[rarity] || 1) : 0;
+
+  if (duplicate) {
+    profile.sealShards += shards;
+  } else {
+    profile.seals.push(seal.id);
+    profile.activeSeal = seal.id;
+  }
+  profile.openedBoxes += 1;
+  const savedProfile = await saveProfile(db, profile);
+  const updatedAt = Date.now();
+  const nextCredits = player.credits - PRESTIGE_BOX_COST;
+  await db.prepare(
+    `UPDATE players
+     SET credits = ?, best_coins = max(best_coins, ?), updated_at = ?
+     WHERE week_start = ? AND name = ?`
+  ).bind(nextCredits, player.bestCoins, updatedAt, weekStart, name).run();
+
+  const leaderboard = await buildLeaderboard(db, weekStart);
+  const profiles = await getProfilesMap(db, uniqueNames([
+    name,
+    ...(leaderboard.coins || []).map(row => row.name),
+    ...(leaderboard.wins || []).map(row => row.name)
+  ]));
+  profiles[name] = savedProfile;
+  return {
+    ok: true,
+    result: { sealId: seal.id, rarity, duplicate, shards },
+    player: { ...player, credits: nextCredits, updatedAt },
+    profile: savedProfile,
+    profiles,
+    leaderboard: { ...leaderboard, profiles }
+  };
+}
+
+function jsonLikeError(error, status) {
+  return { ok: false, error, status };
+}
+
+async function setActiveSeal(db, name, sealId) {
+  const profile = await getProfile(db, name);
+  if (!profile.seals.includes(sealId)) throw new Error('Siegel nicht freigeschaltet.');
+  profile.activeSeal = sealId;
+  return saveProfile(db, profile);
+}
+
+async function upgradeSeal(db, name, sealId) {
+  const profile = await getProfile(db, name);
+  if (!profile.seals.includes(sealId)) throw new Error('Siegel nicht freigeschaltet.');
+  if (profile.sealShards < 10) throw new Error('Nicht genug Couture-Splitter.');
+  const current = Math.max(0, toInt(profile.sealGlow[sealId], 0));
+  if (current >= 3) throw new Error('Dieses Siegel ist schon Walhalla.');
+  profile.sealShards -= 10;
+  profile.sealGlow[sealId] = current + 1;
+  profile.activeSeal = sealId;
+  return saveProfile(db, profile);
 }
 
 async function getChatMessages(db, weekStart, after = 0) {
@@ -566,6 +849,11 @@ async function setMeta(db, key, value) {
 
 function cleanName(name) {
   return String(name || '').trim().slice(0, 80);
+}
+
+function cleanSealId(sealId) {
+  const clean = String(sealId || '').trim().slice(0, 80);
+  return SEAL_IDS.has(clean) ? clean : '';
 }
 
 function cleanChatBody(body) {
