@@ -483,7 +483,7 @@ async function importChampion(db, raw) {
 
 async function buildState(db, name = '') {
   const currentWeek = await ensureCurrentWeek(db);
-  const leaderboard = await buildLeaderboard(db, currentWeek);
+  const leaderboard = await buildLeaderboard(db, currentWeek, name);
   const names = uniqueNames([
     name,
     ...((leaderboard.coins || []).map(row => row.name)),
@@ -501,13 +501,13 @@ async function buildState(db, name = '') {
   };
 }
 
-async function buildLeaderboard(db, weekStart) {
+async function buildLeaderboard(db, weekStart, focusName = '') {
   const resetEpoch = await getMeta(db, 'reset_epoch') || '';
   const coins = await db.prepare(
-    `SELECT name, best_coins AS score
+    `SELECT name, best_coins AS score, credits AS current
      FROM players
      WHERE week_start = ?
-     ORDER BY best_coins DESC, updated_at ASC
+     ORDER BY best_coins DESC, updated_at ASC, name ASC
      LIMIT 10`
   ).bind(weekStart).all();
 
@@ -515,16 +515,58 @@ async function buildLeaderboard(db, weekStart) {
     `SELECT name, best_single_win AS score
      FROM players
      WHERE week_start = ? AND best_single_win > 0
-     ORDER BY best_single_win DESC, updated_at ASC
+     ORDER BY best_single_win DESC, updated_at ASC, name ASC
      LIMIT 10`
   ).bind(weekStart).all();
 
   return {
     weekStart,
     resetEpoch,
-    coins: (coins.results || []).map(row => ({ name: row.name, score: Number(row.score || 0) })),
+    coins: (coins.results || []).map(row => ({
+      name: row.name,
+      score: Number(row.score || 0),
+      current: Number(row.current || 0)
+    })),
     wins: (wins.results || []).map(row => ({ name: row.name, score: Number(row.score || 0) })),
+    personalRank: focusName ? await getPersonalRank(db, weekStart, focusName) : null,
     lastWeek: await getChampion(db, previousWeekStartFromKey(weekStart))
+  };
+}
+
+async function getPersonalRank(db, weekStart, name) {
+  const clean = cleanName(name);
+  if (!clean) return null;
+  const row = await db.prepare(
+    `SELECT name, best_coins AS score, credits AS current, updated_at AS updatedAt
+     FROM players
+     WHERE week_start = ? AND name = ?
+     LIMIT 1`
+  ).bind(weekStart, clean).first();
+  if (!row) return null;
+  const score = Number(row.score || 0);
+  const updatedAt = Number(row.updatedAt || 0);
+  const higher = await db.prepare(
+    `SELECT COUNT(*) AS count
+     FROM players
+     WHERE week_start = ?
+       AND (
+         best_coins > ?
+         OR (
+           best_coins = ?
+           AND (
+             updated_at < ?
+             OR (updated_at = ? AND name < ?)
+           )
+         )
+       )`
+  ).bind(weekStart, score, score, updatedAt, updatedAt, clean).first();
+  const rank = Number(higher?.count || 0) + 1;
+  return {
+    name: row.name,
+    rank,
+    score,
+    current: Number(row.current || 0),
+    inTop10: rank <= 10
   };
 }
 
@@ -681,7 +723,7 @@ async function openPrestigeBox(db, name) {
      WHERE week_start = ? AND name = ?`
   ).bind(nextCredits, player.bestCoins, updatedAt, weekStart, name).run();
 
-  const leaderboard = await buildLeaderboard(db, weekStart);
+  const leaderboard = await buildLeaderboard(db, weekStart, name);
   const profiles = await getProfilesMap(db, uniqueNames([
     name,
     ...(leaderboard.coins || []).map(row => row.name),
