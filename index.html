@@ -3868,7 +3868,11 @@ async function runCheesePlate(results, spinBet) {
     setResult(`🫕 Käseplatte Nachdreh ${attempt + 1}/3 · Melt ${formatMulti(CHEESE_PLATE_MELTS[attempt])}`, 'freespin');
     await spinReel(plate.open, next, turboActive ? 900 : 1350);
 
-    if (next.id === plate.targetId || next.id === 'mozz') {
+    const completesPlate = plate.hasMozzarella
+      ? next.id === plate.targetId
+      : (next.id === plate.targetId || next.id === 'mozz');
+
+    if (completesPlate) {
       const melt = CHEESE_PLATE_MELTS[attempt];
       const plateWin = calcWin(results, spinBet);
       openReel.classList.remove('plate-open');
@@ -4341,7 +4345,7 @@ function buyFreespins() {
 }
 
 // ── GEWINNBERECHNUNG ─────────────────────────────────────────
-// Wild (Senf 🟡) kann beliebige Käse bei 3er-Kombos ersetzen.
+// Mozzarella-Wild kann genau ein Symbol bei 3er-Kombos ersetzen.
 // 3× Senf → Senfbombe-Overlay + Gewinn
 // Roquefort 3× → triggerFreespins
 // Parmigiano einzeln → scatterBonus
@@ -4365,10 +4369,11 @@ function calcWin(results, betAmt) {
     return { amount, msg, winReels, isJackpot, isWild: true, triggerFreespins, triggerSenfbombe, comboId: null };
   }
 
-  // ── 2. 3er-Kombo (mit Wilds) ──
+  // ── 2. 3er-Kombo mit genau 1 Wild ──
+  //  Große Symbolgewinne brauchen mindestens 2× das eigentliche Symbol.
   //  comboId = der effektiv erzielte Käse, damit Spezial-Animationen
   //  (Hexagon, Senfbombe, Parmigiano …) auch mit Wild-Beteiligung auslösen.
-  if (wildCount >= 1 && uniqueNonW.length === 1) {
+  if (wildCount === 1 && uniqueNonW.length === 1) {
     const base = CHEESES.find(c => c.id === uniqueNonW[0]);
     winReels = [0,1,2]; amount = betAmt * base.threeX;
     isJackpot = base.id === 'golden';
