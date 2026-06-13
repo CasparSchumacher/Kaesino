@@ -1132,17 +1132,22 @@ body {
 }
 .lb-row {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) auto;
+  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-areas:
+    "rank identity"
+    "rank score";
   align-items: center;
-  column-gap: 8px;
-  min-height: 54px;
-  padding: 8px 10px;
+  column-gap: 9px;
+  row-gap: 7px;
+  min-height: 68px;
+  padding: 9px 10px;
   border-bottom: 1px solid rgba(255,255,255,0.03);
   font-family: Arial, sans-serif;
   font-size: 0.72em;
 }
 .lb-row:last-child { border-bottom: none; }
 .lb-rank {
+  grid-area: rank;
   color: var(--muted);
   text-align: center;
   flex-shrink: 0;
@@ -1153,22 +1158,17 @@ body {
 .lb-rank.top2 { color: #C0C0C0; }
 .lb-rank.top3 { color: #CD7F32; }
 .lb-name {
-  flex: 1;
+  grid-area: identity;
   color: rgba(180,190,230,0.8);
   min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 .lb-name .profile-name-btn {
   width: 100%;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas:
-    "seal player"
-    "seal meta";
+    "seal player meta";
   column-gap: 7px;
-  row-gap: 3px;
   align-items: center;
 }
 .lb-name .seal-badge {
@@ -1180,47 +1180,57 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 1.06em;
+  font-size: 1.1em;
+  font-weight: 800;
   line-height: 1.15;
 }
 .lb-name .rank-badge {
   grid-area: meta;
-  justify-self: start;
+  justify-self: end;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .lb-personal-label {
+  grid-column: 1 / -1;
+  width: max-content;
   color: var(--gold);
-  font-size: 0.82em;
+  font-size: 0.76em;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
-  flex-shrink: 0;
+  letter-spacing: 1px;
+  font-weight: 900;
 }
 .lb-name.is-me { color: #ff7090; font-weight: bold; }
 .lb-score {
-  display: grid;
-  gap: 3px;
-  justify-items: end;
+  grid-area: score;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   white-space: nowrap;
-  text-align: right;
-  min-width: 74px;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid rgba(255,215,0,0.12);
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(255,215,0,0.05), rgba(70,100,190,0.055));
 }
 .lb-score-label {
-  color: rgba(180,190,230,0.42);
+  color: rgba(180,190,230,0.48);
   font-family: Arial, sans-serif;
-  font-size: 0.62em;
+  font-size: 0.66em;
   font-weight: 800;
   letter-spacing: 0.8px;
   text-transform: uppercase;
+  flex-shrink: 0;
 }
 .lb-score-main {
   display: block;
   color: var(--gold);
   font-family: 'Courier New';
   font-weight: 900;
-  font-size: 1.04em;
+  font-size: 1.08em;
   line-height: 1;
+  margin-left: auto;
 }
 .lb-current {
   display: inline-flex;
@@ -1234,6 +1244,7 @@ body {
   font-family: Arial, sans-serif;
   font-size: 0.66em;
   font-weight: 800;
+  flex-shrink: 0;
 }
 .lb-row.personal-rank {
   margin-top: 6px;
@@ -3344,8 +3355,10 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
   .jk-close { width: 100%; padding: 14px; }
   .paytable-grid { grid-template-columns: 1fr; }
   .lb-tables { grid-template-columns: 1fr; }
-  .lb-row { grid-template-columns: 32px minmax(0, 1fr) minmax(74px, auto); padding: 8px; }
-  .lb-name .profile-name-btn { column-gap: 6px; }
+  .lb-row { grid-template-columns: 32px minmax(0, 1fr); padding: 8px; min-height: 66px; }
+  .lb-name .profile-name-btn { column-gap: 6px; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "seal player" "seal meta"; row-gap: 3px; }
+  .lb-name .rank-badge { justify-self: start; }
+  .lb-score { gap: 6px; padding: 6px 7px; }
   .lb-score-main { font-size: 0.96em; }
   .lb-current { font-size: 0.62em; padding: 2px 5px; }
   .float-sound-btns { bottom: 16px; right: 12px; gap: 8px; }
@@ -7197,6 +7210,7 @@ async function updateLeaderboard(name, totalCoins, singleWin) {
 
 function renderLeaderboard(lb) {
   const medals = ['🥇','🥈','🥉'];
+  const formatCoins = value => Number(value || 0).toLocaleString('de-DE');
   // Map name → höchstes Guthaben, damit Rang in beiden Listen konsistent ist.
   // Fallback: wenn jemand nur in der Wins-Liste auftaucht, nehmen wir den Wins-Score
   // (denn ein Einzelgewinn von 20k impliziert mindestens 20k Coins).
@@ -7226,9 +7240,9 @@ function renderLeaderboard(lb) {
   function scoreHTML(e, showCurrent = false) {
     const current = Number(e.current ?? e.score ?? 0);
     const currentLine = showCurrent && current !== Number(e.score || 0)
-      ? `<span class="lb-current">aktuell ${current.toLocaleString()}🪙</span>`
+      ? `<span class="lb-current">aktuell ${formatCoins(current)}🪙</span>`
       : '';
-    return `<span class="lb-score-label">Best</span><span class="lb-score-main">${Number(e.score || 0).toLocaleString()}🪙</span>${currentLine}`;
+    return `<span class="lb-score-label">${showCurrent ? 'Beststand' : 'Gewinn'}</span><span class="lb-score-main">${formatCoins(e.score)}🪙</span>${currentLine}`;
   }
   function rowHTML(e, i, options = {}) {
     const rankLabel = options.rankLabel || medals[i] || '#' + (i + 1);
