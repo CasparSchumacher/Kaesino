@@ -115,6 +115,55 @@ body {
   min-width: 0;
 }
 #name-suffix::placeholder { color: rgba(180,190,230,0.28); }
+.pin-input-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0,0,0,0.38);
+  border: 1px solid rgba(255,215,0,0.22);
+  border-radius: 12px;
+  padding: 0 14px;
+  margin-bottom: 8px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.pin-input-group:focus-within {
+  border-color: rgba(255,215,0,0.65);
+  box-shadow: 0 0 16px rgba(255,215,0,0.16);
+}
+.pin-prefix {
+  color: var(--gold);
+  font-family: Arial, sans-serif;
+  font-size: 0.82em;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+#pin-input {
+  flex: 1;
+  min-width: 0;
+  padding: 13px 0;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 1.05em;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 4px;
+  outline: none;
+}
+#pin-input::placeholder {
+  color: rgba(180,190,230,0.26);
+  letter-spacing: 1px;
+}
+.pin-hint {
+  color: rgba(180,190,230,0.58);
+  font-size: 0.72em;
+  line-height: 1.35;
+  min-height: 32px;
+  margin: 0 2px 14px;
+  font-family: Arial, sans-serif;
+}
+.pin-hint strong { color: var(--gold); }
 .start-btn {
   width: 100%;
   padding: 16px;
@@ -3280,7 +3329,12 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
       <span class="name-prefix">Käse-</span>
       <input type="text" id="name-suffix" placeholder="König" maxlength="15" autocomplete="off" autocorrect="off" spellcheck="false">
     </div>
-    <button class="start-btn" onclick="startGame()">Los spielen! 🎰</button>
+    <div class="pin-input-group">
+      <span class="pin-prefix">PIN</span>
+      <input type="password" id="pin-input" placeholder="4-12 Zahlen" maxlength="12" inputmode="numeric" autocomplete="current-password">
+    </div>
+    <div class="pin-hint" id="pin-hint">Beim ersten Start reservierst du deinen Namen mit einer PIN. Badges und Couture bleiben dann wirklich dir.</div>
+    <button class="start-btn" id="start-game-btn" onclick="startGame()">Los spielen! 🎰</button>
     <div class="name-error" id="name-error"></div>
   </div>
 </div>
@@ -3951,6 +4005,31 @@ function kasinoApiAvailable() {
   return location.protocol === 'http:' || location.protocol === 'https:' || !!KASINO_API_BASE;
 }
 
+const ACCOUNT_TOKEN_KEY = 'kaesino_session_token';
+let accountSessionToken = localStorage.getItem(ACCOUNT_TOKEN_KEY) || '';
+
+function authHeaders(extra = {}) {
+  return accountSessionToken
+    ? { ...extra, Authorization: `Bearer ${accountSessionToken}` }
+    : extra;
+}
+
+function storeAccountSession(name, token) {
+  accountSessionToken = token || '';
+  if (accountSessionToken) localStorage.setItem(ACCOUNT_TOKEN_KEY, accountSessionToken);
+  localStorage.setItem('kaesino_player', name);
+}
+
+function clearAccountSession() {
+  accountSessionToken = '';
+  localStorage.removeItem(ACCOUNT_TOKEN_KEY);
+}
+
+function handleAuthFailure(message = 'Session abgelaufen. Bitte nochmal mit PIN einloggen.') {
+  clearAccountSession();
+  setResult(`🔐 ${message}`, '');
+}
+
 const KAESINO_DEBUG = localStorage.getItem('kaesino_debug') === '1';
 function logSoftError(scope, error) {
   if (KAESINO_DEBUG) console.warn(`[kaesino:${scope}]`, error);
@@ -4298,7 +4377,7 @@ async function savePlayerProgressToServer(entry, keepalive = false) {
     const response = await fetch(kasinoApiUrl('/api/player'), {
       method: 'PUT',
       keepalive,
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         name: playerName,
         week: entry.week,
@@ -4306,6 +4385,7 @@ async function savePlayerProgressToServer(entry, keepalive = false) {
         updatedAt: entry.updatedAt || Date.now()
       })
     });
+    if (response.status === 401 || response.status === 403) handleAuthFailure();
     if (!response.ok) throw new Error(`player save ${response.status}`);
   } catch (e) {
     logSoftError('player-save', e);
@@ -4379,13 +4459,91 @@ window.addEventListener('load', () => {
 document.getElementById('name-suffix').addEventListener('keydown', e => {
   if (e.key === 'Enter') startGame();
 });
+document.getElementById('pin-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startGame();
+});
 
-function startGame() {
+async function startGame() {
   const suffix = document.getElementById('name-suffix').value.trim();
   const errEl  = document.getElementById('name-error');
+  const pinEl  = document.getElementById('pin-input');
+  const hintEl = document.getElementById('pin-hint');
+  const startBtn = document.getElementById('start-game-btn');
+  const pin = (pinEl?.value || '').trim();
   if (!suffix) { errEl.textContent = 'Bitte gib einen Namen ein! z.B. "König"'; return; }
   if (suffix.length < 2) { errEl.textContent = 'Mindestens 2 Zeichen bitte!'; return; }
-  playerName = 'Käse-' + suffix;
+  const nextPlayerName = 'Käse-' + suffix;
+  if (!kasinoApiAvailable()) {
+    errEl.textContent = 'Für Konten braucht das Käsino den Server.';
+    return;
+  }
+
+  errEl.textContent = '';
+  if (startBtn) {
+    startBtn.disabled = true;
+    startBtn.textContent = 'Käsekeller prüft…';
+  }
+
+  try {
+    if (accountSessionToken && !pin) {
+      const sessionResponse = await fetch(kasinoApiUrl(`/api/account/session?name=${encodeURIComponent(nextPlayerName)}`), {
+        headers: authHeaders()
+      });
+      if (sessionResponse.ok) {
+        const sessionData = await sessionResponse.json();
+        enterGame(nextPlayerName);
+        return;
+      }
+      clearAccountSession();
+    }
+
+    const statusResponse = await fetch(kasinoApiUrl(`/api/account/status?name=${encodeURIComponent(nextPlayerName)}`));
+    const status = await statusResponse.json();
+    if (!statusResponse.ok || status.ok === false) throw new Error(status.error || 'Name konnte nicht geprüft werden.');
+
+    if (!pin) {
+      if (hintEl) {
+        hintEl.innerHTML = status.exists
+          ? '<strong>Name geschützt.</strong> PIN eingeben, dann gehört dir wieder alles.'
+          : '<strong>Neuer Name.</strong> Lege jetzt eine PIN fest, damit Badges und Spielstand dir gehören.';
+      }
+      pinEl?.focus();
+      return;
+    }
+    if (!/^\d{4,12}$/.test(pin)) {
+      errEl.textContent = 'PIN bitte als 4-12 Zahlen eingeben.';
+      pinEl?.focus();
+      return;
+    }
+
+    const authPath = status.exists ? '/api/account/login' : '/api/account/register';
+    const authResponse = await fetch(kasinoApiUrl(authPath), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: nextPlayerName, pin })
+    });
+    const authData = await authResponse.json();
+    if (!authResponse.ok || authData.ok === false) throw new Error(authData.error || 'Login fehlgeschlagen.');
+    storeAccountSession(nextPlayerName, authData.token);
+    if (hintEl) {
+      hintEl.innerHTML = authData.created
+        ? '<strong>Name reserviert.</strong> Couture und Spielstand sind jetzt an deine PIN gebunden.'
+        : '<strong>Willkommen zurück.</strong> Konto entsperrt.';
+    }
+    enterGame(nextPlayerName);
+  } catch (e) {
+    errEl.textContent = e.message || 'Login hat nicht geklappt.';
+    logSoftError('account-start', e);
+  } finally {
+    if (startBtn) {
+      startBtn.disabled = false;
+      startBtn.textContent = 'Los spielen! 🎰';
+    }
+  }
+}
+
+function enterGame(name) {
+  playerName = name;
   restoredProgressNoticeShown = false;
   localStorage.setItem('kaesino_player', playerName);
   loadLocalProfile();
@@ -5615,9 +5773,10 @@ async function pulsePresence() {
   try {
     const r = await fetch(kasinoApiUrl('/api/presence'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ name: playerName })
     });
+    if (r.status === 401 || r.status === 403) handleAuthFailure();
     if (!r.ok) throw new Error(`presence ${r.status}`);
     const data = await r.json();
     cacheProfiles(data.profiles || {});
@@ -5636,9 +5795,10 @@ async function sendChatMessage(event) {
   try {
     const r = await fetch(kasinoApiUrl('/api/chat'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ name: playerName, body })
     });
+    if (r.status === 401 || r.status === 403) handleAuthFailure();
     if (!r.ok) throw new Error(`chat send ${r.status}`);
     const data = await r.json();
     if (input) input.value = '';
@@ -6079,7 +6239,7 @@ async function openCoutureBox() {
   try {
     const r = await fetch(kasinoApiUrl('/api/profile/open-box'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         name: playerName,
         credits,
@@ -6089,6 +6249,7 @@ async function openCoutureBox() {
       })
     });
     const data = await r.json();
+    if (r.status === 401 || r.status === 403) handleAuthFailure();
     if (!r.ok || data.ok === false) throw new Error(data.error || `prestige ${r.status}`);
     if (data.player) applyServerPlayerProgress(data.player);
     if (data.profiles) cacheProfiles(data.profiles);
@@ -6123,9 +6284,10 @@ async function setActiveSeal(sealId) {
   try {
     const r = await fetch(kasinoApiUrl('/api/profile/active-seal'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ name: playerName, sealId })
     });
+    if (r.status === 401 || r.status === 403) handleAuthFailure();
     const data = await r.json();
     if (data.profile) cacheProfiles({ [playerName]: data.profile });
   } catch (e) {
@@ -6145,10 +6307,11 @@ async function upgradeActiveSeal() {
   try {
     const r = await fetch(kasinoApiUrl('/api/profile/upgrade-seal'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ name: playerName, sealId })
     });
     const data = await r.json();
+    if (r.status === 401 || r.status === 403) handleAuthFailure();
     if (!r.ok || data.ok === false) throw new Error(data.error || `upgrade ${r.status}`);
     if (data.profile) cacheProfiles({ [playerName]: data.profile });
     updatePlayerTag();
@@ -6715,7 +6878,9 @@ async function fetchFromServer() {
   if (!kasinoApiAvailable()) return lbCache;
   try {
     const nameParam = playerName ? `?name=${encodeURIComponent(playerName)}` : '';
-    const r = await fetch(kasinoApiUrl(`/api/state${nameParam}`));
+    const r = await fetch(kasinoApiUrl(`/api/state${nameParam}`), {
+      headers: authHeaders()
+    });
     if (!r.ok) throw new Error(`API ${r.status}`);
     const d = await r.json();
     if (d.leaderboard) {
@@ -6775,7 +6940,7 @@ async function saveToServer(data, keepalive = false) {
     const r = await fetch(kasinoApiUrl('/api/leaderboard'), {
       method: 'POST',
       keepalive,
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         name: playerName,
         totalCoins: Math.max(0, Math.floor(credits || 0)),
@@ -6786,6 +6951,7 @@ async function saveToServer(data, keepalive = false) {
         } : null
       })
     });
+    if (r.status === 401 || r.status === 403) handleAuthFailure();
     if (r.ok) {
       const d = await r.json();
       if (d.leaderboard) {

@@ -1,7 +1,7 @@
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET,POST,PUT,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type,X-Reset-Secret,X-Import-Secret'
+  'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Reset-Secret,X-Import-Secret'
 };
 
 const CHAT_LIMIT = 80;
@@ -40,6 +40,9 @@ const CHAT_OPENERS = [
   'Was ist der perfekte Snack zum Käsino?',
   'Welche Oligarchenstrategie fährt ihr heute?'
 ];
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const PIN_MIN_LENGTH = 4;
+const PIN_MAX_LENGTH = 12;
 
 const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS meta (
@@ -96,7 +99,26 @@ const SCHEMA = [
     seal_glow_json TEXT NOT NULL DEFAULT '{}',
     opened_boxes INTEGER NOT NULL DEFAULT 0,
     updated_at INTEGER NOT NULL
-  )`
+  )`,
+  `CREATE TABLE IF NOT EXISTS accounts (
+    name TEXT PRIMARY KEY,
+    pin_salt TEXT NOT NULL,
+    pin_hash TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    last_login_at INTEGER
+  )`,
+  `CREATE TABLE IF NOT EXISTS account_sessions (
+    token_hash TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL,
+    last_seen_at INTEGER NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_account_sessions_name_expires
+    ON account_sessions (name, expires_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_account_sessions_expires
+    ON account_sessions (expires_at)`
 ];
 
 let schemaReady = false;
@@ -132,15 +154,53 @@ async function handleApi(request, env, url) {
     return json({ ok: true, weekStart });
   }
 
+  if (request.method === 'GET' && url.pathname === '/api/account/status') {
+    const name = cleanName(url.searchParams.get('name') || '');
+    if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
+    return json({ ok: true, name, exists: await accountExists(env.DB, name) });
+  }
+
+  if (request.method === 'POST' && url.pathname === '/api/account/register') {
+    const payload = await request.json();
+    const name = cleanName(payload.name);
+    const pin = cleanPin(payload.pin);
+    if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
+    if (!pin) return json({ ok: false, error: `PIN braucht ${PIN_MIN_LENGTH}-${PIN_MAX_LENGTH} Zahlen.` }, 400);
+    const result = await registerAccount(env.DB, name, pin);
+    if (!result.ok) return json(result, result.status || 400);
+    return json({ ...result, state: await buildState(env.DB, name, name) });
+  }
+
+  if (request.method === 'POST' && url.pathname === '/api/account/login') {
+    const payload = await request.json();
+    const name = cleanName(payload.name);
+    const pin = cleanPin(payload.pin);
+    if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
+    if (!pin) return json({ ok: false, error: `PIN braucht ${PIN_MIN_LENGTH}-${PIN_MAX_LENGTH} Zahlen.` }, 400);
+    const result = await loginAccount(env.DB, name, pin);
+    if (!result.ok) return json(result, result.status || 401);
+    return json({ ...result, state: await buildState(env.DB, name, name) });
+  }
+
+  if (request.method === 'GET' && url.pathname === '/api/account/session') {
+    const name = cleanName(url.searchParams.get('name') || '');
+    const authName = await getSessionName(env.DB, request);
+    if (!authName || (name && authName !== name)) return json({ ok: false, error: 'Session abgelaufen.' }, 401);
+    return json({ ok: true, name: authName, state: await buildState(env.DB, authName, authName) });
+  }
+
   if (request.method === 'GET' && url.pathname === '/api/state') {
     const name = cleanName(url.searchParams.get('name') || '');
-    return json(await buildState(env.DB, name));
+    const authName = await getSessionName(env.DB, request);
+    return json(await buildState(env.DB, name, authName === name ? authName : ''));
   }
 
   if (request.method === 'PUT' && url.pathname === '/api/player') {
     const payload = await request.json();
     const name = cleanName(payload.name);
     if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
+    const authError = await requireAuthName(env.DB, request, name);
+    if (authError) return authError;
     await upsertPlayer(env.DB, {
       name,
       credits: toInt(payload.credits, 100),
@@ -148,13 +208,15 @@ async function handleApi(request, env, url) {
       bestSingleWin: 0,
       updatedAt: toInt(payload.updatedAt, Date.now())
     });
-    return json(await buildState(env.DB, name));
+    return json(await buildState(env.DB, name, name));
   }
 
   if (request.method === 'POST' && url.pathname === '/api/leaderboard') {
     const payload = await request.json();
     const name = cleanName(payload.name);
     if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
+    const authError = await requireAuthName(env.DB, request, name);
+    if (authError) return authError;
     const playerCredits = payload.player && Number.isFinite(Number(payload.player.credits))
       ? payload.player.credits
       : payload.totalCoins;
@@ -165,13 +227,15 @@ async function handleApi(request, env, url) {
       bestSingleWin: toInt(payload.singleWin, 0),
       updatedAt: payload.player?.updatedAt ? toInt(payload.player.updatedAt, Date.now()) : Date.now()
     });
-    return json(await buildState(env.DB, name));
+    return json(await buildState(env.DB, name, name));
   }
 
   if (request.method === 'POST' && url.pathname === '/api/profile/open-box') {
     const payload = await request.json();
     const name = cleanName(payload.name);
     if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
+    const authError = await requireAuthName(env.DB, request, name);
+    if (authError) return authError;
     await upsertPlayer(env.DB, {
       name,
       credits: toInt(payload.credits, 100),
@@ -189,6 +253,8 @@ async function handleApi(request, env, url) {
     const sealId = cleanSealId(payload.sealId);
     if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
     if (!sealId) return json({ ok: false, error: 'Siegel fehlt.' }, 400);
+    const authError = await requireAuthName(env.DB, request, name);
+    if (authError) return authError;
     const profile = await setActiveSeal(env.DB, name, sealId);
     return json({ ok: true, profile, profiles: { [name]: profile } });
   }
@@ -199,6 +265,8 @@ async function handleApi(request, env, url) {
     const sealId = cleanSealId(payload.sealId);
     if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
     if (!sealId) return json({ ok: false, error: 'Siegel fehlt.' }, 400);
+    const authError = await requireAuthName(env.DB, request, name);
+    if (authError) return authError;
     const profile = await upgradeSeal(env.DB, name, sealId);
     return json({ ok: true, profile, profiles: { [name]: profile } });
   }
@@ -230,6 +298,8 @@ async function handleApi(request, env, url) {
     if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
     if (name === CHAT_OPENER_AUTHOR) return json({ ok: false, error: 'Dieser Chatname ist reserviert.' }, 400);
     if (!body) return json({ ok: false, error: 'Nachricht fehlt.' }, 400);
+    const authError = await requireAuthName(env.DB, request, name);
+    if (authError) return authError;
     const weekStart = await ensureCurrentWeek(env.DB);
     const opener = await ensureChatOpener(env.DB, weekStart);
     await updatePresence(env.DB, weekStart, name);
@@ -251,6 +321,8 @@ async function handleApi(request, env, url) {
     const payload = await request.json();
     const name = cleanName(payload.name);
     if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
+    const authError = await requireAuthName(env.DB, request, name);
+    if (authError) return authError;
     const weekStart = await ensureCurrentWeek(env.DB);
     await updatePresence(env.DB, weekStart, name);
     const online = await getOnlinePlayers(env.DB, weekStart);
@@ -299,6 +371,89 @@ async function ensureCurrentWeek(db, date = new Date()) {
   }
   if (storedWeek !== currentWeek) await archiveAndReset(db, storedWeek, currentWeek);
   return currentWeek;
+}
+
+async function accountExists(db, name) {
+  const row = await db.prepare('SELECT name FROM accounts WHERE name = ? LIMIT 1').bind(name).first();
+  return !!row;
+}
+
+async function registerAccount(db, name, pin) {
+  if (await accountExists(db, name)) {
+    return { ok: false, error: 'Dieser Name ist schon reserviert. Bitte einloggen.', status: 409 };
+  }
+  const now = Date.now();
+  const salt = randomHex(16);
+  const pinHash = await hashPin(pin, salt);
+  await db.prepare(
+    `INSERT INTO accounts (name, pin_salt, pin_hash, created_at, updated_at, last_login_at)
+     VALUES (?, ?, ?, ?, ?, ?)`
+  ).bind(name, salt, pinHash, now, now, now).run();
+  const session = await createSession(db, name);
+  return { ok: true, name, ...session, created: true };
+}
+
+async function loginAccount(db, name, pin) {
+  const row = await db.prepare(
+    `SELECT name, pin_salt AS pinSalt, pin_hash AS pinHash
+     FROM accounts
+     WHERE name = ?
+     LIMIT 1`
+  ).bind(name).first();
+  if (!row) return { ok: false, error: 'Diesen Namen gibt es noch nicht. PIN festlegen und los.', status: 404 };
+  const expected = String(row.pinHash || '');
+  const actual = await hashPin(pin, String(row.pinSalt || ''));
+  if (actual !== expected) return { ok: false, error: 'PIN falsch. Der Käsekeller bleibt zu.', status: 401 };
+  const now = Date.now();
+  await db.prepare(
+    `UPDATE accounts
+     SET last_login_at = ?, updated_at = ?
+     WHERE name = ?`
+  ).bind(now, now, name).run();
+  const session = await createSession(db, name);
+  return { ok: true, name, ...session, created: false };
+}
+
+async function createSession(db, name) {
+  const now = Date.now();
+  const expiresAt = now + SESSION_TTL_MS;
+  const token = randomHex(32);
+  const tokenHash = await sha256Hex(token);
+  await db.batch([
+    db.prepare('DELETE FROM account_sessions WHERE expires_at < ?').bind(now),
+    db.prepare(
+      `INSERT INTO account_sessions (token_hash, name, created_at, expires_at, last_seen_at)
+       VALUES (?, ?, ?, ?, ?)`
+    ).bind(tokenHash, name, now, expiresAt, now)
+  ]);
+  return { token, expiresAt };
+}
+
+async function getSessionName(db, request) {
+  const token = getBearerToken(request);
+  if (!token) return '';
+  const now = Date.now();
+  const tokenHash = await sha256Hex(token);
+  const row = await db.prepare(
+    `SELECT name, expires_at AS expiresAt
+     FROM account_sessions
+     WHERE token_hash = ?
+     LIMIT 1`
+  ).bind(tokenHash).first();
+  if (!row || Number(row.expiresAt || 0) <= now) return '';
+  await db.prepare(
+    `UPDATE account_sessions
+     SET last_seen_at = ?
+     WHERE token_hash = ?`
+  ).bind(now, tokenHash).run();
+  return cleanName(row.name);
+}
+
+async function requireAuthName(db, request, name) {
+  const authName = await getSessionName(db, request);
+  if (!authName) return json({ ok: false, error: 'Bitte mit Name und PIN einloggen.' }, 401);
+  if (authName !== name) return json({ ok: false, error: 'Diese Session gehört zu einem anderen Namen.' }, 403);
+  return null;
 }
 
 async function resetIfNeeded(db, date = new Date(), fromCron = false) {
@@ -481,7 +636,7 @@ async function importChampion(db, raw) {
   ).run();
 }
 
-async function buildState(db, name = '') {
+async function buildState(db, name = '', authName = '') {
   const currentWeek = await ensureCurrentWeek(db);
   const leaderboard = await buildLeaderboard(db, currentWeek, name);
   const names = uniqueNames([
@@ -495,7 +650,7 @@ async function buildState(db, name = '') {
   return {
     ok: true,
     leaderboard: { ...leaderboard, profiles },
-    player: name ? await getPlayer(db, currentWeek, name) : null,
+    player: name && authName === name ? await getPlayer(db, currentWeek, name) : null,
     profile: name ? (profiles[name] || defaultProfile(name)) : null,
     profiles
   };
@@ -891,6 +1046,34 @@ async function setMeta(db, key, value) {
 
 function cleanName(name) {
   return String(name || '').trim().slice(0, 80);
+}
+
+function cleanPin(pin) {
+  const clean = String(pin || '').trim();
+  if (!new RegExp(`^\\d{${PIN_MIN_LENGTH},${PIN_MAX_LENGTH}}$`).test(clean)) return '';
+  return clean;
+}
+
+function getBearerToken(request) {
+  const header = request.headers.get('Authorization') || '';
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1].trim() : '';
+}
+
+function randomHex(length) {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function sha256Hex(value) {
+  const bytes = new TextEncoder().encode(String(value || ''));
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+function hashPin(pin, salt) {
+  return sha256Hex(`${salt}:${pin}`);
 }
 
 function cleanSealId(sealId) {
