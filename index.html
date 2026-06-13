@@ -1131,16 +1131,24 @@ body {
   border-bottom: 1px solid rgba(184,40,72,0.14);
 }
 .lb-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 5px;
-  padding: 5px 8px;
+  column-gap: 8px;
+  min-height: 54px;
+  padding: 8px 10px;
   border-bottom: 1px solid rgba(255,255,255,0.03);
   font-family: Arial, sans-serif;
   font-size: 0.72em;
 }
 .lb-row:last-child { border-bottom: none; }
-.lb-rank { color: var(--muted); width: 18px; text-align: center; flex-shrink: 0; font-family:'Courier New'; }
+.lb-rank {
+  color: var(--muted);
+  text-align: center;
+  flex-shrink: 0;
+  font-family:'Courier New';
+  font-size: 1.12em;
+}
 .lb-rank.top1 { color: var(--gold); font-weight: bold; }
 .lb-rank.top2 { color: #C0C0C0; }
 .lb-rank.top3 { color: #CD7F32; }
@@ -1152,11 +1160,35 @@ body {
   align-items: center;
   gap: 4px;
 }
+.lb-name .profile-name-btn {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "seal player"
+    "seal meta";
+  column-gap: 7px;
+  row-gap: 3px;
+  align-items: center;
+}
+.lb-name .seal-badge {
+  grid-area: seal;
+}
 .lb-player-name {
+  grid-area: player;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 1.06em;
+  line-height: 1.15;
+}
+.lb-name .rank-badge {
+  grid-area: meta;
+  justify-self: start;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .lb-personal-label {
   color: var(--gold);
@@ -1167,21 +1199,41 @@ body {
 }
 .lb-name.is-me { color: #ff7090; font-weight: bold; }
 .lb-score {
-  color: var(--gold);
-  font-family: 'Courier New';
-  font-weight: bold;
-  font-size: 0.9em;
+  display: grid;
+  gap: 3px;
+  justify-items: end;
   white-space: nowrap;
   text-align: right;
+  min-width: 74px;
 }
-.lb-score-main { display: block; }
-.lb-current {
-  display: block;
-  margin-top: 2px;
+.lb-score-label {
   color: rgba(180,190,230,0.42);
   font-family: Arial, sans-serif;
-  font-size: 0.74em;
-  font-weight: 700;
+  font-size: 0.62em;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+.lb-score-main {
+  display: block;
+  color: var(--gold);
+  font-family: 'Courier New';
+  font-weight: 900;
+  font-size: 1.04em;
+  line-height: 1;
+}
+.lb-current {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(120,170,255,0.2);
+  border-radius: 999px;
+  padding: 2px 6px;
+  background: rgba(80,120,255,0.08);
+  color: rgba(190,205,245,0.62);
+  font-family: Arial, sans-serif;
+  font-size: 0.66em;
+  font-weight: 800;
 }
 .lb-row.personal-rank {
   margin-top: 6px;
@@ -3292,6 +3344,10 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
   .jk-close { width: 100%; padding: 14px; }
   .paytable-grid { grid-template-columns: 1fr; }
   .lb-tables { grid-template-columns: 1fr; }
+  .lb-row { grid-template-columns: 32px minmax(0, 1fr) minmax(74px, auto); padding: 8px; }
+  .lb-name .profile-name-btn { column-gap: 6px; }
+  .lb-score-main { font-size: 0.96em; }
+  .lb-current { font-size: 0.62em; padding: 2px 5px; }
   .float-sound-btns { bottom: 16px; right: 12px; gap: 8px; }
   .sound-btn { width: 44px; height: 44px; font-size: 1.2em; }
 }
@@ -4170,6 +4226,8 @@ let myBestCoins        = 0;
 let myBestWin          = 0;
 const ogMilestonesShown   = new Set();
 const rangMilestonesShown = new Set();
+let milestone1000ShownStored = false;
+const OG_MILESTONE_THRESHOLDS = [5000, 25000, 50000, 100000, 200000, 500000];
 
 // Wochenchat
 let chatOpen       = false;
@@ -4186,6 +4244,11 @@ let mentionActiveIndex = 0;
 const PRESTIGE_BOX_COST = 100000;
 const PRESTIGE_UPGRADE_COST = 10;
 const OLIGARCH_UNLOCK = 100000;
+const HIGH_BET_UNLOCKS = {
+  250: 250000,
+  500: 500000,
+  1000: 1000000
+};
 const SEAL_DEFS = [
   { id:'oligarchengedeck', rarity:'common', emoji:'🥃', name:'Oligarchengedeck', desc:'Ein Glas zu viel, ein Coin zu wenig. Der klassische Start jeder schlechten Finanzentscheidung.' },
   { id:'senf-depot', rarity:'common', emoji:'🟡', name:'Senf-Depot', desc:'Genug, um das Loafer-Volk der Hansestadt zu beSENFtigen...' },
@@ -4547,6 +4610,7 @@ function enterGame(name) {
   restoredProgressNoticeShown = false;
   localStorage.setItem('kaesino_player', playerName);
   loadLocalProfile();
+  loadMilestoneState();
   document.getElementById('player-display').textContent = playerName;
   // Spielstand dieser Woche wiederherstellen (gleicher Name → aktueller alter Stand)
   const savedCredits = loadPlayerProgress(playerName);
@@ -5435,26 +5499,84 @@ function lossMsg() {
 }
 
 // ── MEILENSTEINE ─────────────────────────────────────────────
+function milestoneStorageKey() {
+  return playerName ? `kaesino_seen_milestones_${getWeekStart()}_${playerName}` : '';
+}
+
+function readMilestoneState() {
+  try {
+    const key = milestoneStorageKey();
+    if (!key) return { m1000: false, og: [], ranks: [] };
+    const raw = JSON.parse(localStorage.getItem(key) || '{}');
+    return {
+      m1000: !!raw.m1000,
+      og: Array.isArray(raw.og) ? raw.og.map(Number).filter(Number.isFinite) : [],
+      ranks: Array.isArray(raw.ranks) ? raw.ranks.map(Number).filter(Number.isFinite) : []
+    };
+  } catch (e) {
+    return { m1000: false, og: [], ranks: [] };
+  }
+}
+
+function writeMilestoneState(state) {
+  try {
+    const key = milestoneStorageKey();
+    if (!key) return;
+    localStorage.setItem(key, JSON.stringify({
+      m1000: !!state.m1000,
+      og: Array.from(new Set(state.og || [])).sort((a, b) => a - b),
+      ranks: Array.from(new Set(state.ranks || [])).sort((a, b) => a - b)
+    }));
+  } catch (e) {}
+}
+
+function loadMilestoneState() {
+  const state = readMilestoneState();
+  milestone1000Shown = !!state.m1000;
+  milestone1000ShownStored = !!state.m1000;
+  ogMilestonesShown.clear();
+  rangMilestonesShown.clear();
+  state.og.forEach(value => ogMilestonesShown.add(value));
+  state.ranks.forEach(value => rangMilestonesShown.add(value));
+}
+
+function markMilestoneSeen(type, value = 0) {
+  const state = readMilestoneState();
+  if (type === 'm1000') state.m1000 = true;
+  if (type === 'og') state.og = Array.from(new Set([...(state.og || []), Number(value)]));
+  if (type === 'rank') state.ranks = Array.from(new Set([...(state.ranks || []), Number(value)]));
+  writeMilestoneState(state);
+}
+
 function checkMilestones() {
-  if (credits >= 1000 && !milestone1000Shown && !sessionStorage.getItem('m1000')) {
+  if (credits >= 1000 && !milestone1000Shown && !milestone1000ShownStored) {
     milestone1000Shown = true;
-    sessionStorage.setItem('m1000', '1');
+    milestone1000ShownStored = true;
+    markMilestoneSeen('m1000');
     setTimeout(() => document.getElementById('milestone-overlay').classList.add('show'), 700);
   }
-  // Oligarchengedeck bei 5k / 25k / 50k / 100k
-  [5000, 25000, 50000, 100000].forEach(threshold => {
-    if (credits >= threshold && !ogMilestonesShown.has(threshold)) {
+  // Oligarchengedeck bei echten Guthaben-Schwellen. Bei Sprüngen zählt nur die höchste neue Schwelle.
+  const reachedOg = OG_MILESTONE_THRESHOLDS.filter(threshold => credits >= threshold);
+  const unseenOg = reachedOg.filter(threshold => !ogMilestonesShown.has(threshold));
+  if (unseenOg.length) {
+    reachedOg.forEach(threshold => {
       ogMilestonesShown.add(threshold);
-      setTimeout(() => showOligarchengedeckOverlay(threshold), 1000);
-    }
-  });
+      markMilestoneSeen('og', threshold);
+    });
+    const threshold = Math.max(...unseenOg);
+    setTimeout(() => showOligarchengedeckOverlay(threshold), 1000);
+  }
   // Käse-Baron Rang-System bei 10k / 50k / 100k
-  RANK_TIERS.forEach(tier => {
-    if (credits >= tier.threshold && !rangMilestonesShown.has(tier.threshold)) {
+  const reachedRanks = RANK_TIERS.filter(tier => credits >= tier.threshold);
+  const unseenRanks = reachedRanks.filter(tier => !rangMilestonesShown.has(tier.threshold));
+  if (unseenRanks.length) {
+    reachedRanks.forEach(tier => {
       rangMilestonesShown.add(tier.threshold);
-      setTimeout(() => showRangOverlay(tier), 2200);
-    }
-  });
+      markMilestoneSeen('rank', tier.threshold);
+    });
+    const tier = unseenRanks.reduce((best, item) => item.threshold > best.threshold ? item : best, unseenRanks[0]);
+    setTimeout(() => showRangOverlay(tier), 2200);
+  }
 }
 function closeMilestone() {
   document.getElementById('milestone-overlay').classList.remove('show');
@@ -5850,14 +5972,21 @@ function showChatHintOnce() {
 function refreshUI(options = {}) {
   document.getElementById('credits-val').textContent = credits;
   document.getElementById('bet-val').textContent     = bet;
+  const rankScore = currentRankScore();
   document.querySelectorAll('.bet-btn').forEach(b => {
     const betValue = Number(b.dataset.bet);
-    const highRollerLocked = betValue > 100 && currentRankScore() < OLIGARCH_UNLOCK;
+    const highRollerUnlock = highBetUnlockFor(betValue);
+    const highRollerLocked = !!highRollerUnlock && rankScore < highRollerUnlock;
     const betLocked = spinning || freespinActive || freespinPending;
     b.disabled = highRollerLocked || betValue > credits || betLocked;
     b.classList.toggle('active', betValue === bet);
+    if (highRollerUnlock) {
+      b.title = highRollerLocked
+        ? `${betValue.toLocaleString()}er Spin ab ${highRollerUnlock.toLocaleString()} Coins Wochen-Beststand`
+        : `${betValue.toLocaleString()}er High-Roller-Spin`;
+    }
   });
-  document.getElementById('oligarch-bet-row')?.classList.toggle('show', currentRankScore() >= OLIGARCH_UNLOCK);
+  document.getElementById('oligarch-bet-row')?.classList.toggle('show', rankScore >= HIGH_BET_UNLOCKS[250]);
   updatePlayerTag();
   updateFeatureButtons();
   renderPrestigePanel();
@@ -5869,6 +5998,15 @@ function currentRankScore() {
   const stored  = lbEntry ? lbEntry.score : 0;
   const personal = lbCache.personalRank?.name === playerName ? Number(lbCache.personalRank.score || 0) : 0;
   return Math.max(credits, stored, personal, myBestCoins || 0);
+}
+
+function highBetUnlockFor(value) {
+  return HIGH_BET_UNLOCKS[value] || 0;
+}
+
+function highBetAvailable(value) {
+  const unlock = highBetUnlockFor(value);
+  return !unlock || currentRankScore() >= unlock;
 }
 
 function updateFeatureButtons() {
@@ -6325,25 +6463,24 @@ async function upgradeActiveSeal() {
 }
 function setBet(v) {
   if (spinning || freespinActive || freespinPending) return; // Bet-Änderung während Spin/Reifekammer blockieren
-  if (v > 100 && currentRankScore() < OLIGARCH_UNLOCK) {
-    setResult('🔒 Der Oligarchen-Tisch öffnet erst ab 100.000🪙.', '');
+  const unlock = highBetUnlockFor(v);
+  if (unlock && currentRankScore() < unlock) {
+    setResult(`🔒 ${v.toLocaleString()}er Spins öffnen erst ab ${unlock.toLocaleString()}🪙 Wochen-Beststand.`, '');
     return;
   }
   bet = Math.max(1, Math.min(v, credits || 1));
   refreshUI();
 }
 function maxBet() {
-  const options = currentRankScore() >= OLIGARCH_UNLOCK ? [1000, 500, 250, 100, 50, 25, 10, 5, 1] : [100, 50, 25, 10, 5, 1];
-  setBet(options.find(v => v <= credits) || 1);
+  const options = [1000, 500, 250, 100, 50, 25, 10, 5, 1];
+  setBet(options.find(v => v <= credits && highBetAvailable(v)) || 1);
 }
 
 function resetGame() {
   if (spinning) return;
   credits = 100; bet = 10; autoOn = false;
   clearPlayerProgress();   // gespeicherten Wochen-Stand löschen → echter Reset auf 100
-  milestone1000Shown = false;
-  ogMilestonesShown.clear();
-  rangMilestonesShown.clear();
+  loadMilestoneState();
   freespinActive = false; freespinsLeft = 0; freespinPending = false;
   freespinBet = 100; pendingFreespinBet = 100; freespinBought = false;
   freespinRipenMulti = FREESPIN_START_MULTI; freespinPlateCount = 0; freespinSchimmelbruchUsed = false;
@@ -7089,9 +7226,9 @@ function renderLeaderboard(lb) {
   function scoreHTML(e, showCurrent = false) {
     const current = Number(e.current ?? e.score ?? 0);
     const currentLine = showCurrent && current !== Number(e.score || 0)
-      ? `<span class="lb-current">aktuell ${current}🪙</span>`
+      ? `<span class="lb-current">aktuell ${current.toLocaleString()}🪙</span>`
       : '';
-    return `<span class="lb-score-main">${e.score}🪙</span>${currentLine}`;
+    return `<span class="lb-score-label">Best</span><span class="lb-score-main">${Number(e.score || 0).toLocaleString()}🪙</span>${currentLine}`;
   }
   function rowHTML(e, i, options = {}) {
     const rankLabel = options.rankLabel || medals[i] || '#' + (i + 1);
@@ -7145,7 +7282,14 @@ window.addEventListener('beforeunload', () => flushPendingServerSaves(true));
 
 // ── OLIGARCHENGEDECK OVERLAY ─────────────────────────────────
 function showOligarchengedeckOverlay(milestone) {
-  const labels = { 5000:'5.000 COINS!', 25000:'25.000 COINS!', 50000:'50.000 COINS!', 100000:'100.000 COINS!' };
+  const labels = {
+    5000:'5.000 COINS!',
+    25000:'25.000 COINS!',
+    50000:'50.000 COINS!',
+    100000:'100.000 COINS!',
+    200000:'200.000 COINS!',
+    500000:'500.000 COINS!'
+  };
   document.getElementById('og-milestone-tag').textContent = labels[milestone] || `${milestone} COINS!`;
   // Anruf-Zustand bei jedem neuen Trigger zurücksetzen
   resetOligarchengedeckCallState();

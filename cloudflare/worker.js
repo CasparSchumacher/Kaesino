@@ -31,6 +31,7 @@ const RARITY_WEIGHTS = [
   { rarity: 'legendary', weight: 5 }
 ];
 const SHARDS_BY_RARITY = { common: 1, rare: 2, epic: 5, legendary: 12 };
+const DUPLICATE_DROP_CHANCE = 0.35;
 const SEAL_IDS = new Set(SEAL_DEFS.map(seal => seal.id));
 const CHAT_OPENERS = [
   'Was ist euer Lieblingskäse?',
@@ -846,7 +847,9 @@ function pickRarity() {
 function pickSealForRarity(rarity, owned) {
   const pool = SEAL_DEFS.filter(seal => seal.rarity === rarity);
   const fresh = pool.filter(seal => !owned.has(seal.id));
-  const choices = fresh.length ? fresh : pool;
+  const duplicates = pool.filter(seal => owned.has(seal.id));
+  const shouldDuplicate = duplicates.length && Math.random() < DUPLICATE_DROP_CHANCE;
+  const choices = shouldDuplicate ? duplicates : (fresh.length ? fresh : pool);
   return choices[Math.floor(Math.random() * choices.length)];
 }
 
