@@ -1590,6 +1590,129 @@ body {
 .seal-tile.rare { border-color: rgba(90,180,255,0.5); }
 .seal-tile.epic { border-color: rgba(190,110,255,0.55); }
 .seal-tile.legendary { border-color: rgba(255,215,0,0.72); }
+.profile-name-btn {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.profile-name-btn:hover .lb-player-name,
+.chat-msg-name.profile-name-btn:hover {
+  text-decoration: underline;
+  text-decoration-color: rgba(255,215,0,0.5);
+}
+.player-profile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10090;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(3,4,14,0.58);
+}
+.player-profile-overlay.show { display: flex; }
+.player-profile-card {
+  width: min(430px, 100%);
+  border: 2px solid rgba(255,215,0,0.42);
+  border-radius: 12px;
+  padding: 16px;
+  background: linear-gradient(145deg, rgba(12,12,25,0.98), rgba(38,16,38,0.98));
+  box-shadow: 0 22px 60px rgba(0,0,0,0.72), 0 0 28px rgba(255,215,0,0.18);
+}
+.player-profile-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.player-profile-title {
+  color: var(--gold);
+  font-family: Georgia, serif;
+  font-size: 1.28em;
+  line-height: 1.2;
+}
+.player-profile-sub {
+  margin-top: 4px;
+  color: rgba(215,225,255,0.68);
+  font-family: Arial, sans-serif;
+  font-size: 0.82em;
+}
+.player-profile-close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255,215,0,0.32);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  color: rgba(230,235,255,0.9);
+  font-size: 1.25em;
+  cursor: pointer;
+}
+.profile-set-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.profile-set-chip {
+  border: 1px solid rgba(255,215,0,0.36);
+  border-radius: 999px;
+  padding: 4px 9px;
+  background: rgba(255,215,0,0.08);
+  color: var(--gold);
+  font-family: Arial, sans-serif;
+  font-size: 0.76em;
+  font-weight: 900;
+}
+.profile-badge-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.profile-badge-btn {
+  min-height: 44px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 9px;
+  background: rgba(255,255,255,0.045);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.profile-badge-btn.active {
+  border-color: rgba(255,215,0,0.68);
+  box-shadow: 0 0 14px rgba(255,215,0,0.22);
+}
+.profile-badge-detail {
+  min-height: 94px;
+  margin-top: 12px;
+  border: 1px solid rgba(255,215,0,0.22);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255,215,0,0.05);
+  color: rgba(225,232,255,0.86);
+  font-family: Arial, sans-serif;
+  line-height: 1.38;
+}
+.profile-badge-detail strong {
+  color: var(--gold);
+}
+.profile-empty {
+  margin-top: 12px;
+  color: rgba(180,190,230,0.62);
+  font-family: Arial, sans-serif;
+  font-size: 0.9em;
+  font-style: italic;
+}
 .couture-ritual {
   position: relative;
   min-height: 214px;
@@ -3378,6 +3501,21 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
   <span id="chat-toast-text">Käsige Gespräche laufen gerade.</span>
 </div>
 
+<div class="player-profile-overlay" id="player-profile-overlay" onclick="closePlayerProfile()">
+  <div class="player-profile-card" onclick="event.stopPropagation()">
+    <div class="player-profile-head">
+      <div>
+        <div class="player-profile-title" id="player-profile-title">Käse-Profil</div>
+        <div class="player-profile-sub" id="player-profile-sub">Couture-Sammlung</div>
+      </div>
+      <button class="player-profile-close" type="button" onclick="closePlayerProfile()" aria-label="Profil schließen">×</button>
+    </div>
+    <div class="profile-set-row" id="player-profile-sets"></div>
+    <div class="profile-badge-grid" id="player-profile-badges"></div>
+    <div class="profile-badge-detail" id="player-profile-detail"></div>
+  </div>
+</div>
+
 <!-- ═══════════════════════════════════════════════ -->
 <!--  OVERLAYS                                       -->
 <!-- ═══════════════════════════════════════════════ -->
@@ -3970,25 +4108,31 @@ const PRESTIGE_BOX_COST = 100000;
 const PRESTIGE_UPGRADE_COST = 10;
 const OLIGARCH_UNLOCK = 100000;
 const SEAL_DEFS = [
-  { id:'oligarchengedeck', rarity:'common', emoji:'🥃', name:'Oligarchengedeck' },
-  { id:'senf-depot', rarity:'common', emoji:'🟡', name:'Senf-Depot' },
-  { id:'fuego-lizenz', rarity:'common', emoji:'🚬', name:'Fuego-Lizenz' },
-  { id:'babybel-bankett', rarity:'common', emoji:'🧀', name:'Babybel-Bankett' },
-  { id:'zweitbarbour', rarity:'rare', emoji:'🧥', name:'Zweitbarbour' },
-  { id:'schwarzes-durag', rarity:'rare', emoji:'', name:'Schwarzes Durag', icon:'durag-black' },
-  { id:'sechseck-orden', rarity:'rare', emoji:'🔷', name:'Sechseck-Orden' },
-  { id:'fondue-fonds', rarity:'rare', emoji:'🫕', name:'Fondue-Fonds' },
-  { id:'oligarchenporsche', rarity:'epic', emoji:'🏎️', name:'Oligarchenporsche' },
-  { id:'roquefort-patina', rarity:'epic', emoji:'🟦', name:'Roquefort-Patina' },
-  { id:'parmigiano-aktie', rarity:'epic', emoji:'⭐', name:'Parmigiano-Aktie' },
-  { id:'weisses-durag', rarity:'legendary', emoji:'', name:'Weißes Durag', icon:'durag-white' }
+  { id:'oligarchengedeck', rarity:'common', emoji:'🥃', name:'Oligarchengedeck', desc:'Ein Glas zu viel, ein Coin zu wenig. Der klassische Start jeder schlechten Finanzentscheidung.' },
+  { id:'senf-depot', rarity:'common', emoji:'🟡', name:'Senf-Depot', desc:'Genug, um das Loafer-Volk der Hansestadt zu beSENFtigen...' },
+  { id:'fuego-lizenz', rarity:'common', emoji:'🚬', name:'Fuego-Lizenz', desc:'Offiziell berechtigt, nach großen Verlusten schweigend aus dem Fenster zu schauen.' },
+  { id:'babybel-bankett', rarity:'common', emoji:'🔴', name:'Babybel-Bankett', desc:'Ein Festmahl in rotem Wachs. Kulinarisch einzigartig, gesellschaftlich unangreifbar.' },
+  { id:'zweitbarbour', rarity:'rare', emoji:'🧥', name:'Zweitbarbour', desc:'Falls der erste Barbour nach Champagner, Regen und SENF riecht.' },
+  { id:'schwarzes-durag', rarity:'rare', emoji:'', name:'Schwarzes Durag', icon:'durag-black', desc:'Für diskrete Reifeprozesse im Schatten der Käsetheke.' },
+  { id:'sechseck-orden', rarity:'rare', emoji:'⬢', name:'Sechseck-Orden', desc:'Verliehen von YoungFährmann (Geometrie Geselle aus der Wiener Oligarchie.)' },
+  { id:'fondue-fonds', rarity:'rare', emoji:'🫕', name:'Fondue-Fonds', desc:'Ein liquider Käsefonds mit maximaler Schmelzgefahr und null Anlegerschutz.' },
+  { id:'oligarchenporsche', rarity:'epic', emoji:'🏎️', name:'Oligarchenporsche', desc:'Leasing läuft auf den Käsekeller. Niemand stellt Fragen.' },
+  { id:'roquefort-patina', rarity:'epic', emoji:'🟦', name:'Roquefort-Patina', desc:'Schimmel, aber mit Selbstbewusstsein. Reift schneller als dein Kontostand.' },
+  { id:'parmigiano-aktie', rarity:'epic', emoji:'⭐', name:'Parmigiano-Aktie', desc:'Nur für diejenigen, die auch im Käsino grinden, wie an der Käseraspel!' },
+  { id:'weisses-durag', rarity:'legendary', emoji:'', name:'Weißes Durag', icon:'durag-white', desc:'Legendär. Vom Capitano geehrt, vom Putschenden begehrt...' }
 ];
 const SEAL_BY_ID = Object.fromEntries(SEAL_DEFS.map(seal => [seal.id, seal]));
+const SEAL_SET_DEFS = [
+  { id:'durag-set', name:'Durag-Set', title:'Durag-Diplomat', seals:['schwarzes-durag','weisses-durag'] },
+  { id:'finanz-bro-set', name:'Finanz-Bro-Set', title:'Käsekapitalist', seals:['fondue-fonds','parmigiano-aktie','senf-depot'] },
+  { id:'hamburger-polo-club-set', name:'Hamburger Polo Club-Set', title:'Polo-Patron', seals:['oligarchenporsche','zweitbarbour','fuego-lizenz'] }
+];
 const GLOW_NAMES = ['Normal', 'Glänzend', 'Senfvergoldet', 'Walhalla'];
 let currentProfile = { seals: [], activeSeal: '', sealShards: 0, sealGlow: {}, openedBoxes: 0 };
 let profileCache = {};
 let coutureOpening = false;
 let coutureRitualTimers = [];
+let profileDetailName = '';
 
 // ── SCHIMMELRISIKO ───────────────────────────────────────────
 let schimmelPending     = false;
@@ -5417,10 +5561,12 @@ function renderChatMessages(messages = []) {
     const head = document.createElement('div');
     head.className = 'chat-msg-head';
 
-    const name = document.createElement('span');
-    name.className = 'chat-msg-name';
+    const name = document.createElement('button');
+    name.type = 'button';
+    name.className = 'chat-msg-name profile-name-btn';
     name.textContent = message.name || 'Käse-Gast';
     name.style.color = chatNameColor(message.name || 'Käse-Gast');
+    name.addEventListener('click', () => openPlayerProfile(message.name || 'Käse-Gast'));
     const badgeWrap = document.createElement('span');
     badgeWrap.innerHTML = sealBadgeHTML(profileForName(message.name).activeSeal, profileForName(message.name), { iconOnly: true });
 
@@ -5704,6 +5850,11 @@ function profileForName(name) {
   return profileCache[name] || normalizeProfile(null, name);
 }
 
+function completedSealSets(profile) {
+  const owned = new Set(profile?.seals || []);
+  return SEAL_SET_DEFS.filter(set => set.seals.every(id => owned.has(id)));
+}
+
 function sealIconHTML(seal) {
   if (!seal) return '';
   if (seal.icon === 'durag-black') return '<span class="seal-icon"><span class="durag-icon black"></span></span>';
@@ -5720,6 +5871,59 @@ function sealBadgeHTML(sealId, profile = currentProfile, options = {}) {
   }
   const label = options.compact ? seal.name.replace(/^(Oligarchen|Parmigiano|Babybel)-?/, '') : seal.name;
   return `<span class="seal-badge ${seal.rarity} glow-${glow}" title="${escapeHtml(seal.name)} · ${seal.rarity} · ${GLOW_NAMES[glow]}">${sealIconHTML(seal)}<span>${escapeHtml(label)}</span></span>`;
+}
+
+function openPlayerProfile(name) {
+  const clean = String(name || '').trim();
+  if (!clean) return;
+  profileDetailName = clean;
+  const profile = profileForName(clean);
+  const title = document.getElementById('player-profile-title');
+  const sub = document.getElementById('player-profile-sub');
+  const sets = document.getElementById('player-profile-sets');
+  const badges = document.getElementById('player-profile-badges');
+  const detail = document.getElementById('player-profile-detail');
+  if (!title || !sub || !sets || !badges || !detail) return;
+
+  title.textContent = clean;
+  const completed = completedSealSets(profile);
+  sub.textContent = `${profile.seals.length}/${SEAL_DEFS.length} Siegel · ${completed.length} Set${completed.length === 1 ? '' : 's'}`;
+  sets.innerHTML = completed.length
+    ? completed.map(set => `<span class="profile-set-chip" title="${escapeHtml(set.name)}">${escapeHtml(set.title)}</span>`).join('')
+    : '<span class="profile-set-chip">Noch kein vollständiges Set</span>';
+
+  if (!profile.seals.length) {
+    badges.innerHTML = '';
+    detail.className = 'profile-empty';
+    detail.textContent = 'Noch keine Couture im Käsekasten.';
+  } else {
+    detail.className = 'profile-badge-detail';
+    const selectedSeal = profile.activeSeal || profile.seals[0];
+    badges.innerHTML = profile.seals.map((id, idx) => {
+      const seal = SEAL_BY_ID[id];
+      if (!seal) return '';
+      const active = id === selectedSeal ? ' active' : '';
+      return `<button class="profile-badge-btn ${seal.rarity}${active}" type="button" onclick="showPlayerBadgeDetail('${id}')" title="${escapeHtml(seal.name)}">${sealBadgeHTML(id, profile, { iconOnly: true })}</button>`;
+    }).join('');
+    showPlayerBadgeDetail(selectedSeal);
+  }
+  document.getElementById('player-profile-overlay')?.classList.add('show');
+}
+
+function showPlayerBadgeDetail(sealId) {
+  const profile = profileForName(profileDetailName);
+  const seal = SEAL_BY_ID[sealId];
+  const detail = document.getElementById('player-profile-detail');
+  if (!seal || !detail) return;
+  document.querySelectorAll('.profile-badge-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelector(`.profile-badge-btn[onclick="showPlayerBadgeDetail('${sealId}')"]`)?.classList.add('active');
+  const glow = Math.max(0, Math.min(3, Math.floor(Number(profile?.sealGlow?.[sealId] || 0))));
+  detail.className = 'profile-badge-detail';
+  detail.innerHTML = `${sealBadgeHTML(sealId, profile)}<br><strong>${escapeHtml(seal.name)}</strong> · ${escapeHtml(seal.rarity)} · ${GLOW_NAMES[glow]}<br>${escapeHtml(seal.desc || 'Ein rätselhaftes Stück Couture aus dem Käsekeller.')}`;
+}
+
+function closePlayerProfile() {
+  document.getElementById('player-profile-overlay')?.classList.remove('show');
 }
 
 function renderPrestigePanel() {
@@ -6728,9 +6932,10 @@ function renderLeaderboard(lb) {
     const topClass = i < 3 && !options.personal ? 'top' + (i + 1) : '';
     const personalClass = options.personal ? ' personal-rank' : '';
     const personalLabel = options.personal ? '<span class="lb-personal-label">Dein Rang</span>' : '';
+    const encodedName = encodeURIComponent(e.name || '');
     return `<div class="lb-row${personalClass}">
        <span class="lb-rank ${topClass}">${rankLabel}</span>
-       <span class="lb-name ${e.name===playerName?'is-me':''}">${personalLabel}${profileBadge(e.name)}<span class="lb-player-name">${escapeHtml(e.name)}</span>${rankBadge(e.name)}</span>
+       <span class="lb-name ${e.name===playerName?'is-me':''}">${personalLabel}<button class="profile-name-btn" type="button" onclick="openPlayerProfile(decodeURIComponent('${encodedName}'))">${profileBadge(e.name)}<span class="lb-player-name">${escapeHtml(e.name)}</span>${rankBadge(e.name)}</button></span>
        <span class="lb-score">${scoreHTML(e, options.showCurrent)}</span>
      </div>`;
   }
