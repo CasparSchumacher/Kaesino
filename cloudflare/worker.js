@@ -98,6 +98,7 @@ const SCHEMA = [
     active_seal TEXT,
     seal_shards INTEGER NOT NULL DEFAULT 0,
     seal_glow_json TEXT NOT NULL DEFAULT '{}',
+    ability_state_json TEXT NOT NULL DEFAULT '{}',
     opened_boxes INTEGER NOT NULL DEFAULT 0,
     updated_at INTEGER NOT NULL
   )`,
@@ -119,7 +120,8 @@ const SCHEMA = [
   `CREATE INDEX IF NOT EXISTS idx_account_sessions_name_expires
     ON account_sessions (name, expires_at DESC)`,
   `CREATE INDEX IF NOT EXISTS idx_account_sessions_expires
-    ON account_sessions (expires_at)`
+    ON account_sessions (expires_at)`,
+  `ALTER TABLE player_profiles ADD COLUMN ability_state_json TEXT NOT NULL DEFAULT '{}'`
 ];
 
 let schemaReady = false;
@@ -244,7 +246,7 @@ async function handleApi(request, env, url) {
       bestSingleWin: toInt(payload.bestSingleWin, 0),
       updatedAt: toInt(payload.updatedAt, Date.now())
     });
-    const result = await openPrestigeBox(env.DB, name);
+    const result = await openPrestigeBox(env.DB, name, payload.premium === true);
     return json(result, result.status || 200);
   }
 
@@ -257,7 +259,12 @@ async function handleApi(request, env, url) {
     const authError = await requireAuthName(env.DB, request, name);
     if (authError) return authError;
     const profile = await setActiveSeal(env.DB, name, sealId);
-    return json({ ok: true, profile, profiles: { [name]: profile } });
+    return json({
+      ok: true,
+      profile,
+      profileStats: await getPublicProfileStats(env.DB, await ensureCurrentWeek(env.DB), name, profile),
+      profiles: { [name]: profile }
+    });
   }
 
   if (request.method === 'POST' && url.pathname === '/api/profile/upgrade-seal') {
@@ -269,7 +276,27 @@ async function handleApi(request, env, url) {
     const authError = await requireAuthName(env.DB, request, name);
     if (authError) return authError;
     const profile = await upgradeSeal(env.DB, name, sealId);
-    return json({ ok: true, profile, profiles: { [name]: profile } });
+    return json({
+      ok: true,
+      profile,
+      profileStats: await getPublicProfileStats(env.DB, await ensureCurrentWeek(env.DB), name, profile),
+      profiles: { [name]: profile }
+    });
+  }
+
+  if (request.method === 'POST' && url.pathname === '/api/profile/ability') {
+    const payload = await request.json();
+    const name = cleanName(payload.name);
+    if (!name) return json({ ok: false, error: 'Name fehlt.' }, 400);
+    const authError = await requireAuthName(env.DB, request, name);
+    if (authError) return authError;
+    const profile = await updateAbilityState(env.DB, name, payload.abilityState);
+    return json({
+      ok: true,
+      profile,
+      profileStats: await getPublicProfileStats(env.DB, await ensureCurrentWeek(env.DB), name, profile),
+      profiles: { [name]: profile }
+    });
   }
 
   if (request.method === 'GET' && url.pathname === '/api/chat') {
@@ -357,7 +384,13 @@ async function handleApi(request, env, url) {
 
 async function ensureSchema(db) {
   if (schemaReady) return;
-  await db.batch(SCHEMA.map(sql => db.prepare(sql)));
+  for (const sql of SCHEMA) {
+    try {
+      await db.prepare(sql).run();
+    } catch (error) {
+      if (!/duplicate column/i.test(error?.message || String(error))) throw error;
+    }
+  }
   schemaReady = true;
 }
 
@@ -652,6 +685,7 @@ async function buildState(db, name = '', authName = '') {
     ok: true,
     leaderboard: { ...leaderboard, profiles },
     player: name && authName === name ? await getPlayer(db, currentWeek, name) : null,
+    profileStats: name ? await getPublicProfileStats(db, currentWeek, name, profiles[name]) : null,
     profile: name ? (profiles[name] || defaultProfile(name)) : null,
     profiles
   };
@@ -726,6 +760,27 @@ async function getPersonalRank(db, weekStart, name) {
   };
 }
 
+async function getPublicProfileStats(db, weekStart, name, profile = null) {
+  const clean = cleanName(name);
+  if (!clean) return null;
+  const [player, rank] = await Promise.all([
+    getPlayer(db, weekStart, clean),
+    getPersonalRank(db, weekStart, clean)
+  ]);
+  const publicProfile = profile || await getProfile(db, clean);
+  return {
+    name: clean,
+    rank: rank?.rank || null,
+    bestCoins: rank?.score ?? player?.bestCoins ?? 0,
+    current: player?.credits ?? rank?.current ?? null,
+    bestSingleWin: player?.bestSingleWin ?? 0,
+    openedBoxes: Math.max(0, toInt(publicProfile?.openedBoxes, 0)),
+    sealShards: Math.max(0, toInt(publicProfile?.sealShards, 0)),
+    sealCount: Array.isArray(publicProfile?.seals) ? publicProfile.seals.length : 0,
+    activeSeal: publicProfile?.activeSeal || ''
+  };
+}
+
 function defaultProfile(name) {
   return {
     name,
@@ -733,6 +788,7 @@ function defaultProfile(name) {
     activeSeal: '',
     sealShards: 0,
     sealGlow: {},
+    abilityState: {},
     openedBoxes: 0,
     updatedAt: 0
   };
@@ -753,6 +809,7 @@ function normalizeProfile(row, name = '') {
     ? safeJson(row.seals_json, []).filter(id => SEAL_IDS.has(id))
     : [];
   const sealGlow = safeJson(row.seal_glow_json, {});
+  const abilityState = safeJson(row.ability_state_json, {});
   const cleanGlow = {};
   for (const [id, value] of Object.entries(sealGlow)) {
     if (SEAL_IDS.has(id)) cleanGlow[id] = Math.max(0, Math.min(3, toInt(value, 0)));
@@ -766,21 +823,54 @@ function normalizeProfile(row, name = '') {
     activeSeal,
     sealShards: Math.max(0, toInt(row.seal_shards, 0)),
     sealGlow: cleanGlow,
+    abilityState: abilityState && typeof abilityState === 'object' ? abilityState : {},
     openedBoxes: Math.max(0, toInt(row.opened_boxes, 0)),
     updatedAt: Math.max(0, toInt(row.updated_at, 0))
   };
+}
+
+function cleanAbilityState(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const clean = {};
+  for (const [key, value] of Object.entries(raw)) {
+    const safeKey = String(key || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 48);
+    if (!safeKey) continue;
+    if (typeof value === 'number') clean[safeKey] = Number.isFinite(value) ? Math.floor(value) : 0;
+    else if (typeof value === 'boolean') clean[safeKey] = value;
+    else if (typeof value === 'string') clean[safeKey] = value.slice(0, 80);
+    else if (value && typeof value === 'object' && !Array.isArray(value)) clean[safeKey] = cleanAbilityState(value);
+  }
+  return clean;
+}
+
+function prestigeBoxCost(profile, premium = false) {
+  if (premium && profile?.activeSeal === 'fondue-fonds' && Math.max(0, toInt(profile?.sealGlow?.['fondue-fonds'], 0)) >= 3) {
+    return 150000;
+  }
+  const glow = Math.max(0, toInt(profile?.sealGlow?.['fondue-fonds'], 0));
+  if (profile?.activeSeal === 'fondue-fonds') {
+    if (glow >= 2) return 75000;
+    if (glow >= 1) return 85000;
+  }
+  return PRESTIGE_BOX_COST;
 }
 
 async function getProfile(db, name) {
   const clean = cleanName(name);
   if (!clean) return defaultProfile('');
   const row = await db.prepare(
-    `SELECT name, seals_json, active_seal, seal_shards, seal_glow_json, opened_boxes, updated_at
+    `SELECT name, seals_json, active_seal, seal_shards, seal_glow_json, ability_state_json, opened_boxes, updated_at
      FROM player_profiles
      WHERE name = ?
      LIMIT 1`
   ).bind(clean).first();
   return normalizeProfile(row, clean);
+}
+
+async function updateAbilityState(db, name, abilityState) {
+  const profile = await getProfile(db, name);
+  profile.abilityState = cleanAbilityState(abilityState || {});
+  return saveProfile(db, profile);
 }
 
 async function saveProfile(db, profile) {
@@ -790,13 +880,14 @@ async function saveProfile(db, profile) {
     : (profile.seals[profile.seals.length - 1] || null);
   await db.prepare(
     `INSERT INTO player_profiles
-      (name, seals_json, active_seal, seal_shards, seal_glow_json, opened_boxes, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?)
+      (name, seals_json, active_seal, seal_shards, seal_glow_json, ability_state_json, opened_boxes, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(name) DO UPDATE SET
        seals_json = excluded.seals_json,
        active_seal = excluded.active_seal,
        seal_shards = excluded.seal_shards,
        seal_glow_json = excluded.seal_glow_json,
+       ability_state_json = excluded.ability_state_json,
        opened_boxes = excluded.opened_boxes,
        updated_at = excluded.updated_at`
   ).bind(
@@ -805,10 +896,11 @@ async function saveProfile(db, profile) {
     activeSeal,
     Math.max(0, toInt(profile.sealShards, 0)),
     JSON.stringify(profile.sealGlow || {}),
+    JSON.stringify(cleanAbilityState(profile.abilityState || {})),
     Math.max(0, toInt(profile.openedBoxes, 0)),
     now
   ).run();
-  return { ...profile, activeSeal: activeSeal || '', updatedAt: now };
+  return { ...profile, activeSeal: activeSeal || '', abilityState: cleanAbilityState(profile.abilityState || {}), updatedAt: now };
 }
 
 async function getProfilesMap(db, names) {
@@ -817,7 +909,7 @@ async function getProfilesMap(db, names) {
   if (!cleanNames.length) return map;
   const placeholders = cleanNames.map(() => '?').join(',');
   const rows = await db.prepare(
-    `SELECT name, seals_json, active_seal, seal_shards, seal_glow_json, opened_boxes, updated_at
+    `SELECT name, seals_json, active_seal, seal_shards, seal_glow_json, ability_state_json, opened_boxes, updated_at
      FROM player_profiles
      WHERE name IN (${placeholders})`
   ).bind(...cleanNames).all();
@@ -853,17 +945,25 @@ function pickSealForRarity(rarity, owned) {
   return choices[Math.floor(Math.random() * choices.length)];
 }
 
-async function openPrestigeBox(db, name) {
+async function openPrestigeBox(db, name, premium = false) {
   const weekStart = await ensureCurrentWeek(db);
   const player = await getPlayer(db, weekStart, name);
-  if (!player || player.credits < PRESTIGE_BOX_COST) {
+  const profile = await getProfile(db, name);
+  const boxCost = prestigeBoxCost(profile, premium);
+  if (!player || player.credits < boxCost) {
     return jsonLikeError('Nicht genug Coins für die Couture-Kiste.', 400);
   }
-  const profile = await getProfile(db, name);
   const rarity = pickRarity();
-  const seal = pickSealForRarity(rarity, new Set(profile.seals));
+  let seal = pickSealForRarity(rarity, new Set(profile.seals));
+  if (premium && profile.activeSeal === 'fondue-fonds') {
+    const fresh = SEAL_DEFS.filter(entry => !profile.seals.includes(entry.id));
+    if (fresh.length && Math.random() < 0.65) seal = fresh[Math.floor(Math.random() * fresh.length)];
+  }
   const duplicate = profile.seals.includes(seal.id);
-  const shards = duplicate ? (SHARDS_BY_RARITY[rarity] || 1) : 0;
+  const fondueGlow = profile.activeSeal === 'fondue-fonds' ? Math.max(0, toInt(profile.sealGlow?.['fondue-fonds'], 0)) : 0;
+  const shardBonus = fondueGlow >= 2 ? 2 : 0;
+  const shardMultiplier = premium && fondueGlow >= 3 ? 3 : 1;
+  const shards = duplicate ? ((SHARDS_BY_RARITY[seal.rarity || rarity] || 1) + shardBonus) * shardMultiplier : 0;
 
   if (duplicate) {
     profile.sealShards += shards;
@@ -874,7 +974,7 @@ async function openPrestigeBox(db, name) {
   profile.openedBoxes += 1;
   const savedProfile = await saveProfile(db, profile);
   const updatedAt = Date.now();
-  const nextCredits = player.credits - PRESTIGE_BOX_COST;
+  const nextCredits = player.credits - boxCost;
   await db.prepare(
     `UPDATE players
      SET credits = ?, best_coins = max(best_coins, ?), updated_at = ?
@@ -890,9 +990,10 @@ async function openPrestigeBox(db, name) {
   profiles[name] = savedProfile;
   return {
     ok: true,
-    result: { sealId: seal.id, rarity, duplicate, shards },
+    result: { sealId: seal.id, rarity: seal.rarity || rarity, duplicate, shards, premium },
     player: { ...player, credits: nextCredits, updatedAt },
     profile: savedProfile,
+    profileStats: await getPublicProfileStats(db, weekStart, name, savedProfile),
     profiles,
     leaderboard: { ...leaderboard, profiles }
   };
