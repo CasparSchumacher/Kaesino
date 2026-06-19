@@ -33,7 +33,7 @@ const RARITY_WEIGHTS = [
 const SHARDS_BY_RARITY = { common: 1, rare: 2, epic: 5, legendary: 12 };
 const DUPLICATE_DROP_CHANCE = 0.35;
 const SEAL_IDS = new Set(SEAL_DEFS.map(seal => seal.id));
-const ACTIVE_GAMEPLAY_SEALS = new Set(['oligarchengedeck', 'senf-depot', 'fuego-lizenz']);
+const ACTIVE_GAMEPLAY_SEALS = new Set(['oligarchengedeck', 'senf-depot', 'fuego-lizenz', 'babybel-bankett', 'weisses-durag', 'roquefort-patina']);
 const TRANSIENT_ABILITY_KEYS = [
   'menuReady', 'menuCooldownUntil', 'menuSpinCounter', 'favoriteHits', 'favoriteWildSpins',
   'scharferSpinReady', 'senfDividendReady', 'senfTakeoverSpins',
@@ -42,8 +42,8 @@ const TRANSIENT_ABILITY_KEYS = [
   'hexJudgementSpins', 'hexSpinCounter', 'hexCooldownUntil',
   'premiumBoxReady', 'liquidityCooldownUntil', 'fondueBoxes',
   'porscheAutoSpins', 'porscheDrySpins',
-  'grandeCaveReady', 'grandeCaveCooldownUntil', 'roqSpinCounter', 'patinaCheese',
-  'parmiPoints', 'walhallaPoints', 'walhallaSegenSpins', 'walhallaEventSpins', 'walhallaCooldownUntil',
+  'grandeCaveReady', 'roqSpinCounter',
+  'parmiPoints', 'walhallaBlessingReady', 'walhallaSegenSpins', 'walhallaEventSpins', 'walhallaCooldownUntil',
   'barbourReceipts', 'inheritanceCooldownUntil'
 ];
 const CHAT_OPENERS = [
