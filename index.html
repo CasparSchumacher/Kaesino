@@ -3232,6 +3232,27 @@ body {
   border-color:#c8a800;
   box-shadow:inset 0 0 40px rgba(0,0,0,0.9), 0 0 22px rgba(255,215,0,0.35);
 }
+.reels-frame.turbo-mode.fuego-turbo {
+  border-color:#ff5f28;
+  box-shadow:inset 0 0 44px rgba(0,0,0,0.92), 0 0 26px rgba(255,95,40,0.58), 0 0 44px rgba(255,180,0,0.24);
+}
+.reels-frame.turbo-mode.fuego-turbo::after {
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:12px;
+  pointer-events:none;
+  z-index:9;
+  background:
+    radial-gradient(circle at 20% 90%, rgba(255,95,40,0.22), transparent 30%),
+    radial-gradient(circle at 82% 10%, rgba(255,210,70,0.16), transparent 28%),
+    linear-gradient(0deg, rgba(255,65,20,0.22), transparent 48%);
+  animation:fuegoHeat 0.7s ease-in-out infinite alternate;
+}
+@keyframes fuegoHeat {
+  from { opacity:0.45; filter:saturate(1); }
+  to { opacity:0.82; filter:saturate(1.45); }
+}
 
 /* ── TÄGLICHER KÄSE-BONUS ── */
 #daily-overlay {
@@ -4523,6 +4544,19 @@ const SEAL_VISUAL_LEVELS = [
   { level: 2, className: 'glow-2', label: 'Goldene Aura + Partikel' },
   { level: 3, className: 'glow-3', label: 'Eigenes Badge-Thema' }
 ];
+const ACTIVE_GAMEPLAY_SEALS = ['oligarchengedeck', 'senf-depot', 'fuego-lizenz'];
+const TRANSIENT_ABILITY_KEYS = [
+  'menuReady', 'menuCooldownUntil', 'menuSpinCounter', 'favoriteHits', 'favoriteWildSpins',
+  'scharferSpinReady', 'senfDividendReady', 'senfTakeoverSpins',
+  'fuegoDrySpins', 'fuegoRauschSpins', 'fuegoCooldownUntil',
+  'buffetSpins', 'darkChamberCooldownUntil', 'duragSpinCounter',
+  'hexJudgementSpins', 'hexSpinCounter', 'hexCooldownUntil',
+  'premiumBoxReady', 'liquidityCooldownUntil', 'fondueBoxes',
+  'porscheAutoSpins', 'porscheDrySpins',
+  'grandeCaveReady', 'grandeCaveCooldownUntil', 'roqSpinCounter', 'patinaCheese',
+  'parmiPoints', 'walhallaPoints', 'walhallaSegenSpins', 'walhallaEventSpins', 'walhallaCooldownUntil',
+  'barbourReceipts', 'inheritanceCooldownUntil'
+];
 const ABILITY_STATE_LABELS = {
   favoriteCheese: 'Lieblingskäse',
   menuSpinCounter: 'Käse-Menü-Spins',
@@ -4551,23 +4585,23 @@ const FAVORITE_CHEESE_IDS = ['cheddar','babybel','mimolette','brie','emmental','
 const SEAL_ABILITIES = {
   'oligarchengedeck': {
     title: 'Käse-Menü',
-    short: 'Lieblingskäse markieren, Menü-Freispiele und Tafelrunde-Wilds.',
+    short: 'Wähle einen Lieblingskäse: Er wird markiert, häufiger gezogen und in der Reifekammer stärker.',
     levels: [
-      'Lieblingskäse sichtbar markieren und Near-Misses hervorheben.',
-      'Alle 30 bezahlten Spins dreht ein Verlustspin eine Walze zum Lieblingskäse neu.',
-      'Menü alle 60 Min: Lieblingskäse 1x/2x/3x gibt 4/8/15 Freispiele.',
-      'Nach 50 Lieblingskäse-Treffern: 10 Spins Lieblingskäse als Mozzarella-Wild.'
+      'Lieblingskäse sichtbar markieren.',
+      'Lieblingskäse erscheint in normalen Spins ca. 1,5× häufiger.',
+      'Lieblingskäse erscheint in normalen Spins ca. 2× häufiger.',
+      'In der Reifekammer zählt der Lieblingskäse zusätzlich als Wild-Partner, nicht für Golden-Jackpots.'
     ]
   },
   'senf-depot': {
     title: 'Senf-Macht',
-    short: 'Senfpunkte verwandeln Nullspins, Wild-Spins und Senf-Takeover.',
-    levels: ['Senf sammelt Punkte.', '8 Punkte: nächster Nullspin zahlt Einsatz + 2x Einsatz.', '14 Punkte: scharfer Spin, Senf zählt einmalig als Wild.', '35 Punkte/2h: 10 Spins Senf-Takeover.']
+    short: 'Senf sammelt Punkte. Du entscheidest im Couture-Panel, wann du sie ausgibst.',
+    levels: ['Jeder Senf sammelt Senfpunkte, 3× Senf gibt extra.', '8 Punkte: Senfdividende laden, nächster Nullspin zahlt 3× Einsatz.', '14 Punkte: Scharfer Spin, Senf zählt einmal als Wild.', '35 Punkte: Senf-Takeover für 10 Spins.']
   },
   'fuego-lizenz': {
     title: 'Brandbeschleuniger',
-    short: 'Längerer Turbo, höhere Auto-Spins und geladene Nachdrehs.',
-    levels: ['Turbo hält 30% länger.', 'Auto-Spin-Limit +10; Turbo zählt doppelt.', 'Nach 15 Spins ohne Big Win: kostenloser Nachdreh.', 'Alle 60 Min/120 Spins: 25 Turbo-Spins mit Zusatz-Nachdrehs.']
+    short: 'Turbo wird länger, günstiger und sichtbar heißer. Keine komplizierten Spin-Counter.',
+    levels: ['Turbo brennt optisch und hält leicht länger.', 'Turbo hält 30% länger.', 'Turbo kostet 25% weniger.', 'Fuego-Turbo setzt die Walzen sichtbar in Flammen und dreht noch schneller.']
   },
   'babybel-bankett': {
     title: 'Wachsbankett',
@@ -4684,7 +4718,63 @@ const AUTO_SPIN_MAX = 10;
 let autoSpinCount   = 0;
 
 function maxAutoSpins() {
-  return activeSealId() === 'oligarchenporsche' ? AUTO_SPIN_MAX + 10 : AUTO_SPIN_MAX;
+  return activeSealId() === 'oligarchenporsche' && hasActiveGameplaySeal('oligarchenporsche') ? AUTO_SPIN_MAX + 10 : AUTO_SPIN_MAX;
+}
+
+function hasActiveGameplaySeal(sealId = activeSealId()) {
+  return ACTIVE_GAMEPLAY_SEALS.includes(sealId);
+}
+
+function cleanupTransientAbilityState(state = abilityState()) {
+  TRANSIENT_ABILITY_KEYS.forEach(key => { delete state[key]; });
+  return state;
+}
+
+function favoriteCheeseWeightMultiplier() {
+  if (activeSealId() !== 'oligarchengedeck' || !hasActiveGameplaySeal('oligarchengedeck') || freespinActive) return 1;
+  const lvl = sealLevel('oligarchengedeck');
+  if (lvl >= 2) return 2;
+  if (lvl >= 1) return 1.5;
+  return 1;
+}
+
+function isFuegoActive() {
+  return activeSealId() === 'fuego-lizenz' && hasActiveGameplaySeal('fuego-lizenz');
+}
+
+function fuegoLevel() {
+  return isFuegoActive() ? sealLevel('fuego-lizenz') : -1;
+}
+
+function currentTurboCost() {
+  return fuegoLevel() >= 2 ? Math.ceil(TURBO_COST * 0.75) : TURBO_COST;
+}
+
+function turboDurationMs() {
+  const lvl = fuegoLevel();
+  const multiplier = lvl >= 1 ? 1.3 : lvl >= 0 ? 1.15 : 1;
+  return Math.floor(TURBO_SECS * multiplier * 1000);
+}
+
+function formatTurboDuration(ms = turboDurationMs()) {
+  const secs = Math.max(1, Math.ceil(ms / 1000));
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+
+function turboSpinTiming() {
+  return fuegoLevel() >= 3
+    ? { delays: [0, 125, 260], durations: [520, 680, 860] }
+    : { delays: [0, 175, 360], durations: [700, 900, 1150] };
+}
+
+function applyTurboVisualState() {
+  const frame = document.getElementById('reels-frame');
+  const btn = document.getElementById('turbo-btn');
+  frame?.classList.toggle('turbo-mode', turboActive);
+  frame?.classList.toggle('fuego-turbo', turboActive && isFuegoActive());
+  btn?.classList.toggle('active', turboActive);
 }
 
 // Sound
@@ -5215,7 +5305,7 @@ async function runCheesePlate(results, spinBet) {
 
     if (completesPlate) {
       const melt = CHEESE_PLATE_MELTS[attempt];
-      const plateWin = calcWin(results, spinBet, { extraWildIds: activeExtraWildIds(), parmigianoDividend: activeSealId() === 'parmigiano-aktie' });
+      const plateWin = calcWin(results, spinBet, { extraWildIds: activeExtraWildIds(), parmigianoDividend: activeSealId() === 'parmigiano-aktie' && hasActiveGameplaySeal('parmigiano-aktie') });
       openReel.classList.remove('plate-open');
       delete openReel.dataset.plateSpin;
       openReel.classList.add('melt-hit');
@@ -5261,7 +5351,7 @@ async function runSchimmelbruch(results, spinBet) {
   if (reel) reel.classList.remove('schimmelbruch-target');
   if (frame) setTimeout(() => frame.classList.remove('schimmelbruch'), 600);
 
-  const breakWin = calcWin(results, spinBet, { extraWildIds: activeExtraWildIds(), parmigianoDividend: activeSealId() === 'parmigiano-aktie' });
+  const breakWin = calcWin(results, spinBet, { extraWildIds: activeExtraWildIds(), parmigianoDividend: activeSealId() === 'parmigiano-aktie' && hasActiveGameplaySeal('parmigiano-aktie') });
   const plateWin = await runCheesePlate(results, spinBet);
   if (plateWin && plateWin.amount > 0) {
     const baseAmount = Math.max(0, Math.floor(breakWin.amount || 0));
@@ -5291,25 +5381,28 @@ async function runSchimmelbruch(results, spinBet) {
   return null;
 }
 
-function weightedCheeseWithBoost(boostIds = []) {
-  const boosted = new Set(boostIds.filter(Boolean));
-  if (!boosted.size) return rndCheese();
+function weightedCheeseWithBoost(boosts = []) {
+  const boostMap = new Map();
+  boosts.forEach(entry => {
+    if (!entry) return;
+    if (typeof entry === 'string') boostMap.set(entry, 3);
+    else if (entry.id) boostMap.set(entry.id, Math.max(1, Number(entry.multiplier || 1)));
+  });
+  if (!boostMap.size) return rndCheese();
   const pool = [];
   CHEESES.forEach(c => {
-    const boost = boosted.has(c.id) && c.id !== 'golden' ? 3 : 1;
-    for (let i = 0; i < c.weight * boost; i++) pool.push(c);
+    const boost = c.id !== 'golden' ? (boostMap.get(c.id) || 1) : 1;
+    const tickets = Math.max(1, Math.round(c.weight * boost));
+    for (let i = 0; i < tickets; i++) pool.push(c);
   });
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
 function makeSpinResults() {
-  const state = abilityState();
   const boosts = [];
-  if (abilityNumber('walhallaSegenSpins') > 0) boosts.push('roquefort', 'parmesan', 'mozz');
-  if (freespinActive && activeSealId() === 'roquefort-patina' && sealLevel() >= 2) {
-    const patina = state.patinaCheese || FAVORITE_CHEESE_IDS[Math.floor(Math.random() * FAVORITE_CHEESE_IDS.length)];
-    state.patinaCheese = patina;
-    boosts.push(patina);
+  if (activeSealId() === 'oligarchengedeck' && hasActiveGameplaySeal('oligarchengedeck')) {
+    const multiplier = favoriteCheeseWeightMultiplier();
+    if (multiplier > 1) boosts.push({ id: favoriteCheeseId(), multiplier });
   }
   return [weightedCheeseWithBoost(boosts), weightedCheeseWithBoost(boosts), weightedCheeseWithBoost(boosts)];
 }
@@ -5321,17 +5414,7 @@ function forceVisibleReelResult(results, idx, cheese) {
 }
 
 function paidSpinCountersBeforeSpin() {
-  if (freespinActive) return;
-  const sealId = activeSealId();
-  const lvl = sealLevel(sealId);
-  const state = abilityState();
-  const inc = turboActive && sealId === 'fuego-lizenz' && lvl >= 1 ? 2 : 1;
-  if (sealId === 'oligarchengedeck' && lvl >= 1) state.menuSpinCounter = abilityNumber('menuSpinCounter') + inc;
-  if (sealId === 'schwarzes-durag' && lvl >= 3) state.duragSpinCounter = abilityNumber('duragSpinCounter') + inc;
-  if (sealId === 'sechseck-orden' && lvl >= 2) state.hexSpinCounter = abilityNumber('hexSpinCounter') + inc;
-  if (sealId === 'oligarchenporsche') state.porscheAutoSpins = abilityNumber('porscheAutoSpins') + (autoOn ? inc : 0);
-  if (sealId === 'roquefort-patina' && lvl >= 3) state.roqSpinCounter = abilityNumber('roqSpinCounter') + inc;
-  queueAbilityStateSync();
+  // Counter-heavy badge mechanics are paused while the first three badges are simplified.
 }
 
 function activeExtraWildIds() {
@@ -5339,10 +5422,9 @@ function activeExtraWildIds() {
   const lvl = sealLevel(sealId);
   const state = abilityState();
   const wilds = [];
-  if (sealId === 'oligarchengedeck' && lvl >= 3 && abilityNumber('favoriteWildSpins') > 0) wilds.push(favoriteCheeseId());
+  if (!hasActiveGameplaySeal(sealId)) return wilds;
+  if (sealId === 'oligarchengedeck' && lvl >= 3 && freespinActive) wilds.push(favoriteCheeseId());
   if (sealId === 'senf-depot' && lvl >= 2 && state.scharferSpinReady) wilds.push('senf');
-  if (freespinActive && sealId === 'roquefort-patina' && lvl >= 2 && state.patinaCheese) wilds.push(state.patinaCheese);
-  if (freespinActive && sealId === 'parmigiano-aktie' && lvl >= 3 && freespinRoundSource === 'parmigiano') wilds.push('parmesan');
   return Array.from(new Set(wilds));
 }
 
@@ -5351,46 +5433,10 @@ function applyBadgePreWinEffects(results, spinBet, win) {
   const lvl = sealLevel(sealId);
   const state = abilityState();
   let nextWin = win;
+  if (!hasActiveGameplaySeal(sealId)) return nextWin;
 
-  if (sealId === 'oligarchengedeck' && lvl >= 1 && !freespinActive && nextWin.amount <= 0 && abilityNumber('menuSpinCounter') >= 30) {
-    const fav = cheeseById(favoriteCheeseId());
-    if (fav) {
-      const idx = Math.floor(Math.random() * 3);
-      forceVisibleReelResult(results, idx, fav);
-      state.menuSpinCounter = 0;
-      nextWin = calcWin(results, spinBet, { extraWildIds: activeExtraWildIds(), parmigianoDividend: activeSealId() === 'parmigiano-aktie' });
-      if (nextWin.amount > 0) nextWin.msg = `🥃 Kellner serviert ${fav.name}: ${nextWin.msg}`;
-      queueAbilityStateSync();
-    }
-  }
-
-  if (sealId === 'sechseck-orden' && lvl >= 1 && nextWin.amount <= 0) {
-    const values = results.map(r => r.threeX || 0);
-    if (new Set(results.map(r => r.id)).size === 3 && values[0] < values[1] && values[1] < values[2]) {
-      nextWin = makeWin({ amount: spinBet * 4, msg: '⬢ Geometriegericht: aufsteigende Ordnung! (4×)', winReels: [0,1,2], comboId: 'sechseck', rank: 38 });
-    }
-  }
-
-  if (sealId === 'sechseck-orden' && lvl >= 2 && nextWin.amount <= 0 && abilityNumber('hexSpinCounter') >= 50) {
-    state.hexSpinCounter = 0;
-    const bestSymbol = results.reduce((best, c) => (c.twoX || 0) > (best.twoX || 0) ? c : best, results[0]);
-    const idx = results.findIndex(c => c.id !== bestSymbol.id);
-    if (idx >= 0) forceVisibleReelResult(results, idx, bestSymbol);
-    nextWin = calcWin(results, spinBet, { extraWildIds: activeExtraWildIds(), parmigianoDividend: activeSealId() === 'parmigiano-aktie' });
-    if (nextWin.amount > 0) nextWin.msg = `⬢ Begradigt: ${nextWin.msg}`;
-    queueAbilityStateSync();
-  }
-
-  if (sealId === 'sechseck-orden' && lvl >= 3 && (abilityNumber('hexJudgementSpins') > 0 || abilityNumber('hexSpinCounter') >= 90 || Number(state.hexCooldownUntil || 0) <= Date.now())) {
-    if (nextWin.amount <= 0) nextWin = makeWin({ amount: spinBet * 6, msg: '⬢ Hexagon-Urteil: höchste legale Lesart! (6×)', winReels: [0,1,2], comboId: 'sechseck', rank: 46 });
-    state.hexJudgementSpins = 0;
-    state.hexSpinCounter = 0;
-    state.hexCooldownUntil = Date.now() + 45 * 60 * 1000;
-    queueAbilityStateSync();
-  }
-
-  if (sealId === 'senf-depot' && lvl >= 1 && nextWin.amount <= 0 && abilityNumber('senfPoints') >= 8) {
-    state.senfPoints = Math.max(0, abilityNumber('senfPoints') - 8);
+  if (sealId === 'senf-depot' && state.senfDividendReady && nextWin.amount <= 0) {
+    state.senfDividendReady = false;
     nextWin = makeWin({ amount: spinBet * 3, msg: '🟡 Senf-Trost: Einsatz zurück + 2× Einsatz!', winReels: [], comboId: 'senf', rank: 44 });
     queueAbilityStateSync();
   }
@@ -5402,196 +5448,28 @@ function applyBadgePreWinEffects(results, spinBet, win) {
     if (senfCount === 3) nextWin = betterWin(nextWin, makeWin({ amount: spinBet * 60, msg: '🟡 SENF-TAKEOVER! 3× Senf! (60×)', winReels: [0,1,2], triggerSenfbombe: true, comboId: 'senf', rank: 88 }));
   }
 
-  if (sealId === 'fuego-lizenz' && lvl >= 2 && nextWin.amount <= 0 && abilityNumber('fuegoDrySpins') >= 15) {
-    state.fuegoDrySpins = 0;
-    const idx = results.reduce((worst, c, i) => (c.threeX || 0) < (results[worst].threeX || 0) ? i : worst, 0);
-    forceVisibleReelResult(results, idx, rndCheese());
-    nextWin = calcWin(results, spinBet, { extraWildIds: activeExtraWildIds(), parmigianoDividend: activeSealId() === 'parmigiano-aktie' });
-    if (nextWin.amount > 0) nextWin.msg = `🚬 Fuego nachgelegt: ${nextWin.msg}`;
-    else nextWin = makeWin({ amount: spinBet, msg: '🚬 Fuego nachgelegt: Einsatz gerettet.', winReels: [], comboId: 'fuego', rank: 41 });
-    queueAbilityStateSync();
-  }
-
-  if (sealId === 'babybel-bankett' && lvl >= 1 && nextWin.amount <= 0 && abilityNumber('waxMarkers') >= 6) {
-    state.waxMarkers = Math.max(0, abilityNumber('waxMarkers') - 6);
-    grantBonusFreespins(3, 'Wachsbankett', { source: 'babybel' });
-    nextWin = makeWin({ amount: spinBet, msg: '🔴 Wachsbankett: Nullspin wird eingewachst, Einsatz zurück!', winReels: [], comboId: 'babybel', rank: 43 });
-    queueAbilityStateSync();
-  }
-
-  if (sealId === 'zweitbarbour' && lvl >= 3 && nextWin.amount <= 0 && spinBet >= 1000 && (abilityNumber('barbourReceipts') >= 20 || Number(state.inheritanceCooldownUntil || 0) <= Date.now())) {
-    const won = Math.random() < 0.5;
-    state.barbourReceipts = Math.max(0, abilityNumber('barbourReceipts') - 20);
-    state.inheritanceCooldownUntil = Date.now() + 2 * 60 * 60 * 1000;
-    nextWin = makeWin({ amount: won ? spinBet * 20 : spinBet, msg: won ? '🧥 Erbschaft! Old Money zahlt 20× Einsatz.' : '🧥 Erbschaft verwaltet: Einsatz zurück.', winReels: [], comboId: 'barbour', rank: 58 });
-    queueAbilityStateSync();
-  }
-
-  if (sealId === 'oligarchenporsche' && lvl >= 2 && nextWin.amount <= 0 && abilityNumber('porscheDrySpins') >= 18) {
-    state.porscheDrySpins = 0;
-    const idx = results.reduce((worst, c, i) => (c.twoX || 0) < (results[worst].twoX || 0) ? i : worst, 0);
-    forceVisibleReelResult(results, idx, rndCheese());
-    nextWin = calcWin(results, spinBet, { extraWildIds: activeExtraWildIds(), parmigianoDividend: activeSealId() === 'parmigiano-aktie' });
-    if (nextWin.amount > 0) nextWin.msg = `🏎️ Überholt: ${nextWin.msg}`;
-    else nextWin = makeWin({ amount: spinBet, msg: '🏎️ Überholen rettet den Einsatz.', winReels: [], comboId: 'porsche', rank: 41 });
-    queueAbilityStateSync();
-  }
-
   return nextWin;
 }
 
 function spendActiveModeCounters(results, win) {
+  if (!hasActiveGameplaySeal()) return;
   const state = abilityState();
-  if (abilityNumber('favoriteWildSpins') > 0 && !freespinActive) state.favoriteWildSpins = abilityNumber('favoriteWildSpins') - 1;
-  if (abilityNumber('senfTakeoverSpins') > 0 && !freespinActive) state.senfTakeoverSpins = abilityNumber('senfTakeoverSpins') - 1;
-  if (abilityNumber('walhallaSegenSpins') > 0 && !freespinActive) state.walhallaSegenSpins = abilityNumber('walhallaSegenSpins') - 1;
-  if (abilityNumber('walhallaEventSpins') > 0 && !freespinActive) state.walhallaEventSpins = abilityNumber('walhallaEventSpins') - 1;
-  if (abilityState().scharferSpinReady) abilityState().scharferSpinReady = false;
+  if (activeSealId() === 'senf-depot' && abilityNumber('senfTakeoverSpins') > 0 && !freespinActive) state.senfTakeoverSpins = abilityNumber('senfTakeoverSpins') - 1;
+  if (activeSealId() === 'senf-depot' && state.scharferSpinReady) state.scharferSpinReady = false;
   queueAbilityStateSync();
 }
 
 function applyBadgePostSpinEffects(results, spinBet, win, spinStartedInFreespins) {
   const sealId = activeSealId();
-  const lvl = sealLevel(sealId);
   const state = abilityState();
   const counts = id => results.filter(r => r.id === id).length;
-  const bigWin = win.amount >= spinBet * 20;
   let changed = false;
-
-  if (sealId === 'oligarchengedeck') {
-    const favCount = counts(favoriteCheeseId());
-    if (favCount > 0) {
-      state.favoriteHits = abilityNumber('favoriteHits') + favCount;
-      changed = true;
-    }
-    if (lvl >= 2 && state.menuReady && !spinStartedInFreespins) {
-      state.menuReady = false;
-      if (favCount >= 3) grantBonusFreespins(15, 'Tafel-Menü', { source: 'menu' });
-      else if (favCount === 2) grantBonusFreespins(8, 'Tafel-Menü', { source: 'menu' });
-      else if (favCount === 1) grantBonusFreespins(4, 'Tafel-Menü', { source: 'menu' });
-      else setResult('🥃 Menü ausgerufen, aber der Lieblingskäse blieb im Keller.', '');
-      changed = true;
-    }
-    if (lvl >= 3 && abilityNumber('favoriteHits') >= 50 && abilityNumber('favoriteWildSpins') <= 0) {
-      state.favoriteHits = Math.max(0, abilityNumber('favoriteHits') - 50);
-      state.favoriteWildSpins = 10;
-      setResult('🥃 TAFELRUNDE! Dein Lieblingskäse ist 10 Spins lang Wild.', 'jackpot');
-      changed = true;
-    }
-  }
+  if (!hasActiveGameplaySeal(sealId)) return;
 
   if (sealId === 'senf-depot') {
     const senf = counts('senf');
     if (senf > 0) {
       state.senfPoints = abilityNumber('senfPoints') + senf + (senf === 3 ? 2 : 0);
-      changed = true;
-    }
-    if (lvl >= 2 && abilityNumber('senfPoints') >= 14 && !state.scharferSpinReady) {
-      state.senfPoints = Math.max(0, abilityNumber('senfPoints') - 14);
-      state.scharferSpinReady = true;
-      setResult('🟡 Scharfer Spin geladen: Senf zählt beim nächsten Spin als Wild.', 'win');
-      changed = true;
-    }
-    if (lvl >= 3 && abilityNumber('senfPoints') >= 35 && abilityNumber('senfTakeoverSpins') <= 0) {
-      state.senfPoints = Math.max(0, abilityNumber('senfPoints') - 35);
-      state.senfTakeoverSpins = 10;
-      setResult('🟡 SENF-TAKEOVER! 10 Spins voller gelber Macht.', 'jackpot');
-      changed = true;
-    }
-  }
-
-  if (sealId === 'fuego-lizenz') {
-    state.fuegoDrySpins = bigWin ? 0 : abilityNumber('fuegoDrySpins') + (freespinActive ? 0 : 1);
-    if (lvl >= 3 && (abilityNumber('fuegoDrySpins') >= 120 || Number(state.fuegoCooldownUntil || 0) <= Date.now()) && abilityNumber('fuegoRauschSpins') <= 0) {
-      state.fuegoDrySpins = 0;
-      state.fuegoRauschSpins = 25;
-      state.fuegoCooldownUntil = Date.now() + 60 * 60 * 1000;
-      turboActive = true;
-      turboEndTime = Date.now() + 25 * 1000;
-      setResult('🚬 FUEGO-RAUSCH! 25 Turbo-Spins sind heiß.', 'win');
-    }
-    if (abilityNumber('fuegoRauschSpins') > 0 && !spinStartedInFreespins) state.fuegoRauschSpins = abilityNumber('fuegoRauschSpins') - 1;
-    changed = true;
-  }
-
-  if (sealId === 'babybel-bankett') {
-    const waxGain = counts('babybel') + (win.amount <= 0 ? 1 : 0);
-    if (waxGain) {
-      state.waxMarkers = abilityNumber('waxMarkers') + waxGain;
-      changed = true;
-    }
-    if (lvl >= 3 && abilityNumber('waxMarkers') >= 30) {
-      state.waxMarkers = Math.max(0, abilityNumber('waxMarkers') - 30);
-      grantBonusFreespins(12, 'Rotes Buffet', { source: 'babybel-buffet' });
-      changed = true;
-    }
-  }
-
-  if (sealId === 'zweitbarbour' && !spinStartedInFreespins && spinBet >= 500 && win.amount <= 0) {
-    state.barbourReceipts = abilityNumber('barbourReceipts') + 1;
-    if (lvl >= 1 && abilityNumber('barbourReceipts') >= 5) {
-      state.barbourReceipts = Math.max(0, abilityNumber('barbourReceipts') - 5);
-      grantBonusFreespins(1, 'Barbour-Freispin', { source: 'barbour', count: 1, bet: spinBet });
-    }
-    changed = true;
-  }
-
-  if (sealId === 'oligarchenporsche') {
-    state.porscheDrySpins = bigWin ? 0 : abilityNumber('porscheDrySpins') + (spinStartedInFreespins ? 0 : 1);
-    if (lvl >= 1 && autoOn && abilityNumber('porscheAutoSpins') >= 50) {
-      state.porscheAutoSpins = Math.max(0, abilityNumber('porscheAutoSpins') - 50);
-      turboActive = true;
-      turboEndTime = Math.max(turboEndTime, Date.now() + 5 * 1000);
-      setResult('🏎️ Porsche-Sportmodus: 5 Turbo-Spins gratis!', 'win');
-    }
-    if (lvl >= 3 && abilityNumber('porscheAutoSpins') >= 150) {
-      state.porscheAutoSpins = 0;
-      grantBonusFreespins(5, 'Porsche-Rallye Etappenziel', { source: 'porsche' });
-    }
-    changed = true;
-  }
-
-  if (sealId === 'parmigiano-aktie') {
-    const hits = counts('parmesan');
-    if (hits) {
-      state.parmiPoints = abilityNumber('parmiPoints') + hits + (hits >= 2 && lvl >= 2 ? 3 : 0) + (hits === 3 && lvl >= 2 ? 5 : 0);
-      changed = true;
-    }
-    if (lvl >= 1 && abilityNumber('parmiPoints') >= 10 && abilityNumber('parmiPoints') < 30) {
-      state.parmiPoints = Math.max(0, abilityNumber('parmiPoints') - 10);
-      credits += spinBet * 10;
-      setResult(`⭐ Parmigiano-Dividende! +${spinBet * 10}🪙`, 'win');
-      refreshUI();
-      changed = true;
-    }
-    if (lvl >= 2 && hits === 2) grantBonusFreespins(4, 'Parmigiano-Doppeldividende', { source: 'parmigiano' });
-    if (lvl >= 3 && abilityNumber('parmiPoints') >= 30) {
-      state.parmiPoints = Math.max(0, abilityNumber('parmiPoints') - 30);
-      grantBonusFreespins(12, 'Hauptversammlung', { source: 'parmigiano', ripenStart: 1.6, ripenCap: 2.7 });
-      changed = true;
-    }
-  }
-
-  if (sealId === 'weisses-durag') {
-    const rareHits = counts('golden') + counts('parmesan') + counts('roquefort');
-    if (rareHits) {
-      state.walhallaPoints = abilityNumber('walhallaPoints') + rareHits;
-      changed = true;
-    }
-    if (lvl >= 1 && abilityNumber('walhallaPoints') >= 12 && abilityNumber('walhallaPoints') < 24) {
-      state.walhallaPoints = Math.max(0, abilityNumber('walhallaPoints') - 12);
-      grantBonusFreespins(5, 'Walhalla-Segen', { source: 'walhalla' });
-      changed = true;
-    }
-    if (lvl >= 2 && abilityNumber('walhallaPoints') >= 24 && abilityNumber('walhallaSegenSpins') <= 0) {
-      state.walhallaPoints = Math.max(0, abilityNumber('walhallaPoints') - 24);
-      state.walhallaSegenSpins = 8;
-      setResult('🤍 Walhalla-Segen: 8 Spins mit Rare-Boost.', 'jackpot');
-      changed = true;
-    }
-    if (lvl >= 3 && abilityNumber('walhallaEventSpins') > 0 && bigWin) grantBonusFreespins(3, 'Walhalla-Ruf Big Win', { source: 'walhalla' });
-    if (lvl >= 3 && abilityNumber('walhallaEventSpins') > 0 && counts('golden') > 0) {
-      currentProfile.sealShards = (currentProfile.sealShards || 0) + 1;
       changed = true;
     }
   }
@@ -5642,9 +5520,10 @@ async function doSpin() {
     : spinMsgPool[Math.floor(Math.random() * spinMsgPool.length)];
   setResult(fsLabel, freespinActive ? 'freespin' : '');
 
-  const results   = makeSpinResults();
-  const delays    = turboActive ? [0, 175, 360] : [0, 350, 700];
-  const durations = turboActive ? [700, 900, 1150] : [1400, 1800, 2300];
+  const results = makeSpinResults();
+  const timing = turboActive ? turboSpinTiming() : { delays: [0, 350, 700], durations: [1400, 1800, 2300] };
+  const delays = timing.delays;
+  const durations = timing.durations;
 
   playSpinSound();
   const promises = results.map((r, i) =>
@@ -5655,7 +5534,7 @@ async function doSpin() {
   // Gewinn mit gelocketem Einsatz berechnen
   let win = calcWin(results, spinBet, {
     extraWildIds: activeExtraWildIds(),
-    parmigianoDividend: activeSealId() === 'parmigiano-aktie'
+    parmigianoDividend: activeSealId() === 'parmigiano-aktie' && hasActiveGameplaySeal('parmigiano-aktie')
   });
   win = applyBadgePreWinEffects(results, spinBet, win);
   const activeRipenMulti = freespinActive ? freespinRipenMulti : 1;
@@ -5678,14 +5557,14 @@ async function doSpin() {
       }
     }
 
-    if (win.amount <= 0 && activeSealId() === 'schwarzes-durag' && sealLevel('schwarzes-durag') >= 2 && !freespinNullRerollUsed) {
+    if (win.amount <= 0 && activeSealId() === 'schwarzes-durag' && hasActiveGameplaySeal('schwarzes-durag') && sealLevel('schwarzes-durag') >= 2 && !freespinNullRerollUsed) {
       freespinNullRerollUsed = true;
       const idx = Math.floor(Math.random() * 3);
       setResult('🌑 Schwarzes Durag verdeckt einen Null-Freispin...', 'freespin');
       const next = rndCheese();
       results[idx] = next;
       await spinReel(idx, next, turboActive ? 900 : 1350);
-      const rerollWin = calcWin(results, spinBet, { extraWildIds: activeExtraWildIds(), parmigianoDividend: activeSealId() === 'parmigiano-aktie' });
+      const rerollWin = calcWin(results, spinBet, { extraWildIds: activeExtraWildIds(), parmigianoDividend: activeSealId() === 'parmigiano-aktie' && hasActiveGameplaySeal('parmigiano-aktie') });
       if (rerollWin.amount > 0) Object.assign(win, { ...rerollWin, msg: `🌑 Durag-Reroll: ${rerollWin.msg}` });
       else {
         freespinRipenMulti = Math.min(freespinCurrentCap, freespinRipenMulti + freespinCurrentStep);
@@ -6038,13 +5917,14 @@ function startFreespinRound(options = {}) {
   document.getElementById('freespin-start-overlay').classList.remove('show');
   const sealId = activeSealId();
   const lvl = sealLevel(sealId);
+  const gameplayActive = hasActiveGameplaySeal(sealId);
   const isRoquefortTriggered = options.source === 'roquefort' || (!options.bought && !options.source);
   let count = Math.max(1, Math.floor(Number(options.count || FREESPIN_COUNT)));
-  if (isRoquefortTriggered) {
+  if (gameplayActive && isRoquefortTriggered) {
     if ((sealId === 'roquefort-patina' || sealId === 'schwarzes-durag') && lvl >= 1) count = Math.max(count, 10);
     else if ((sealId === 'roquefort-patina' || sealId === 'schwarzes-durag') && lvl >= 0) count = Math.max(count, 9);
   }
-  if (sealId === 'roquefort-patina' && lvl >= 3 && abilityState().grandeCaveReady) {
+  if (gameplayActive && sealId === 'roquefort-patina' && lvl >= 3 && abilityState().grandeCaveReady) {
     count = Math.max(count, 15);
     options.source = 'grande-cave';
     options.ripenCap = 2.9;
@@ -6062,8 +5942,8 @@ function startFreespinRound(options = {}) {
   freespinRoundSource = options.source || (freespinBought ? 'bought' : 'roquefort');
   resetFreespinSessionStats(freespinSourceLabel(freespinRoundSource));
   freespinRipenMulti = Math.max(FREESPIN_START_MULTI, Number(options.ripenStart || FREESPIN_START_MULTI));
-  freespinCurrentCap = Math.max(FREESPIN_RIPEN_CAP, Number(options.ripenCap || ((sealId === 'roquefort-patina' && lvl >= 1) ? 2.55 : FREESPIN_RIPEN_CAP)));
-  freespinCurrentStep = Math.max(FREESPIN_RIPEN_STEP, Number(options.ripenStep || (((sealId === 'schwarzes-durag' || sealId === 'roquefort-patina') && lvl >= 1) ? 0.65 : FREESPIN_RIPEN_STEP)));
+  freespinCurrentCap = Math.max(FREESPIN_RIPEN_CAP, Number(options.ripenCap || ((gameplayActive && sealId === 'roquefort-patina' && lvl >= 1) ? 2.55 : FREESPIN_RIPEN_CAP)));
+  freespinCurrentStep = Math.max(FREESPIN_RIPEN_STEP, Number(options.ripenStep || ((gameplayActive && (sealId === 'schwarzes-durag' || sealId === 'roquefort-patina') && lvl >= 1) ? 0.65 : FREESPIN_RIPEN_STEP)));
   freespinPlateCount = 0;
   freespinSchimmelbruchUsed = false;
   freespinNullRerollUsed = false;
@@ -6212,7 +6092,8 @@ function makeWin({ amount, msg, winReels, isJackpot = false, isWild = false, tri
 }
 
 function calcWin(results, betAmt, options = {}) {
-  const isWild = ch => ch?.wild === true || (options.extraWildIds || []).includes(ch?.id);
+  const extraWildIds = new Set(options.extraWildIds || []);
+  const isWild = ch => ch?.wild === true || extraWildIds.has(ch?.id);
   const wildCh = CHEESES.find(c => c.wild);
   const candidates = [emptyWin()];
   const byId = id => CHEESES.find(c => c.id === id);
@@ -6238,7 +6119,7 @@ function calcWin(results, betAmt, options = {}) {
   for (const cheese of CHEESES) {
     if (cheese.id === 'mozz') continue;
     const natural = counts[cheese.id]?.indexes || [];
-    const usableWild = wildIndexes.filter(i => results[i].id !== cheese.id);
+    const usableWild = wildIndexes.filter(i => results[i].id !== cheese.id && (cheese.id !== 'golden' || results[i].wild === true));
     const total = natural.length + usableWild.length;
     if (total >= 3) {
       const usedWild = Math.max(0, 3 - natural.length);
@@ -6262,7 +6143,7 @@ function calcWin(results, betAmt, options = {}) {
   for (const cheese of CHEESES) {
     if (cheese.twoX <= 0) continue;
     const natural = counts[cheese.id]?.indexes || [];
-    const usableWild = wildIndexes.filter(i => results[i].id !== cheese.id);
+    const usableWild = wildIndexes.filter(i => results[i].id !== cheese.id && (cheese.id !== 'golden' || results[i].wild === true));
     const total = natural.length + usableWild.length;
     if (total >= 2) {
       const usedWild = Math.max(0, 2 - natural.length);
@@ -6885,13 +6766,14 @@ function updateFeatureButtons() {
   const turboBtn = document.getElementById('turbo-btn');
   if (turboBtn && !turboActive) {
     const turboUnlocked = rankScore >= TURBO_UNLOCK;
-    turboBtn.disabled = !turboUnlocked || credits < TURBO_COST || spinning || freespinActive || freespinPending;
+    const turboCost = currentTurboCost();
+    turboBtn.disabled = !turboUnlocked || credits < turboCost || spinning || freespinActive || freespinPending;
     if (!turboUnlocked) {
       turboBtn.textContent = '🔒 TURBO ab Käsemeister';
-    } else if (credits < TURBO_COST) {
-      turboBtn.textContent = `⚡ TURBO braucht ${TURBO_COST.toLocaleString()}🪙`;
+    } else if (credits < turboCost) {
+      turboBtn.textContent = `⚡ TURBO braucht ${turboCost.toLocaleString()}🪙`;
     } else {
-      turboBtn.textContent = `⚡ TURBO 3:30 (${TURBO_COST.toLocaleString()}🪙)`;
+      turboBtn.textContent = `⚡ TURBO ${formatTurboDuration()} (${turboCost.toLocaleString()}🪙)`;
     }
   }
 
@@ -6926,7 +6808,7 @@ function updateFeatureButtons() {
     turboCard.classList.toggle('locked', !turboUnlocked);
     turboTitle.textContent = turboUnlocked ? '⚡ Turbo freigeschaltet' : '🔒 Käsemeister-Privileg';
     turboBody.textContent = turboUnlocked
-      ? `3:30 Minuten schnelle Walzen für ${TURBO_COST.toLocaleString()} Coins. Ideal, wenn du Druck aufbauen willst.`
+      ? `${formatTurboDuration()} Minuten schnelle Walzen für ${currentTurboCost().toLocaleString()} Coins. Ideal, wenn du Druck aufbauen willst.`
       : `Noch ${(TURBO_UNLOCK - Math.min(rankScore, TURBO_UNLOCK)).toLocaleString()} Coins bis Turbo-Walzen.`;
   }
 
@@ -7002,6 +6884,7 @@ function cacheProfiles(profiles = {}) {
   if (playerName && profileCache[playerName]) {
     currentProfile = profileCache[playerName];
     localStorage.setItem(`kaesino_profile_${playerName}`, JSON.stringify(currentProfile));
+    applyTurboVisualState();
   }
   renderPrestigePanel();
 }
@@ -7142,8 +7025,8 @@ function activeAbilityDef(sealId = activeSealId()) {
 }
 
 function currentBoxCost() {
-  if (activeSealId() === 'fondue-fonds' && sealLevel('fondue-fonds') >= 3 && abilityState().premiumBoxReady) return 150000;
-  if (activeSealId() === 'fondue-fonds') {
+  if (activeSealId() === 'fondue-fonds' && hasActiveGameplaySeal('fondue-fonds') && sealLevel('fondue-fonds') >= 3 && abilityState().premiumBoxReady) return 150000;
+  if (activeSealId() === 'fondue-fonds' && hasActiveGameplaySeal('fondue-fonds')) {
     const lvl = sealLevel('fondue-fonds');
     if (lvl >= 2) return 75000;
     if (lvl >= 1) return 85000;
@@ -7290,9 +7173,10 @@ function showPlayerBadgeDetail(sealId) {
   const sets = SEAL_SET_DEFS.filter(set => set.seals.includes(sealId)).map(set => set.name).join(', ') || 'Kein Set';
   const ability = SEAL_ABILITIES[sealId];
   const levelText = ability ? ability.levels.slice(0, glow + 1).map((text, idx) => `${escapeHtml(idx === 0 ? 'Basis' : GLOW_NAMES[idx])}: ${escapeHtml(text)}`).join('<br>') : '';
-  const nextText = ability && glow < 3 ? `<div class="profile-badge-meta"><strong>Nächste Veredelung:</strong> ${escapeHtml(ability.levels[glow + 1])}</div>` : '';
+  const pausedText = ability && !hasActiveGameplaySeal(sealId) ? '<div class="profile-badge-meta"><strong>Status:</strong> Funktion wird gerade geprüft. Kosmetik aktiv, Gameplay pausiert.</div>' : '';
+  const nextText = ability && hasActiveGameplaySeal(sealId) && glow < 3 ? `<div class="profile-badge-meta"><strong>Nächste Veredelung:</strong> ${escapeHtml(ability.levels[glow + 1])}</div>` : '';
   detail.className = 'profile-badge-detail';
-  detail.innerHTML = `${sealBadgeHTML(sealId, profile)}<br><strong>${escapeHtml(seal.name)}</strong> · ${escapeHtml(seal.rarity)} · ${GLOW_NAMES[glow]}<br>${escapeHtml(seal.desc || 'Ein rätselhaftes Stück Couture aus dem Käsekeller.')}<div class="profile-badge-meta">Veredelung ${glow}/3 · Set: ${escapeHtml(sets)}</div>${ability ? `<div class="profile-badge-meta"><strong>${escapeHtml(ability.title)}:</strong> ${escapeHtml(ability.short)}<br>${levelText}</div>${nextText}` : ''}`;
+  detail.innerHTML = `${sealBadgeHTML(sealId, profile)}<br><strong>${escapeHtml(seal.name)}</strong> · ${escapeHtml(seal.rarity)} · ${GLOW_NAMES[glow]}<br>${escapeHtml(seal.desc || 'Ein rätselhaftes Stück Couture aus dem Käsekeller.')}<div class="profile-badge-meta">Veredelung ${glow}/3 · Set: ${escapeHtml(sets)}</div>${ability ? `<div class="profile-badge-meta"><strong>${escapeHtml(ability.title)}:</strong> ${escapeHtml(ability.short)}<br>${levelText}</div>${pausedText}${nextText}` : ''}`;
 }
 
 function closePlayerProfile() {
@@ -7302,75 +7186,41 @@ function closePlayerProfile() {
 function abilityStatusHTML(sealId, glow) {
   const state = abilityState();
   const bits = [];
+  if (!hasActiveGameplaySeal(sealId)) {
+    return `<div class="ability-status">${escapeHtml('Funktion wird gerade geprüft. Kosmetik aktiv, Gameplay pausiert.')}</div>`;
+  }
   if (sealId === 'oligarchengedeck') {
     const fav = cheeseById(favoriteCheeseId());
     bits.push(`Lieblingskäse: ${fav ? `${fav.emoji} ${fav.name}` : 'nicht gewählt'}`);
-    if (glow >= 1) bits.push(`Kellner: ${abilityNumber('menuSpinCounter')}/30 Spins`);
-    if (glow >= 2) bits.push(`Menü: ${formatAbilityCooldown(state.menuCooldownUntil)}`);
-    if (glow >= 3) bits.push(`Tafelrunde: ${abilityNumber('favoriteHits')}/50 Treffer · ${abilityNumber('favoriteWildSpins')} Wild-Spins`);
+    if (glow >= 1) bits.push(`Gewichtung: ${favoriteCheeseWeightMultiplier().toLocaleString('de-DE')}× in normalen Spins`);
+    if (glow >= 3) bits.push('Reifekammer: Lieblingskäse zählt als zusätzlicher Wild-Partner');
   } else if (sealId === 'senf-depot') {
     bits.push(`Senfpunkte: ${abilityNumber('senfPoints')}`);
-    if (glow >= 3) bits.push(`Takeover: ${abilityNumber('senfTakeoverSpins')} Spins`);
+    if (state.senfDividendReady) bits.push('Senfdividende geladen: nächster Nullspin zahlt 3× Einsatz');
+    if (state.scharferSpinReady) bits.push('Scharfer Spin geladen: Senf zählt im nächsten Spin als Wild');
+    if (abilityNumber('senfTakeoverSpins') > 0) bits.push(`Senf-Takeover: ${abilityNumber('senfTakeoverSpins')} Spins übrig`);
   } else if (sealId === 'fuego-lizenz') {
-    bits.push(`Ohne Big Win: ${abilityNumber('fuegoDrySpins')}/15`);
-    if (glow >= 3) bits.push(`Fuego-Rausch: ${formatAbilityCooldown(state.fuegoCooldownUntil)} · ${abilityNumber('fuegoRauschSpins')} Spins`);
-  } else if (sealId === 'babybel-bankett') {
-    bits.push(`Wachsmarker: ${abilityNumber('waxMarkers')}`);
-    if (glow >= 3) bits.push(`Buffet: ${formatAbilityCooldown(state.buffetCooldownUntil)} · ${abilityNumber('buffetSpins')} Spins`);
-  } else if (sealId === 'zweitbarbour') {
-    bits.push(`Barbour-Quittungen: ${abilityNumber('barbourReceipts')}`);
-    if (glow >= 3) bits.push(`Erbschaft: ${formatAbilityCooldown(state.inheritanceCooldownUntil)}`);
-  } else if (sealId === 'schwarzes-durag') {
-    bits.push(`Dunkle Kammer: ${formatAbilityCooldown(state.darkChamberCooldownUntil)} · ${abilityNumber('duragSpinCounter')}/150 Spins`);
-  } else if (sealId === 'sechseck-orden') {
-    bits.push(`Begradigen: ${abilityNumber('hexSpinCounter')}/50`);
-    if (glow >= 3) bits.push(`Hexagon-Urteil: ${formatAbilityCooldown(state.hexCooldownUntil)} · ${abilityNumber('hexJudgementSpins')} bereit`);
-  } else if (sealId === 'fondue-fonds') {
-    bits.push(`Kistenpreis: ${currentBoxCost().toLocaleString('de-DE')}🪙`);
-    if (glow >= 3) bits.push(`Liquiditätsrunde: ${formatAbilityCooldown(state.liquidityCooldownUntil)} · ${abilityNumber('fondueBoxes')}/5 Kisten`);
-  } else if (sealId === 'oligarchenporsche') {
-    bits.push(`Auto-Spins: ${abilityNumber('porscheAutoSpins')}/150`);
-    if (glow >= 2) bits.push(`Ohne Top-Win: ${abilityNumber('porscheDrySpins')}/18`);
-  } else if (sealId === 'roquefort-patina') {
-    bits.push(`Grande Cave: ${formatAbilityCooldown(state.grandeCaveCooldownUntil)} · ${abilityNumber('roqSpinCounter')}/100 Spins`);
-  } else if (sealId === 'parmigiano-aktie') {
-    bits.push(`Aktienpunkte: ${abilityNumber('parmiPoints')}/30`);
-  } else if (sealId === 'weisses-durag') {
-    bits.push(`Walhalla-Punkte: ${abilityNumber('walhallaPoints')}`);
-    bits.push(`Walhalla-Ruf: ${formatAbilityCooldown(state.walhallaCooldownUntil)} · ${abilityNumber('walhallaEventSpins')} Spins`);
+    bits.push(`Turbo-Dauer: ${formatTurboDuration()}`);
+    bits.push(`Turbo-Kosten: ${currentTurboCost().toLocaleString('de-DE')}🪙`);
+    if (glow >= 3) bits.push('Fuego-Walzen: sichtbar on fire und im Turbo schneller');
   }
   return bits.length ? `<div class="ability-status">${bits.map(escapeHtml).join('<br>')}</div>` : '';
 }
 
 function abilityActionsHTML(sealId, glow) {
   if (!sealId) return '';
-  const state = abilityState();
+  if (!hasActiveGameplaySeal(sealId)) return '';
   const actions = [];
   if (sealId === 'oligarchengedeck') {
     actions.push(`<select onchange="setFavoriteCheese(this.value)" aria-label="Lieblingskäse wählen">${FAVORITE_CHEESE_IDS.map(id => {
       const c = cheeseById(id);
       return `<option value="${id}" ${favoriteCheeseId() === id ? 'selected' : ''}>${c.emoji} ${escapeHtml(c.name)}</option>`;
     }).join('')}</select>`);
-    if (glow >= 2) {
-      const ready = Number(state.menuCooldownUntil || 0) <= Date.now();
-      actions.push(`<button type="button" onclick="activateMenuCall()" ${ready ? '' : 'disabled'}>Menü ausrufen</button>`);
-    }
-  }
-  if (sealId === 'schwarzes-durag' && glow >= 3) {
-    const ready = Number(state.darkChamberCooldownUntil || 0) <= Date.now() || abilityNumber('duragSpinCounter') >= 150;
-    actions.push(`<button type="button" onclick="activateDarkChamber()" ${ready ? '' : 'disabled'}>Dunkle Kammer</button>`);
-  }
-  if (sealId === 'roquefort-patina' && glow >= 3) {
-    const ready = Number(state.grandeCaveCooldownUntil || 0) <= Date.now() || abilityNumber('roqSpinCounter') >= 100;
-    actions.push(`<button type="button" onclick="activateGrandeCave()" ${ready ? '' : 'disabled'}>Grande Cave laden</button>`);
-  }
-  if (sealId === 'weisses-durag' && glow >= 3) {
-    const ready = Number(state.walhallaCooldownUntil || 0) <= Date.now() || abilityNumber('walhallaPoints') >= 40;
-    actions.push(`<button type="button" onclick="activateWalhallaCall()" ${ready ? '' : 'disabled'}>Walhalla-Ruf</button>`);
-  }
-  if (sealId === 'fondue-fonds' && glow >= 3) {
-    const ready = Number(state.liquidityCooldownUntil || 0) <= Date.now() || abilityNumber('fondueBoxes') >= 5;
-    actions.push(`<button type="button" onclick="activateLiquidityRound()" ${ready ? '' : 'disabled'}>Liquiditätsrunde</button>`);
+  } else if (sealId === 'senf-depot') {
+    const points = abilityNumber('senfPoints');
+    actions.push(`<button type="button" onclick="activateSenfDividend()" ${glow >= 1 && points >= 8 && !abilityState().senfDividendReady ? '' : 'disabled'}>Senfdividende laden (8)</button>`);
+    actions.push(`<button type="button" onclick="activateScharferSpin()" ${glow >= 2 && points >= 14 && !abilityState().scharferSpinReady ? '' : 'disabled'}>Scharfer Spin (14)</button>`);
+    actions.push(`<button type="button" onclick="activateSenfTakeover()" ${glow >= 3 && points >= 35 && abilityNumber('senfTakeoverSpins') <= 0 ? '' : 'disabled'}>Senf-Takeover (35)</button>`);
   }
   return actions.length ? `<div class="ability-actions">${actions.join('')}</div>` : '';
 }
@@ -7381,7 +7231,7 @@ function abilityPanelHTML(sealId, glow) {
   const current = ability.levels.slice(0, glow + 1).map((text, idx) =>
     `${idx === 0 ? 'Basis' : GLOW_NAMES[idx]}: ${text}`
   ).join('<br>');
-  const next = glow < 3 ? `<div class="ability-status">Nächste Veredelung: ${escapeHtml(ability.levels[glow + 1])}</div>` : '';
+  const next = hasActiveGameplaySeal(sealId) && glow < 3 ? `<div class="ability-status">Nächste Veredelung: ${escapeHtml(ability.levels[glow + 1])}</div>` : '';
   return `<div class="ability-panel"><div class="ability-title">${escapeHtml(ability.title)}</div>${escapeHtml(ability.short)}<div class="ability-status">${current}</div>${abilityStatusHTML(sealId, glow)}${next}${abilityActionsHTML(sealId, glow)}</div>`;
 }
 
@@ -7393,18 +7243,43 @@ function setFavoriteCheese(id) {
 }
 
 function activateMenuCall() {
-  if (activeSealId() !== 'oligarchengedeck' || sealLevel() < 2) return;
-  const state = abilityState();
-  if (Number(state.menuCooldownUntil || 0) > Date.now()) return;
-  state.menuReady = true;
-  state.menuCooldownUntil = Date.now() + 60 * 60 * 1000;
+  setResult('🥃 Menü ausrufen ist pausiert. Das Käse-Menü arbeitet jetzt über Gewichtung und Reifekammer-Wild.', '');
+}
+
+function spendSenfPoints(cost) {
+  if (activeSealId() !== 'senf-depot' || !hasActiveGameplaySeal('senf-depot')) return false;
+  const points = abilityNumber('senfPoints');
+  if (points < cost) return false;
+  abilityState().senfPoints = points - cost;
+  return true;
+}
+
+function activateSenfDividend() {
+  if (sealLevel('senf-depot') < 1 || abilityState().senfDividendReady || !spendSenfPoints(8)) return;
+  abilityState().senfDividendReady = true;
   queueAbilityStateSync(true);
   renderPrestigePanel();
-  setResult('🥃 Menü ausgerufen! Der nächste bezahlte Spin zählt deinen Lieblingskäse für Freispiele.', 'win');
+  setResult('🟡 Senfdividende geladen: Der nächste Nullspin zahlt 3× Einsatz.', 'win');
+}
+
+function activateScharferSpin() {
+  if (sealLevel('senf-depot') < 2 || abilityState().scharferSpinReady || !spendSenfPoints(14)) return;
+  abilityState().scharferSpinReady = true;
+  queueAbilityStateSync(true);
+  renderPrestigePanel();
+  setResult('🟡 Scharfer Spin geladen: Senf zählt im nächsten Spin als Wild für Paare und Dreier.', 'win');
+}
+
+function activateSenfTakeover() {
+  if (sealLevel('senf-depot') < 3 || abilityNumber('senfTakeoverSpins') > 0 || !spendSenfPoints(35)) return;
+  abilityState().senfTakeoverSpins = 10;
+  queueAbilityStateSync(true);
+  renderPrestigePanel();
+  setResult('🟡 SENF-TAKEOVER gestartet: 10 Spins mit Senf-Auszahlungen.', 'jackpot');
 }
 
 function activateDarkChamber() {
-  if (activeSealId() !== 'schwarzes-durag' || sealLevel() < 3 || freespinActive || freespinPending || spinning) return;
+  if (activeSealId() !== 'schwarzes-durag' || !hasActiveGameplaySeal('schwarzes-durag') || sealLevel() < 3 || freespinActive || freespinPending || spinning) return;
   const state = abilityState();
   const ready = Number(state.darkChamberCooldownUntil || 0) <= Date.now() || abilityNumber('duragSpinCounter') >= 150;
   if (!ready) return;
@@ -7416,7 +7291,7 @@ function activateDarkChamber() {
 }
 
 function activateGrandeCave() {
-  if (activeSealId() !== 'roquefort-patina' || sealLevel() < 3) return;
+  if (activeSealId() !== 'roquefort-patina' || !hasActiveGameplaySeal('roquefort-patina') || sealLevel() < 3) return;
   const state = abilityState();
   const ready = Number(state.grandeCaveCooldownUntil || 0) <= Date.now() || abilityNumber('roqSpinCounter') >= 100;
   if (!ready) return;
@@ -7429,7 +7304,7 @@ function activateGrandeCave() {
 }
 
 function activateWalhallaCall() {
-  if (activeSealId() !== 'weisses-durag' || sealLevel() < 3) return;
+  if (activeSealId() !== 'weisses-durag' || !hasActiveGameplaySeal('weisses-durag') || sealLevel() < 3) return;
   const state = abilityState();
   const ready = Number(state.walhallaCooldownUntil || 0) <= Date.now() || abilityNumber('walhallaPoints') >= 40;
   if (!ready) return;
@@ -7442,7 +7317,7 @@ function activateWalhallaCall() {
 }
 
 function activateLiquidityRound() {
-  if (activeSealId() !== 'fondue-fonds' || sealLevel('fondue-fonds') < 3) return;
+  if (activeSealId() !== 'fondue-fonds' || !hasActiveGameplaySeal('fondue-fonds') || sealLevel('fondue-fonds') < 3) return;
   const state = abilityState();
   const ready = Number(state.liquidityCooldownUntil || 0) <= Date.now() || abilityNumber('fondueBoxes') >= 5;
   if (!ready) return;
@@ -7668,7 +7543,7 @@ async function openCoutureBox() {
       headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         name: playerName,
-        premium: activeSealId() === 'fondue-fonds' && !!abilityState().premiumBoxReady,
+        premium: activeSealId() === 'fondue-fonds' && hasActiveGameplaySeal('fondue-fonds') && !!abilityState().premiumBoxReady,
         credits,
         bestCoins: Math.max(myBestCoins || 0, currentRankScore()),
         bestSingleWin: myBestWin || 0,
@@ -7688,7 +7563,7 @@ async function openCoutureBox() {
       cacheProfiles(data.leaderboard.profiles || {});
       renderLeaderboard(lbCache);
     }
-    if (currentProfile.activeSeal === 'fondue-fonds') {
+    if (currentProfile.activeSeal === 'fondue-fonds' && hasActiveGameplaySeal('fondue-fonds')) {
       currentProfile.abilityState = currentProfile.abilityState || {};
       currentProfile.abilityState.fondueBoxes = (Number(currentProfile.abilityState.fondueBoxes || 0) + 1);
       if (currentProfile.abilityState.premiumBoxReady) currentProfile.abilityState.premiumBoxReady = false;
@@ -7710,9 +7585,13 @@ async function openCoutureBox() {
 
 async function setActiveSeal(sealId) {
   if (!playerName || !currentProfile.seals?.includes(sealId)) return;
+  cleanupTransientAbilityState(abilityState());
   currentProfile.activeSeal = sealId;
   profileCache[playerName] = currentProfile;
+  localStorage.setItem(`kaesino_profile_${playerName}`, JSON.stringify(currentProfile));
+  applyTurboVisualState();
   renderPrestigePanel();
+  queueAbilityStateSync(true);
   updatePlayerTag();
   renderLeaderboard(lbCache);
   if (!kasinoApiAvailable()) return;
@@ -7826,8 +7705,7 @@ function resetGame() {
   if (turboActive) {
     turboActive = false;
     clearInterval(turboCountdown);
-    document.getElementById('reels-frame').classList.remove('turbo-mode');
-    document.getElementById('turbo-btn').classList.remove('active');
+    applyTurboVisualState();
     updateTurboBtn();
   }
   clearTimeout(autoTimer);
@@ -8923,7 +8801,7 @@ function revealSchimmelResult(gewonnen) {
       setResult(`🟢 SCHIMMEL VERLOREN, GEWINN VERDOPPELT! +${schimmelAmount * 2}🪙 insgesamt! 🎉`, 'win');
     } else {
       let loss = schimmelAmount;
-      if (activeSealId() === 'zweitbarbour' && sealLevel('zweitbarbour') >= 2 && abilityNumber('barbourReceipts') >= 10) {
+      if (activeSealId() === 'zweitbarbour' && hasActiveGameplaySeal('zweitbarbour') && sealLevel('zweitbarbour') >= 2 && abilityNumber('barbourReceipts') >= 10) {
         abilityState().barbourReceipts = Math.max(0, abilityNumber('barbourReceipts') - 10);
         loss = Math.floor(schimmelAmount * 0.2);
         queueAbilityStateSync(true);
@@ -9040,18 +8918,18 @@ function buyTurbo() {
     setResult('🔒 Turbo-Walzen werden erst ab Käsemeister (10.000🪙) freigeschaltet.', '');
     return;
   }
-  if (credits < TURBO_COST) {
-    setResult(`⚡ Nicht genug Coins! Turbo kostet ${TURBO_COST}🪙.`, '');
+  const turboCost = currentTurboCost();
+  const durationMs = turboDurationMs();
+  if (credits < turboCost) {
+    setResult(`⚡ Nicht genug Coins! Turbo kostet ${turboCost}🪙.`, '');
     return;
   }
-  credits -= TURBO_COST;
+  credits -= turboCost;
   refreshUI();
   turboActive  = true;
-  turboEndTime = Date.now() + TURBO_SECS * 1000;
-  document.getElementById('reels-frame').classList.add('turbo-mode');
-  const btn = document.getElementById('turbo-btn');
-  btn.classList.add('active');
-  setResult('⚡ TURBO-WALZEN aktiviert — 3:30 Minuten Hochgeschwindigkeit!', 'win');
+  turboEndTime = Date.now() + durationMs;
+  applyTurboVisualState();
+  setResult(`⚡ TURBO-WALZEN aktiviert — ${formatTurboDuration(durationMs)} Minuten Hochgeschwindigkeit${isFuegoActive() ? ' mit Fuego!' : '!'}`, 'win');
   updateTurboBtn();
   clearInterval(turboCountdown);
   turboCountdown = setInterval(() => {
@@ -9059,10 +8937,9 @@ function buyTurbo() {
     if (rem <= 0) {
       clearInterval(turboCountdown);
       turboActive = false;
-      document.getElementById('reels-frame').classList.remove('turbo-mode');
+      applyTurboVisualState();
       const b = document.getElementById('turbo-btn');
-      b.classList.remove('active');
-      b.textContent = `⚡ TURBO (${TURBO_COST.toLocaleString()}🪙)`;
+      b.textContent = `⚡ TURBO (${currentTurboCost().toLocaleString()}🪙)`;
       setResult('⚡ Turbo-Walzen abgelaufen. Normale Geschwindigkeit.', '');
       updateFeatureButtons();
     } else {
@@ -9072,7 +8949,8 @@ function buyTurbo() {
 }
 function updateTurboBtn(rem) {
   const btn = document.getElementById('turbo-btn');
-  if (!rem) { btn.textContent = `⚡ TURBO (${TURBO_COST.toLocaleString()}🪙)`; return; }
+  if (!btn) return;
+  if (!rem) { btn.textContent = `⚡ TURBO ${formatTurboDuration()} (${currentTurboCost().toLocaleString()}🪙)`; return; }
   const m = Math.floor(rem / 60), s = rem % 60;
   btn.textContent = `⚡ TURBO aktiv ${m}:${String(s).padStart(2,'0')}`;
 }

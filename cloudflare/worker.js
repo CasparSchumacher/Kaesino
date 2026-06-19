@@ -33,6 +33,19 @@ const RARITY_WEIGHTS = [
 const SHARDS_BY_RARITY = { common: 1, rare: 2, epic: 5, legendary: 12 };
 const DUPLICATE_DROP_CHANCE = 0.35;
 const SEAL_IDS = new Set(SEAL_DEFS.map(seal => seal.id));
+const ACTIVE_GAMEPLAY_SEALS = new Set(['oligarchengedeck', 'senf-depot', 'fuego-lizenz']);
+const TRANSIENT_ABILITY_KEYS = [
+  'menuReady', 'menuCooldownUntil', 'menuSpinCounter', 'favoriteHits', 'favoriteWildSpins',
+  'scharferSpinReady', 'senfDividendReady', 'senfTakeoverSpins',
+  'fuegoDrySpins', 'fuegoRauschSpins', 'fuegoCooldownUntil',
+  'buffetSpins', 'darkChamberCooldownUntil', 'duragSpinCounter',
+  'hexJudgementSpins', 'hexSpinCounter', 'hexCooldownUntil',
+  'premiumBoxReady', 'liquidityCooldownUntil', 'fondueBoxes',
+  'porscheAutoSpins', 'porscheDrySpins',
+  'grandeCaveReady', 'grandeCaveCooldownUntil', 'roqSpinCounter', 'patinaCheese',
+  'parmiPoints', 'walhallaPoints', 'walhallaSegenSpins', 'walhallaEventSpins', 'walhallaCooldownUntil',
+  'barbourReceipts', 'inheritanceCooldownUntil'
+];
 const CHAT_OPENERS = [
   'Was ist euer Lieblingskäse?',
   'Wie mögt ihr euren Obatzda am liebsten?',
@@ -843,12 +856,22 @@ function cleanAbilityState(raw) {
   return clean;
 }
 
+function cleanupTransientAbilityState(raw) {
+  const clean = cleanAbilityState(raw || {});
+  for (const key of TRANSIENT_ABILITY_KEYS) delete clean[key];
+  return clean;
+}
+
+function gameplaySealActive(sealId) {
+  return ACTIVE_GAMEPLAY_SEALS.has(sealId);
+}
+
 function prestigeBoxCost(profile, premium = false) {
-  if (premium && profile?.activeSeal === 'fondue-fonds' && Math.max(0, toInt(profile?.sealGlow?.['fondue-fonds'], 0)) >= 3) {
+  if (premium && profile?.activeSeal === 'fondue-fonds' && gameplaySealActive('fondue-fonds') && Math.max(0, toInt(profile?.sealGlow?.['fondue-fonds'], 0)) >= 3) {
     return 150000;
   }
   const glow = Math.max(0, toInt(profile?.sealGlow?.['fondue-fonds'], 0));
-  if (profile?.activeSeal === 'fondue-fonds') {
+  if (profile?.activeSeal === 'fondue-fonds' && gameplaySealActive('fondue-fonds')) {
     if (glow >= 2) return 75000;
     if (glow >= 1) return 85000;
   }
@@ -955,12 +978,12 @@ async function openPrestigeBox(db, name, premium = false) {
   }
   const rarity = pickRarity();
   let seal = pickSealForRarity(rarity, new Set(profile.seals));
-  if (premium && profile.activeSeal === 'fondue-fonds') {
+  if (premium && profile.activeSeal === 'fondue-fonds' && gameplaySealActive('fondue-fonds')) {
     const fresh = SEAL_DEFS.filter(entry => !profile.seals.includes(entry.id));
     if (fresh.length && Math.random() < 0.65) seal = fresh[Math.floor(Math.random() * fresh.length)];
   }
   const duplicate = profile.seals.includes(seal.id);
-  const fondueGlow = profile.activeSeal === 'fondue-fonds' ? Math.max(0, toInt(profile.sealGlow?.['fondue-fonds'], 0)) : 0;
+  const fondueGlow = profile.activeSeal === 'fondue-fonds' && gameplaySealActive('fondue-fonds') ? Math.max(0, toInt(profile.sealGlow?.['fondue-fonds'], 0)) : 0;
   const shardBonus = fondueGlow >= 2 ? 2 : 0;
   const shardMultiplier = premium && fondueGlow >= 3 ? 3 : 1;
   const shards = duplicate ? ((SHARDS_BY_RARITY[seal.rarity || rarity] || 1) + shardBonus) * shardMultiplier : 0;
@@ -970,6 +993,7 @@ async function openPrestigeBox(db, name, premium = false) {
   } else {
     profile.seals.push(seal.id);
     profile.activeSeal = seal.id;
+    profile.abilityState = cleanupTransientAbilityState(profile.abilityState);
   }
   profile.openedBoxes += 1;
   const savedProfile = await saveProfile(db, profile);
@@ -1007,6 +1031,7 @@ async function setActiveSeal(db, name, sealId) {
   const profile = await getProfile(db, name);
   if (!profile.seals.includes(sealId)) throw new Error('Siegel nicht freigeschaltet.');
   profile.activeSeal = sealId;
+  profile.abilityState = cleanupTransientAbilityState(profile.abilityState);
   return saveProfile(db, profile);
 }
 
@@ -1019,6 +1044,7 @@ async function upgradeSeal(db, name, sealId) {
   profile.sealShards -= 10;
   profile.sealGlow[sealId] = current + 1;
   profile.activeSeal = sealId;
+  profile.abilityState = cleanupTransientAbilityState(profile.abilityState);
   return saveProfile(db, profile);
 }
 
