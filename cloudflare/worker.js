@@ -10,6 +10,7 @@ const ONLINE_WINDOW_MS = 90000;
 const CHAT_OPENER_AUTHOR = 'Käsino-Croupier';
 const CHAT_OPENER_INTERVAL_MS = 12 * 60 * 60 * 1000;
 const PRESTIGE_BOX_COST = 100000;
+const PRESTIGE_UPGRADE_COSTS = [10, 20, 30];
 const SEAL_DEFS = [
   { id: 'oligarchengedeck', rarity: 'common' },
   { id: 'senf-depot', rarity: 'common' },
@@ -866,6 +867,11 @@ function gameplaySealActive(sealId) {
   return ACTIVE_GAMEPLAY_SEALS.has(sealId);
 }
 
+function sealUpgradeCost(currentGlow) {
+  const glow = Math.max(0, toInt(currentGlow, 0));
+  return glow >= 3 ? Infinity : (PRESTIGE_UPGRADE_COSTS[glow] || 10);
+}
+
 function prestigeBoxCost(profile, premium = false) {
   if (premium && profile?.activeSeal === 'fondue-fonds' && gameplaySealActive('fondue-fonds') && Math.max(0, toInt(profile?.sealGlow?.['fondue-fonds'], 0)) >= 3) {
     return 150000;
@@ -1038,10 +1044,11 @@ async function setActiveSeal(db, name, sealId) {
 async function upgradeSeal(db, name, sealId) {
   const profile = await getProfile(db, name);
   if (!profile.seals.includes(sealId)) throw new Error('Siegel nicht freigeschaltet.');
-  if (profile.sealShards < 10) throw new Error('Nicht genug Couture-Splitter.');
   const current = Math.max(0, toInt(profile.sealGlow[sealId], 0));
   if (current >= 3) throw new Error('Dieses Siegel ist schon Walhalla.');
-  profile.sealShards -= 10;
+  const upgradeCost = sealUpgradeCost(current);
+  if (profile.sealShards < upgradeCost) throw new Error(`Nicht genug Couture-Splitter. Diese Veredelung kostet ${upgradeCost}.`);
+  profile.sealShards -= upgradeCost;
   profile.sealGlow[sealId] = current + 1;
   profile.activeSeal = sealId;
   profile.abilityState = cleanupTransientAbilityState(profile.abilityState);

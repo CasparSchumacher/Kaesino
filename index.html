@@ -1138,7 +1138,7 @@ body {
   box-shadow: 0 0 12px rgba(255,255,255,0.5), 0 0 10px rgba(255,215,0,0.34);
 }
 .durag-img-icon.black {
-  background: radial-gradient(circle, rgba(18,18,24,0.95), rgba(255,255,255,0.08));
+  background: transparent;
   box-shadow: 0 0 10px rgba(120,90,255,0.32);
 }
 
@@ -1763,6 +1763,12 @@ body {
   gap: 6px;
   margin-top: 8px;
 }
+.cheese-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+}
 .ability-actions select,
 .ability-actions button {
   min-height: 32px;
@@ -1776,6 +1782,54 @@ body {
 .ability-actions button {
   cursor: pointer;
   padding: 6px 9px;
+}
+.cheese-choice-btn {
+  justify-content: flex-start;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.cheese-choice-btn.active {
+  border-color: rgba(255,235,125,0.92);
+  background: rgba(255,215,0,0.18);
+  color: #fff8bf;
+  box-shadow: 0 0 12px rgba(255,215,0,0.18);
+}
+.splitter-meter {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:8px;
+  color:rgba(255,238,170,0.92);
+}
+.splitter-orb {
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  display:inline-grid;
+  place-items:center;
+  background:radial-gradient(circle at 35% 25%, #fff8c8, #ffd84d 42%, #9b5b00 78%);
+  box-shadow:0 0 14px rgba(255,215,0,0.55);
+  font-size:0.78em;
+  animation:splitterPulse 1.35s ease-in-out infinite alternate;
+}
+.splitter-progress {
+  flex:1;
+  height:7px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.12);
+  overflow:hidden;
+}
+.splitter-progress > span {
+  display:block;
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,#ffd84d,#fff6b0);
+  box-shadow:0 0 10px rgba(255,215,0,0.5);
+}
+@keyframes splitterPulse {
+  from { transform:scale(0.92) rotate(-6deg); filter:brightness(0.95); }
+  to { transform:scale(1.08) rotate(6deg); filter:brightness(1.25); }
 }
 .ability-actions button:disabled {
   opacity: 0.45;
@@ -3985,11 +4039,11 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
         <div class="couture-rarity-pill"><strong>15%</strong>Epic</div>
         <div class="couture-rarity-pill"><strong>5%</strong>Legendary</div>
       </div>
-      <p>Neue Siegel werden bevorzugt. Duplikate schmelzen zu Splittern; 10 Splitter veredeln dein aktives Siegel.</p>
+      <p>Neue Siegel werden bevorzugt. Duplikate schmelzen zu Splittern; Veredelungen kosten 10, 20 und 30 Splitter.</p>
     </details>
     <div class="couture-panel-actions">
       <button class="prestige-btn" id="open-couture-btn" type="button" onclick="openCoutureBox()">Käselaib knacken · 100.000🪙</button>
-      <button class="prestige-btn" id="upgrade-seal-btn" type="button" onclick="upgradeActiveSeal()">10 Splitter veredeln</button>
+      <button class="prestige-btn" id="upgrade-seal-btn" type="button" onclick="upgradeActiveSeal()">Splitter veredeln</button>
     </div>
     <div class="couture-error" id="couture-error"></div>
     <div class="couture-active-card" id="couture-active-card"></div>
@@ -4595,7 +4649,7 @@ let mentionActiveIndex = 0;
 
 // Oligarchen-Couture
 const PRESTIGE_BOX_COST = 100000;
-const PRESTIGE_UPGRADE_COST = 10;
+const PRESTIGE_UPGRADE_COSTS = [10, 20, 30];
 const OLIGARCH_UNLOCK = 100000;
 const HIGH_BET_UNLOCKS = {
   250: 250000,
@@ -7127,6 +7181,11 @@ function sealLevel(sealId = activeSealId()) {
   return Math.max(0, Math.min(3, Math.floor(Number(currentProfile?.sealGlow?.[sealId] || 0))));
 }
 
+function sealUpgradeCost(sealId = activeSealId()) {
+  const lvl = sealLevel(sealId);
+  return lvl >= 3 ? Infinity : PRESTIGE_UPGRADE_COSTS[lvl] || 10;
+}
+
 function abilityState() {
   if (!currentProfile.abilityState || typeof currentProfile.abilityState !== 'object') currentProfile.abilityState = {};
   return currentProfile.abilityState;
@@ -7382,10 +7441,7 @@ function abilityActionsHTML(sealId, glow) {
   if (!hasActiveGameplaySeal(sealId)) return '';
   const actions = [];
   if (sealId === 'oligarchengedeck') {
-    actions.push(`<select onpointerdown="event.stopPropagation()" onclick="event.stopPropagation()" onchange="setFavoriteCheese(this.value)" aria-label="Lieblingskäse wählen">${FAVORITE_CHEESE_IDS.map(id => {
-      const c = cheeseById(id);
-      return `<option value="${id}" ${favoriteCheeseId() === id ? 'selected' : ''}>${c.emoji} ${escapeHtml(c.name)}</option>`;
-    }).join('')}</select>`);
+    actions.push(cheeseChoiceGridHTML('favorite', favoriteCheeseId(), 'setFavoriteCheese'));
   } else if (sealId === 'senf-depot') {
     const points = abilityNumber('senfPoints');
     actions.push(`<button type="button" onclick="activateSenfDividend()" ${glow >= 1 && points >= 8 && !abilityState().senfDividendReady ? '' : 'disabled'}>Senfdividende laden (8)</button>`);
@@ -7397,10 +7453,7 @@ function abilityActionsHTML(sealId, glow) {
     actions.push(`<button type="button" onclick="activateWalhallaCall()" ${glow >= 3 && points >= 20 && abilityNumber('walhallaEventSpins') <= 0 ? '' : 'disabled'}>Walhalla-Ruf (20)</button>`);
   } else if (sealId === 'roquefort-patina') {
     if (glow >= 2) {
-      actions.push(`<select onpointerdown="event.stopPropagation()" onclick="event.stopPropagation()" onchange="setPatinaCheese(this.value)" aria-label="Patina-Käse wählen">${FAVORITE_CHEESE_IDS.map(id => {
-        const c = cheeseById(id);
-        return `<option value="${id}" ${patinaCheeseId() === id ? 'selected' : ''}>${c.emoji} ${escapeHtml(c.name)}</option>`;
-      }).join('')}</select>`);
+      actions.push(cheeseChoiceGridHTML('patina', patinaCheeseId(), 'setPatinaCheese'));
     }
     if (glow >= 3) {
       const ready = Number(abilityState().grandeCaveCooldownUntil || 0) <= Date.now() && !abilityState().grandeCaveReady;
@@ -7420,16 +7473,25 @@ function abilityPanelHTML(sealId, glow) {
   return `<div class="ability-panel"><div class="ability-title">${escapeHtml(ability.title)}</div>${escapeHtml(ability.short)}<div class="ability-status">${current}</div>${abilityStatusHTML(sealId, glow)}${next}${abilityActionsHTML(sealId, glow)}</div>`;
 }
 
+function cheeseChoiceGridHTML(kind, selectedId, handlerName) {
+  return `<div class="cheese-choice-grid" role="group" aria-label="${kind === 'patina' ? 'Patina-Käse wählen' : 'Lieblingskäse wählen'}">${FAVORITE_CHEESE_IDS.map(id => {
+    const c = cheeseById(id);
+    if (!c) return '';
+    const active = selectedId === id ? ' active' : '';
+    return `<button class="cheese-choice-btn${active}" type="button" onclick="${handlerName}('${id}')">${c.emoji} ${escapeHtml(c.name)}</button>`;
+  }).join('')}</div>`;
+}
+
 function setFavoriteCheese(id) {
   if (!FAVORITE_CHEESE_IDS.includes(id)) return;
-  setAbilityValue('favoriteCheese', id, { sync: true, render: false });
+  setAbilityValue('favoriteCheese', id, { sync: true });
   const c = cheeseById(id);
   setResult(`🥃 Käse-Menü gesetzt: ${c.emoji} ${c.name} ist dein Lieblingskäse.`, 'win');
 }
 
 function setPatinaCheese(id) {
   if (!FAVORITE_CHEESE_IDS.includes(id)) return;
-  setAbilityValue('patinaCheese', id, { sync: true, render: false });
+  setAbilityValue('patinaCheese', id, { sync: true });
   const c = cheeseById(id);
   setResult(`🟦 Patina gesetzt: ${c.emoji} ${c.name} ist dein Reifekammer-Partner.`, 'freespin');
 }
@@ -7567,17 +7629,26 @@ function renderPrestigePanel() {
       : credits >= boxCost ? `Käselaib knacken · ${boxCost.toLocaleString('de-DE')}🪙` : `Kiste braucht ${boxCost.toLocaleString('de-DE')}🪙`;
   }
   if (upgradeBtn) {
-    const canUpgrade = currentProfile.activeSeal && (currentProfile.sealShards || 0) >= PRESTIGE_UPGRADE_COST
+    const upgradeCost = sealUpgradeCost(currentProfile.activeSeal);
+    const canUpgrade = currentProfile.activeSeal && Number.isFinite(upgradeCost) && (currentProfile.sealShards || 0) >= upgradeCost
       && Number(currentProfile.sealGlow?.[currentProfile.activeSeal] || 0) < 3;
     upgradeBtn.disabled = coutureOpening || coutureUpgrading || !canUpgrade;
-    upgradeBtn.textContent = coutureUpgrading ? 'Veredelung läuft…' : `${currentProfile.sealShards || 0} Splitter · Veredeln`;
+    upgradeBtn.textContent = coutureUpgrading
+      ? 'Veredelung läuft…'
+      : Number.isFinite(upgradeCost)
+        ? `${currentProfile.sealShards || 0}/${upgradeCost} Splitter · Veredeln`
+        : 'Walhalla erreicht';
   }
   if (activeCard) {
     const active = SEAL_BY_ID[currentProfile.activeSeal];
     const glow = Math.max(0, Math.min(3, Number(currentProfile.sealGlow?.[currentProfile.activeSeal] || 0)));
+    const upgradeCost = sealUpgradeCost(currentProfile.activeSeal);
+    const shards = currentProfile.sealShards || 0;
+    const progress = Number.isFinite(upgradeCost) ? Math.min(100, Math.round((shards / upgradeCost) * 100)) : 100;
+    const splitterMeter = active ? `<div class="splitter-meter" title="Couture-Splitter für die nächste Veredelung"><span class="splitter-orb">✦</span><span>${Number.isFinite(upgradeCost) ? `${shards}/${upgradeCost}` : shards} Splitter</span><span class="splitter-progress"><span style="width:${progress}%"></span></span></div>` : '';
     activeCard.classList.toggle('upgrading', coutureUpgrading);
     activeCard.innerHTML = active
-      ? `${sealBadgeHTML(active.id, currentProfile)}<div class="couture-active-meta"><strong>${escapeHtml(active.name)}</strong><br>${escapeHtml(active.rarity)} · ${GLOW_NAMES[glow]} · ${currentProfile.sealShards || 0} Splitter${abilityPanelHTML(active.id, glow)}</div>`
+      ? `${sealBadgeHTML(active.id, currentProfile)}<div class="couture-active-meta"><strong>${escapeHtml(active.name)}</strong><br>${escapeHtml(active.rarity)} · ${GLOW_NAMES[glow]}${splitterMeter}${abilityPanelHTML(active.id, glow)}</div>`
       : `<span class="seal-badge icon-only">💎</span><div class="couture-active-meta"><strong>Noch kein aktives Siegel</strong><br>Knack den ersten Käselaib.</div>`;
   }
   const galleryHtml = currentProfile.seals?.length
@@ -7826,7 +7897,8 @@ async function setActiveSeal(sealId) {
 
 async function upgradeActiveSeal() {
   const sealId = currentProfile.activeSeal;
-  if (coutureUpgrading || !sealId || (currentProfile.sealShards || 0) < PRESTIGE_UPGRADE_COST) return;
+  const upgradeCost = sealUpgradeCost(sealId);
+  if (coutureUpgrading || !sealId || !Number.isFinite(upgradeCost) || (currentProfile.sealShards || 0) < upgradeCost) return;
   if (!kasinoApiAvailable()) {
     openCouturePanel();
     setCoutureError('Veredelung braucht den Käsino-Server.');
