@@ -381,6 +381,33 @@ body {
 .reels-frame.schimmelbruch {
   animation: chamberBreak 0.26s ease-in-out 6;
 }
+.reels-frame.walhalla-call-mode {
+  border-color: rgba(255,255,255,0.9);
+  box-shadow: inset 0 0 44px rgba(0,0,0,0.92), 0 0 38px rgba(255,255,255,0.66), 0 0 58px rgba(255,215,0,0.48);
+}
+.reels-frame.walhalla-call-mode::after {
+  content: 'WALHALLA-RUF';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 28;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.88);
+  color: #5a3900;
+  border: 1px solid rgba(255,215,0,0.72);
+  font-size: 0.58em;
+  font-family: Arial, sans-serif;
+  font-weight: 900;
+  letter-spacing: 1px;
+  box-shadow: 0 0 22px rgba(255,255,255,0.72);
+  pointer-events: none;
+}
+.reels-frame.hex-vision-mode {
+  border-color: rgba(120,220,255,0.7);
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.9), 0 0 30px rgba(120,220,255,0.46);
+}
 @keyframes chamberBreathe {
   0%,100% { opacity: 0.45; filter: hue-rotate(0deg); }
   50%     { opacity: 0.82; filter: hue-rotate(18deg); }
@@ -581,6 +608,13 @@ body {
   line-height: 1;
   pointer-events: none;
 }
+.reel.walhalla-lit {
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.76), 0 0 28px rgba(255,215,0,0.75) !important;
+  animation: walhallaReelPulse 0.62s ease-in-out infinite alternate;
+}
+.reel.hex-line {
+  box-shadow: 0 0 0 2px rgba(120,220,255,0.74), 0 0 24px rgba(120,220,255,0.74) !important;
+}
 @keyframes reelWin {
   0%,100% { box-shadow: 0 0 0 2px var(--gold), 0 0 18px rgba(255,215,0,0.7); }
   50%      { box-shadow: 0 0 0 3px var(--gold), 0 0 40px rgba(255,215,0,0.95); }
@@ -600,6 +634,10 @@ body {
 @keyframes schimmelTarget {
   0%,100% { filter: saturate(1); }
   50%     { filter: saturate(1.45) brightness(1.15); }
+}
+@keyframes walhallaReelPulse {
+  from { filter: brightness(1); transform: translateY(0); }
+  to   { filter: brightness(1.28); transform: translateY(-2px); }
 }
 
 /* ── FREE SPIN BANNER ── */
@@ -1847,7 +1885,7 @@ body {
 }
 #walhalla-blessing-overlay.show {
   display:flex;
-  animation:walhallaFade 2.25s ease-out forwards;
+  animation:walhallaFade 3s ease-out forwards;
 }
 .walhalla-blessing-card {
   position:relative;
@@ -1863,25 +1901,25 @@ body {
 .walhalla-blessing-card::before {
   content:'';
   position:absolute;
-  width:260px;
-  height:260px;
+  width:340px;
+  height:340px;
   border-radius:50%;
-  background:conic-gradient(from 0deg, transparent, rgba(255,255,255,0.9), rgba(255,215,0,0.6), transparent 42%);
-  animation:walhallaHalo 1.2s linear infinite;
+  background:conic-gradient(from 0deg, transparent, rgba(255,255,255,0.96), rgba(255,215,0,0.72), rgba(255,255,255,0.9), transparent 48%);
+  animation:walhallaHalo 0.95s linear infinite;
   filter:blur(1px);
   z-index:-1;
 }
 .walhalla-blessing-card img {
-  width:132px;
-  height:132px;
+  width:162px;
+  height:162px;
   object-fit:contain;
   border-radius:50%;
   background:radial-gradient(circle, rgba(255,255,255,0.92), rgba(255,215,0,0.18));
-  box-shadow:0 0 35px rgba(255,255,255,0.8), 0 0 48px rgba(255,215,0,0.5);
+  box-shadow:0 0 42px rgba(255,255,255,0.92), 0 0 80px rgba(255,215,0,0.62), 0 0 120px rgba(255,255,255,0.3);
   animation:walhallaDuragPulse 0.74s ease-in-out infinite alternate;
 }
 .walhalla-blessing-title {
-  font-size:1.65em;
+  font-size:2.05em;
   font-weight:900;
   letter-spacing:0;
 }
@@ -4689,18 +4727,18 @@ const SEAL_VISUAL_LEVELS = [
   { level: 2, className: 'glow-2', label: 'Goldene Aura + Partikel' },
   { level: 3, className: 'glow-3', label: 'Eigenes Badge-Thema' }
 ];
-const ACTIVE_GAMEPLAY_SEALS = ['oligarchengedeck', 'senf-depot', 'fuego-lizenz', 'babybel-bankett', 'weisses-durag', 'roquefort-patina'];
+const ACTIVE_GAMEPLAY_SEALS = ['oligarchengedeck', 'senf-depot', 'fuego-lizenz', 'babybel-bankett', 'zweitbarbour', 'schwarzes-durag', 'sechseck-orden', 'weisses-durag', 'roquefort-patina'];
 const TRANSIENT_ABILITY_KEYS = [
   'menuReady', 'menuCooldownUntil', 'menuSpinCounter', 'favoriteHits', 'favoriteWildSpins',
   'scharferSpinReady', 'senfDividendReady', 'senfTakeoverSpins',
   'fuegoDrySpins', 'fuegoRauschSpins', 'fuegoCooldownUntil',
-  'buffetSpins', 'darkChamberCooldownUntil', 'duragSpinCounter',
+  'buffetSpins', 'duragSpinCounter',
   'hexJudgementSpins', 'hexSpinCounter', 'hexCooldownUntil',
   'premiumBoxReady', 'liquidityCooldownUntil', 'fondueBoxes',
   'porscheAutoSpins', 'porscheDrySpins',
   'grandeCaveReady', 'roqSpinCounter',
   'parmiPoints', 'walhallaBlessingReady', 'walhallaSegenSpins', 'walhallaEventSpins', 'walhallaCooldownUntil',
-  'barbourReceipts', 'inheritanceCooldownUntil'
+  'barbourReceipts'
 ];
 const ABILITY_STATE_LABELS = {
   favoriteCheese: 'Lieblingskäse',
@@ -4715,7 +4753,9 @@ const ABILITY_STATE_LABELS = {
   babybelSauerBank: 'Sauer-Konto',
   buffetSpins: 'Rotes Buffet',
   barbourReceipts: 'Barbour-Quittungen',
+  barbourCooldownUntil: 'Barbour-Cooldown',
   duragSpinCounter: 'Nachtschatten-Spins',
+  darkChamberCooldownUntil: 'Schattenkammer-Cooldown',
   hexSpinCounter: 'Geometrie-Spins',
   hexJudgementSpins: 'Hexagon-Urteil',
   fondueBoxes: 'Fondue-Kisten',
@@ -4756,19 +4796,19 @@ const SEAL_ABILITIES = {
     levels: ['2x Babybel zahlt Einsatz x5 ins Sauer-Konto.', '2x Babybel zahlt Einsatz x6 ins Sauer-Konto.', '2x Babybel zahlt Einsatz x7; 3x Babybel zahlt die Bank x3 zurück.', '2x Babybel zahlt Einsatz x8; 3x Babybel zahlt Bank x5 und gibt 3 Freispiele.']
   },
   'zweitbarbour': {
-    title: 'Old-Money-Hebel',
-    short: 'Große Verlustserien werden zu Freispins, besserem Schimmel und Erbschaft.',
-    levels: ['Verluste ab Einsatz 500 sammeln Quittungen.', '5 Quittungen: kostenloser Spin.', '10 Quittungen: Schimmel-Verlust milder.', '20 Quittungen/2h: Erbschaft bewertet einen Verlust neu.']
+    title: 'Old-Money-Verlustschutz',
+    short: 'Große High-Roller-Verluste werden automatisch abgefedert. Kein Punkte-Sammeln, nur Kragen hoch.',
+    levels: ['Verlustspins ab Einsatz 500 geben 10% zurück.', 'Rückgabe steigt auf 15%.', 'Großer Verlust ab Einsatz 1.000: Kragen hoch gibt 35% zurück, mit Cooldown.', 'Zweitbarbour-Klausel: sehr schlechter Verlust gibt 50% zurück, mit längerem Cooldown.']
   },
   'schwarzes-durag': {
-    title: 'Nachtschatten-Reife',
-    short: 'Mehr Reifekammer, stärkere Reife und Null-Freispin-Reroll.',
-    levels: ['Reifekammer startet mit 9 Freispielen.', 'Null-Freispiele reifen stärker.', 'Ein Null-Freispin pro Kammer wird neu gedreht.', 'Alle 2h/150 Spins: kostenlose Dunkle Kammer.']
+    title: 'Schatten-Reifekammer',
+    short: 'Verlust-Freispiele lassen den Schimmelgrad höher wachsen. Riskanter, dunkler, mit größerem Gewinnpotenzial.',
+    levels: ['Null-Freispiele erhöhen die Reife stärker.', 'Reifecap steigt auf 3,0×.', 'Reifecap steigt auf 4,0× und ein Null-Freispin dreht die schwächste Walze neu.', 'Schattenkammer: Reifecap steigt auf 7,5×; lange Verlustläufe können riesig werden.']
   },
   'sechseck-orden': {
     title: 'Geometriegericht',
-    short: 'Symmetrien und Verlustspins werden großzügiger bewertet.',
-    levels: ['Symmetrien werden sichtbar.', 'Aufsteigende Dreier zahlen 4x Einsatz.', 'Alle 50 Spins: Verlustspin wird neu bewertet.', 'Alle 45 Min/90 Spins: Hexagon-Urteil nimmt höchste legale Bewertung.']
+    short: 'Die sichtbaren oberen, mittleren und unteren Felder werden als 3×3-Geometrie gelesen und spektakulär markiert.',
+    levels: ['Einfache Linien, Spalten und Diagonalen werden erkannt und markiert.', 'Saubere Geometrie auf einem Verlustspin zahlt 3× Einsatz.', 'Dreieck, Ecke und Zickzack zahlen bis 5× Einsatz.', 'Geometriegericht: besondere Muster zahlen bis 8× Einsatz mit großem Sechseck-Urteil.']
   },
   'fondue-fonds': {
     title: 'Couture-Kapital',
@@ -4793,7 +4833,7 @@ const SEAL_ABILITIES = {
   'weisses-durag': {
     title: 'Walhalla-Segen',
     short: 'Roquefort, Parmigiano und Golden sammeln Punkte für Segen und einen epischen Walhalla-Ruf.',
-    levels: ['Walhalla-Flair für Profil und Big Wins.', 'Roquefort, Parmigiano und Golden sammeln Walhalla-Punkte.', '10 Punkte: Segen laden, nächster Big Win bekommt +20%.', '20 Punkte: Walhalla-Ruf, 6 Spins mit Roquefort-/Parmigiano-/Golden-Boost.']
+    levels: ['Walhalla-Flair für Profil und Big Wins.', 'Roquefort, Parmigiano und Golden sammeln Walhalla-Punkte.', '10 Punkte: Segen laden, nächster Big Win bekommt +20%.', '20 Punkte: Walhalla-Ruf, 5 Event-Spins nur mit Roquefort, Parmigiano und Golden.']
   }
 };
 let currentProfile = { seals: [], activeSeal: '', sealShards: 0, sealGlow: {}, abilityState: {}, openedBoxes: 0 };
@@ -5373,6 +5413,19 @@ function schimmelbruchIconValue(cheese) {
   return (Number(cheese.threeX || 0) * 10) + Number(cheese.twoX || 0);
 }
 
+function blackDuragRipenCap(lvl) {
+  if (lvl >= 3) return 7.5;
+  if (lvl >= 2) return 4.0;
+  if (lvl >= 1) return 3.0;
+  return FREESPIN_RIPEN_CAP;
+}
+
+function blackDuragRipenStep(lvl) {
+  if (lvl >= 3) return 0.85;
+  if (lvl >= 2) return 0.75;
+  return 0.65;
+}
+
 function pickSchimmelbruchReel(results) {
   const ranked = results
     .map((cheese, index) => ({ index, value: schimmelbruchIconValue(cheese) }))
@@ -5546,16 +5599,119 @@ function weightedCheeseWithBoost(boosts = []) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+function weightedFromPool(entries) {
+  const pool = [];
+  entries.forEach(entry => {
+    const cheese = cheeseById(entry.id);
+    if (!cheese) return;
+    for (let i = 0; i < Math.max(1, Math.floor(entry.weight || 1)); i++) pool.push(cheese);
+  });
+  return pool[Math.floor(Math.random() * pool.length)] || rndCheese();
+}
+
+function walhallaCallActive() {
+  return activeSealId() === 'weisses-durag'
+    && hasActiveGameplaySeal('weisses-durag')
+    && sealLevel('weisses-durag') >= 3
+    && abilityNumber('walhallaEventSpins') > 0
+    && !freespinActive;
+}
+
+function walhallaEventCheese() {
+  return weightedFromPool([
+    { id: 'roquefort', weight: 42 },
+    { id: 'parmesan', weight: 42 },
+    { id: 'golden', weight: 16 }
+  ]);
+}
+
 function makeSpinResults() {
+  if (walhallaCallActive()) {
+    return [walhallaEventCheese(), walhallaEventCheese(), walhallaEventCheese()];
+  }
   const boosts = [];
   if (activeSealId() === 'oligarchengedeck' && hasActiveGameplaySeal('oligarchengedeck')) {
     const multiplier = favoriteCheeseWeightMultiplier();
     if (multiplier > 1) boosts.push({ id: favoriteCheeseId(), multiplier });
   }
-  if (activeSealId() === 'weisses-durag' && hasActiveGameplaySeal('weisses-durag') && sealLevel('weisses-durag') >= 3 && abilityNumber('walhallaEventSpins') > 0 && !freespinActive) {
-    boosts.push({ id: 'roquefort', multiplier: 1.8 }, { id: 'parmesan', multiplier: 1.8 }, { id: 'golden', multiplier: 1.8, allowGolden: true });
-  }
   return [weightedCheeseWithBoost(boosts), weightedCheeseWithBoost(boosts), weightedCheeseWithBoost(boosts)];
+}
+
+function visibleReelGrid(results) {
+  return [
+    [reel0TopSym, midReelTopSym, reel2TopSym],
+    [results[0], results[1], results[2]],
+    [reel0BotSym, midReelBotSym, reel2BotSym]
+  ];
+}
+
+function sameCheeseLine(cells) {
+  return cells.every(Boolean) && cells.every(cell => cell.id === cells[0].id);
+}
+
+function uniqueCheeseLine(cells) {
+  if (!cells.every(Boolean)) return false;
+  return new Set(cells.map(cell => cell.id)).size === cells.length;
+}
+
+function geometricShapeCandidates(grid, lvl) {
+  const shapes = [
+    { name: 'obere Linie', type: 'Linie', cells: [[0,0], [0,1], [0,2]], min: 0 },
+    { name: 'mittlere Linie', type: 'Linie', cells: [[1,0], [1,1], [1,2]], min: 0 },
+    { name: 'untere Linie', type: 'Linie', cells: [[2,0], [2,1], [2,2]], min: 0 },
+    { name: 'linke Säule', type: 'Säule', cells: [[0,0], [1,0], [2,0]], min: 0 },
+    { name: 'mittlere Säule', type: 'Säule', cells: [[0,1], [1,1], [2,1]], min: 0 },
+    { name: 'rechte Säule', type: 'Säule', cells: [[0,2], [1,2], [2,2]], min: 0 },
+    { name: 'Diagonale', type: 'Diagonale', cells: [[0,0], [1,1], [2,2]], min: 0 },
+    { name: 'Gegendiagonale', type: 'Diagonale', cells: [[0,2], [1,1], [2,0]], min: 0 },
+    { name: 'Dreieck', type: 'Dreieck', cells: [[0,0], [0,2], [1,1]], min: 2 },
+    { name: 'Ecke', type: 'Ecke', cells: [[0,0], [1,0], [1,1]], min: 2 },
+    { name: 'Zickzack', type: 'Zickzack', cells: [[0,0], [1,1], [2,0]], min: 2 },
+    { name: 'Sechseck fast geschafft', type: 'Sechseck', cells: [[0,1], [1,0], [1,2]], min: 3 }
+  ];
+  return shapes
+    .filter(shape => lvl >= shape.min)
+    .map(shape => {
+      const cells = shape.cells.map(([r, c]) => grid[r]?.[c]);
+      const same = sameCheeseLine(cells);
+      const unique = uniqueCheeseLine(cells);
+      if (!same && !(lvl >= 2 && unique)) return null;
+      const cheese = same ? cells[0] : null;
+      const richness = same ? schimmelbruchIconValue(cheese) : cells.reduce((sum, cell) => sum + schimmelbruchIconValue(cell), 0) / 8;
+      const tier = shape.min >= 3 ? 3 : shape.min >= 2 ? 2 : 1;
+      return { ...shape, same, unique, cheese, richness, tier };
+    })
+    .filter(Boolean)
+    .sort((a, b) => (b.tier - a.tier) || (b.richness - a.richness));
+}
+
+function detectHexGeometry(results) {
+  const sealId = activeSealId();
+  const lvl = sealLevel(sealId);
+  if (sealId !== 'sechseck-orden' || !hasActiveGameplaySeal('sechseck-orden')) return null;
+  const grid = visibleReelGrid(results);
+  const [best] = geometricShapeCandidates(grid, lvl);
+  if (!best) return null;
+  const multiplier = lvl >= 3 && best.tier >= 3 ? 8 : lvl >= 2 ? 5 : lvl >= 1 ? 3 : 0;
+  return { ...best, grid, multiplier };
+}
+
+function showHexGeometry(result) {
+  if (!result) return;
+  const frame = document.getElementById('reels-frame');
+  if (frame) {
+    frame.classList.add('hex-vision-mode');
+    setTimeout(() => frame.classList.remove('hex-vision-mode'), 1700);
+  }
+  const reelIndexes = Array.from(new Set(result.cells.map(([, c]) => c)));
+  reelIndexes.forEach(i => document.getElementById(`reel-${i}`)?.classList.add('hex-line'));
+  setTimeout(() => reelIndexes.forEach(i => document.getElementById(`reel-${i}`)?.classList.remove('hex-line')), 1700);
+  const cheeseText = result.cheese ? `${result.cheese.emoji} ${result.cheese.name}` : 'drei verschiedene Käse';
+  showHexagonOverlay({
+    emoji: '⬢',
+    quote: `„${result.type}: ${cheeseText} im ${result.name}!”`,
+    sub: result.multiplier > 0 ? `Geometriegericht zahlt ${result.multiplier}× Einsatz.` : 'Geometrie erkannt. YoungFährmann nickt.'
+  });
 }
 
 function forceVisibleReelResult(results, idx, cheese) {
@@ -5614,6 +5770,20 @@ function applyBadgePreWinEffects(results, spinBet, win) {
     }
   }
 
+  if (sealId === 'sechseck-orden' && nextWin.amount <= 0) {
+    const geometry = detectHexGeometry(results);
+    if (geometry && geometry.multiplier > 0) {
+      nextWin = makeWin({
+        amount: spinBet * geometry.multiplier,
+        msg: `⬢ Geometriegericht: ${geometry.type} im ${geometry.name}! (${geometry.multiplier}×)`,
+        winReels: Array.from(new Set(geometry.cells.map(([, c]) => c))).sort((a, b) => a - b),
+        comboId: 'hex-geometry',
+        rank: 46 + geometry.multiplier,
+        geometry
+      });
+    }
+  }
+
   return nextWin;
 }
 
@@ -5623,7 +5793,37 @@ function spendActiveModeCounters(results, win) {
   if (activeSealId() === 'senf-depot' && abilityNumber('senfTakeoverSpins') > 0 && !freespinActive) state.senfTakeoverSpins = abilityNumber('senfTakeoverSpins') - 1;
   if (activeSealId() === 'senf-depot' && state.scharferSpinReady) state.scharferSpinReady = false;
   if (activeSealId() === 'weisses-durag' && abilityNumber('walhallaEventSpins') > 0 && !freespinActive) state.walhallaEventSpins = abilityNumber('walhallaEventSpins') - 1;
+  if (!walhallaCallActive()) document.getElementById('reels-frame')?.classList.remove('walhalla-call-mode');
   queueAbilityStateSync();
+}
+
+function applyBarbourLossProtection(spinBet) {
+  if (activeSealId() !== 'zweitbarbour' || !hasActiveGameplaySeal('zweitbarbour') || freespinActive || spinBet < 500) return false;
+  const lvl = sealLevel('zweitbarbour');
+  const state = abilityState();
+  const now = Date.now();
+  const cooldownReady = Number(state.barbourCooldownUntil || 0) <= now;
+  let refundRate = lvl >= 1 ? 0.15 : 0.10;
+  let label = 'Old-Money-Verlustschutz';
+  let cooldown = 0;
+
+  if (lvl >= 3 && spinBet >= 1000 && cooldownReady) {
+    refundRate = 0.50;
+    label = 'Zweitbarbour-Klausel';
+    cooldown = 60 * 60 * 1000;
+  } else if (lvl >= 2 && spinBet >= 1000 && cooldownReady) {
+    refundRate = 0.35;
+    label = 'Kragen hoch';
+    cooldown = 12 * 60 * 1000;
+  }
+
+  const refund = Math.max(1, Math.floor(spinBet * refundRate));
+  credits += refund;
+  if (cooldown > 0) state.barbourCooldownUntil = now + cooldown;
+  queueAbilityStateSync(true);
+  refreshUI();
+  setResult(`🧥 ${label}: ${refund.toLocaleString('de-DE')}🪙 Verlust abgefedert.`, 'win');
+  return true;
 }
 
 function applyBadgePostSpinEffects(results, spinBet, win, spinStartedInFreespins) {
@@ -5712,13 +5912,17 @@ async function doSpin() {
 
   [0,1,2].forEach(i => {
     const reel = document.getElementById(`reel-${i}`);
-    reel.classList.remove('winning', 'wild-win', 'plate-locked', 'plate-open', 'melt-hit', 'schimmelbruch-target');
+    reel.classList.remove('winning', 'wild-win', 'plate-locked', 'plate-open', 'melt-hit', 'schimmelbruch-target', 'walhalla-lit', 'hex-line');
     delete reel.dataset.plateSpin;
   });
+  const frame = document.getElementById('reels-frame');
+  if (frame) frame.classList.toggle('walhalla-call-mode', walhallaCallActive());
 
   const fsLabel = freespinActive
     ? `💙 REIFEKAMMER dreht… ${freespinsLeft} übrig · Schimmelgrad ${formatMulti(freespinRipenMulti)}`
-    : spinMsgPool[Math.floor(Math.random() * spinMsgPool.length)];
+    : (walhallaCallActive()
+      ? `🤍 WALHALLA-RUF dreht… ${6 - abilityNumber('walhallaEventSpins')}/5 · Nur Roquefort, Parmigiano und Golden`
+      : spinMsgPool[Math.floor(Math.random() * spinMsgPool.length)]);
   setResult(fsLabel, freespinActive ? 'freespin' : '');
 
   const results = makeSpinResults();
@@ -5760,8 +5964,8 @@ async function doSpin() {
 
     if (win.amount <= 0 && activeSealId() === 'schwarzes-durag' && hasActiveGameplaySeal('schwarzes-durag') && sealLevel('schwarzes-durag') >= 2 && !freespinNullRerollUsed) {
       freespinNullRerollUsed = true;
-      const idx = Math.floor(Math.random() * 3);
-      setResult('🌑 Schwarzes Durag verdeckt einen Null-Freispin...', 'freespin');
+      const idx = pickSchimmelbruchReel(results);
+      setResult('🌑 Schwarzes Durag verdeckt die schwächste Walze...', 'freespin');
       const next = rndCheese();
       results[idx] = next;
       await spinReel(idx, next, turboActive ? 900 : 1350);
@@ -5802,6 +6006,10 @@ async function doSpin() {
       setResult(`✅ ${win.msg}  +${win.amount} 🪙`, 'win');
       playWinSound(false);
     }
+    if (win.geometry) setTimeout(() => showHexGeometry(win.geometry), 450);
+    if (walhallaCallActive()) {
+      win.winReels.forEach(i => document.getElementById(`reel-${i}`)?.classList.add('walhalla-lit'));
+    }
     addTicker(results, win, freespinActive);
     if (!schimmelEligible) updateLeaderboard(playerName, credits, win.amount);
     if (freespinActive) {
@@ -5822,7 +6030,14 @@ async function doSpin() {
     }
     document.getElementById('win-val').textContent = '0';
     setResult(freespinActive ? `💙 Kein Gewinn — der Roquefort reift weiter auf ${formatMulti(freespinRipenMulti)}.` : lossMsg(), freespinActive ? 'freespin' : '');
-    playLossSound();
+    let protectedLoss = false;
+    if (!freespinActive) {
+      const geometry = detectHexGeometry(results);
+      if (geometry && geometry.multiplier <= 0) setTimeout(() => showHexGeometry(geometry), 250);
+      protectedLoss = applyBarbourLossProtection(spinBet);
+    }
+    if (protectedLoss) playWinSound(false);
+    else playLossSound();
     addTicker(results, null, freespinActive);
     updateLeaderboard(playerName, credits, 0);
   }
@@ -6119,14 +6334,10 @@ function startFreespinRound(options = {}) {
   const sealId = activeSealId();
   const lvl = sealLevel(sealId);
   const gameplayActive = hasActiveGameplaySeal(sealId);
-  const isRoquefortTriggered = options.source === 'roquefort' || (!options.bought && !options.source);
   let count = Math.max(1, Math.floor(Number(options.count || FREESPIN_COUNT)));
   if (gameplayActive && sealId === 'roquefort-patina') {
     if (lvl >= 1) count = Math.max(count, 10);
     else count = Math.max(count, 9);
-  } else if (gameplayActive && isRoquefortTriggered) {
-    if (sealId === 'schwarzes-durag' && lvl >= 1) count = Math.max(count, 10);
-    else if (sealId === 'schwarzes-durag' && lvl >= 0) count = Math.max(count, 9);
   }
   if (gameplayActive && sealId === 'roquefort-patina' && lvl >= 3 && abilityState().grandeCaveReady) {
     count = Math.max(count, 12);
@@ -6146,8 +6357,14 @@ function startFreespinRound(options = {}) {
   freespinRoundSource = options.source || (freespinBought ? 'bought' : 'roquefort');
   resetFreespinSessionStats(freespinSourceLabel(freespinRoundSource));
   freespinRipenMulti = Math.max(FREESPIN_START_MULTI, Number(options.ripenStart || FREESPIN_START_MULTI));
-  freespinCurrentCap = Math.max(FREESPIN_RIPEN_CAP, Number(options.ripenCap || ((gameplayActive && sealId === 'roquefort-patina' && lvl >= 1) ? 2.55 : FREESPIN_RIPEN_CAP)));
-  freespinCurrentStep = Math.max(FREESPIN_RIPEN_STEP, Number(options.ripenStep || ((gameplayActive && (sealId === 'schwarzes-durag' || sealId === 'roquefort-patina') && lvl >= 1) ? 0.65 : FREESPIN_RIPEN_STEP)));
+  const badgeRipenCap = gameplayActive && sealId === 'schwarzes-durag'
+    ? blackDuragRipenCap(lvl)
+    : ((gameplayActive && sealId === 'roquefort-patina' && lvl >= 1) ? 2.55 : FREESPIN_RIPEN_CAP);
+  const badgeRipenStep = gameplayActive && sealId === 'schwarzes-durag'
+    ? blackDuragRipenStep(lvl)
+    : ((gameplayActive && sealId === 'roquefort-patina' && lvl >= 1) ? 0.65 : FREESPIN_RIPEN_STEP);
+  freespinCurrentCap = Math.max(FREESPIN_RIPEN_CAP, Number(options.ripenCap || badgeRipenCap));
+  freespinCurrentStep = Math.max(FREESPIN_RIPEN_STEP, Number(options.ripenStep || badgeRipenStep));
   freespinPlateCount = 0;
   freespinSchimmelbruchUsed = false;
   freespinNullRerollUsed = false;
@@ -6207,10 +6424,10 @@ function endFreespins() {
   freespinSchimmelbruchUsed = false;
   freespinNullRerollUsed = false;
   document.getElementById('reels-frame').classList.remove('freespin-mode');
-  document.getElementById('reels-frame').classList.remove('ripen-150', 'ripen-175', 'ripen-200', 'ripen-225', 'schimmelbruch');
+  document.getElementById('reels-frame').classList.remove('ripen-150', 'ripen-175', 'ripen-200', 'ripen-225', 'schimmelbruch', 'walhalla-call-mode', 'hex-vision-mode');
   [0,1,2].forEach(i => {
     const reel = document.getElementById(`reel-${i}`);
-    reel.classList.remove('plate-locked', 'plate-open', 'melt-hit', 'schimmelbruch-target');
+    reel.classList.remove('plate-locked', 'plate-open', 'melt-hit', 'schimmelbruch-target', 'walhalla-lit', 'hex-line');
     delete reel.dataset.plateSpin;
   });
   const spinBtn = document.getElementById('spin-btn');
@@ -6291,8 +6508,8 @@ function betterWin(a, b) {
   return (b.rank || 0) > (a.rank || 0) ? b : a;
 }
 
-function makeWin({ amount, msg, winReels, isJackpot = false, isWild = false, triggerFreespins = false, triggerSenfbombe = false, comboId = null, rank = 1 }) {
-  return { amount: Math.max(0, Math.floor(amount || 0)), msg, winReels: winReels || [], isJackpot, isWild, triggerFreespins, triggerSenfbombe, comboId, rank };
+function makeWin({ amount, msg, winReels, isJackpot = false, isWild = false, triggerFreespins = false, triggerSenfbombe = false, comboId = null, rank = 1, ...extra }) {
+  return { amount: Math.max(0, Math.floor(amount || 0)), msg, winReels: winReels || [], isJackpot, isWild, triggerFreespins, triggerSenfbombe, comboId, rank, ...extra };
 }
 
 function calcWin(results, betAmt, options = {}) {
@@ -7421,10 +7638,23 @@ function abilityStatusHTML(sealId, glow) {
     bits.push(`Sauer-Konto: ${abilityNumber('babybelSauerBank').toLocaleString('de-DE')}🪙`);
     bits.push(`2× Babybel zieht Einsatz ×${5 + Math.min(3, glow)} ein`);
     if (glow >= 2) bits.push(`3× Babybel zahlt Bank ×${glow >= 3 ? 5 : 3} zurück`);
+  } else if (sealId === 'zweitbarbour') {
+    bits.push(`Verlustschutz ab Einsatz 500: ${glow >= 1 ? '15%' : '10%'} Rückgabe`);
+    if (glow >= 2) bits.push(`Kragen-Cooldown: ${formatAbilityCooldown(state.barbourCooldownUntil)}`);
+    if (glow >= 3) bits.push('Zweitbarbour-Klausel: großer Verlust kann 50% zurückgeben');
+  } else if (sealId === 'schwarzes-durag') {
+    bits.push(`Reifecap: ${formatMulti(blackDuragRipenCap(glow))}`);
+    bits.push(`Null-Freispiele reifen um ${formatMulti(blackDuragRipenStep(glow))}`);
+    if (glow >= 2) bits.push('Erster Null-Freispin dreht die schwächste Walze neu');
+    if (glow >= 3) bits.push('Schattenkammer aktiv: langer Verlustlauf kann riesig werden');
+  } else if (sealId === 'sechseck-orden') {
+    bits.push('Geometrie-Lupe: sichtbares 3×3 über den Walzen');
+    if (glow >= 1) bits.push(`Geometrie-Bonus: bis ${glow >= 3 ? 8 : glow >= 2 ? 5 : 3}× Einsatz auf Verlustspins`);
+    if (glow >= 2) bits.push('Erkennt Linien, Säulen, Diagonalen, Dreiecke, Ecken und Zickzack');
   } else if (sealId === 'weisses-durag') {
     bits.push(`Walhalla-Punkte: ${abilityNumber('walhallaPoints')}`);
     if (state.walhallaBlessingReady) bits.push('Segen geladen: nächster Big Win +20%');
-    if (abilityNumber('walhallaEventSpins') > 0) bits.push(`Walhalla-Ruf: ${abilityNumber('walhallaEventSpins')} Spins übrig`);
+    if (abilityNumber('walhallaEventSpins') > 0) bits.push(`Walhalla-Ruf: ${abilityNumber('walhallaEventSpins')} Event-Spins übrig`);
   } else if (sealId === 'roquefort-patina') {
     const patina = cheeseById(patinaCheeseId());
     bits.push(`Patina-Käse: ${patina ? `${patina.emoji} ${patina.name}` : 'nicht gewählt'}`);
@@ -7559,13 +7789,12 @@ function activateWalhallaBlessing() {
 function activateDarkChamber() {
   if (activeSealId() !== 'schwarzes-durag' || !hasActiveGameplaySeal('schwarzes-durag') || sealLevel() < 3 || freespinActive || freespinPending || spinning) return;
   const state = abilityState();
-  const ready = Number(state.darkChamberCooldownUntil || 0) <= Date.now() || abilityNumber('duragSpinCounter') >= 150;
+  const ready = Number(state.darkChamberCooldownUntil || 0) <= Date.now();
   if (!ready) return;
-  state.darkChamberCooldownUntil = Date.now() + 2 * 60 * 60 * 1000;
-  state.duragSpinCounter = 0;
+  state.darkChamberCooldownUntil = Date.now() + 90 * 60 * 1000;
   queueAbilityStateSync(true);
   setResult('🌑 Dunkle Kammer geöffnet: 12 Freispiele, mehr Reife, früheres Risiko.', 'freespin');
-  setTimeout(() => startFreespinRound({ bet, count: 12, source: 'dark-chamber', ripenStart: 1.75, ripenCap: 2.75, ripenStep: 0.65 }), 600);
+  setTimeout(() => startFreespinRound({ bet, count: 10, source: 'dark-chamber', ripenStart: 1.75, ripenCap: 7.5, ripenStep: 0.85 }), 600);
 }
 
 function activateGrandeCave() {
@@ -7584,12 +7813,12 @@ function activateWalhallaCall() {
   if (activeSealId() !== 'weisses-durag' || !hasActiveGameplaySeal('weisses-durag') || sealLevel() < 3) return;
   const state = abilityState();
   if (abilityNumber('walhallaPoints') < 20 || abilityNumber('walhallaEventSpins') > 0) return;
-  state.walhallaEventSpins = 6;
+  state.walhallaEventSpins = 5;
   state.walhallaPoints = abilityNumber('walhallaPoints') - 20;
   queueAbilityStateSync(true);
   renderPrestigePanel();
-  showWalhallaAnimation('WALHALLA-RUF', '6 Spins: Roquefort, Parmigiano und Golden steigen ins Licht.');
-  setResult('🤍 WALHALLA-RUF aktiv: 6 Spins mit Roquefort-/Parmigiano-/Golden-Boost.', 'jackpot');
+  showWalhallaAnimation('WALHALLA-RUF', '5 Spins: Nur Roquefort, Parmigiano und Golden drehen im heiligen Licht.');
+  setResult('🤍 WALHALLA-RUF aktiv: 5 Event-Spins nur mit Roquefort, Parmigiano und Golden.', 'jackpot');
 }
 
 function activateLiquidityRound() {
@@ -8871,13 +9100,22 @@ function acceptOligarchengedeck() {
 
 // ── HEXAGON OVERLAY ──────────────────────────────────────────
 let hexagonTimer = null;
-function showHexagonOverlay() {
+function showHexagonOverlay(detail = {}) {
   const overlay = document.getElementById('hexagon-overlay');
+  if (!overlay) return;
+  const emoji = overlay.querySelector('.hex-emoji');
+  const quote = overlay.querySelector('.hex-quote');
+  const sub = overlay.querySelector('.hex-sub');
+  if (emoji) emoji.textContent = detail.emoji || '🏔️';
+  if (quote) quote.textContent = detail.quote || '„Also ich mag es am liebsten aus dem Sechseck!"';
+  if (sub) sub.textContent = detail.sub || '3× Emmentaler — Hexagongewinn! 🧀';
   // Animation zurücksetzen
   const wrap = overlay.querySelector('.hex-wrap');
-  wrap.style.animation = 'none';
-  void wrap.offsetHeight;
-  wrap.style.animation = '';
+  if (wrap) {
+    wrap.style.animation = 'none';
+    void wrap.offsetHeight;
+    wrap.style.animation = '';
+  }
   overlay.classList.add('show');
   clearTimeout(hexagonTimer);
   hexagonTimer = setTimeout(closeHexagon, 4200);
