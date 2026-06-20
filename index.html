@@ -615,6 +615,62 @@ body {
 .reel.hex-line {
   box-shadow: 0 0 0 2px rgba(120,220,255,0.74), 0 0 24px rgba(120,220,255,0.74) !important;
 }
+.reel-item.hex-cell {
+  position: relative;
+  outline: 2px solid rgba(120,220,255,0.92);
+  box-shadow: inset 0 0 22px rgba(120,220,255,0.5), 0 0 24px rgba(120,220,255,0.7);
+  animation: hexCellPulse 0.7s ease-in-out infinite alternate;
+}
+.hex-geometry-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 44;
+  pointer-events: none;
+  overflow: visible;
+}
+.hex-geometry-layer svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.hex-geometry-layer path {
+  fill: none;
+  stroke: rgba(130,235,255,0.95);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 8px rgba(120,220,255,0.9)) drop-shadow(0 0 18px rgba(255,215,0,0.34));
+  stroke-dasharray: 10 7;
+  animation: hexLineMarch 0.78s linear infinite;
+}
+.hex-geometry-layer circle {
+  fill: rgba(255,255,255,0.92);
+  stroke: rgba(255,215,0,0.86);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 8px rgba(255,255,255,0.9));
+}
+.hex-verdict-chip {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  z-index: 45;
+  max-width: calc(100% - 28px);
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(4,18,34,0.92);
+  border: 1px solid rgba(120,220,255,0.7);
+  color: #dffaff;
+  font-size: 0.66em;
+  font-family: Arial, sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  text-align: center;
+  box-shadow: 0 0 24px rgba(120,220,255,0.45);
+  pointer-events: none;
+  animation: hexVerdictIn 1.8s ease-out forwards;
+}
 @keyframes reelWin {
   0%,100% { box-shadow: 0 0 0 2px var(--gold), 0 0 18px rgba(255,215,0,0.7); }
   50%      { box-shadow: 0 0 0 3px var(--gold), 0 0 40px rgba(255,215,0,0.95); }
@@ -638,6 +694,18 @@ body {
 @keyframes walhallaReelPulse {
   from { filter: brightness(1); transform: translateY(0); }
   to   { filter: brightness(1.28); transform: translateY(-2px); }
+}
+@keyframes hexCellPulse {
+  from { filter: brightness(1); transform: scale(1); }
+  to   { filter: brightness(1.24); transform: scale(1.025); }
+}
+@keyframes hexLineMarch {
+  to { stroke-dashoffset: -34; }
+}
+@keyframes hexVerdictIn {
+  0% { opacity: 0; transform: translate(-50%, 8px) scale(0.94); }
+  14%,78% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -4px) scale(0.98); }
 }
 
 /* ── FREE SPIN BANNER ── */
@@ -5323,9 +5391,10 @@ function rndCheese() {
 function buildStrip(reelIdx, result) {
   const strip = document.getElementById(`strip-${reelIdx}`);
   const items = [];
-  for (let i = 0; i < PRE_SPIN; i++) items.push(rndCheese());
-  const topItem = rndCheese();
-  const botItem = rndCheese();
+  const visualCheese = walhallaCallActive() ? walhallaEventCheese : rndCheese;
+  for (let i = 0; i < PRE_SPIN; i++) items.push(visualCheese());
+  const topItem = visualCheese();
+  const botItem = visualCheese();
   items.push(topItem);   // oben (sichtbar)
   items.push(result);    // MITTE = Ergebnis
   items.push(botItem);   // unten (sichtbar)
@@ -5656,18 +5725,18 @@ function uniqueCheeseLine(cells) {
 
 function geometricShapeCandidates(grid, lvl) {
   const shapes = [
-    { name: 'obere Linie', type: 'Linie', cells: [[0,0], [0,1], [0,2]], min: 0 },
-    { name: 'mittlere Linie', type: 'Linie', cells: [[1,0], [1,1], [1,2]], min: 0 },
-    { name: 'untere Linie', type: 'Linie', cells: [[2,0], [2,1], [2,2]], min: 0 },
-    { name: 'linke Säule', type: 'Säule', cells: [[0,0], [1,0], [2,0]], min: 0 },
-    { name: 'mittlere Säule', type: 'Säule', cells: [[0,1], [1,1], [2,1]], min: 0 },
-    { name: 'rechte Säule', type: 'Säule', cells: [[0,2], [1,2], [2,2]], min: 0 },
-    { name: 'Diagonale', type: 'Diagonale', cells: [[0,0], [1,1], [2,2]], min: 0 },
-    { name: 'Gegendiagonale', type: 'Diagonale', cells: [[0,2], [1,1], [2,0]], min: 0 },
-    { name: 'Dreieck', type: 'Dreieck', cells: [[0,0], [0,2], [1,1]], min: 2 },
-    { name: 'Ecke', type: 'Ecke', cells: [[0,0], [1,0], [1,1]], min: 2 },
-    { name: 'Zickzack', type: 'Zickzack', cells: [[0,0], [1,1], [2,0]], min: 2 },
-    { name: 'Sechseck fast geschafft', type: 'Sechseck', cells: [[0,1], [1,0], [1,2]], min: 3 }
+    { name: 'oberen Linie', type: 'Linie', cells: [[0,0], [0,1], [0,2]], min: 0 },
+    { name: 'Gewinnlinie', type: 'Linie', cells: [[1,0], [1,1], [1,2]], min: 0 },
+    { name: 'unteren Linie', type: 'Linie', cells: [[2,0], [2,1], [2,2]], min: 0 },
+    { name: 'linken Säule', type: 'Säule', cells: [[0,0], [1,0], [2,0]], min: 0 },
+    { name: 'mittleren Säule', type: 'Säule', cells: [[0,1], [1,1], [2,1]], min: 0 },
+    { name: 'rechten Säule', type: 'Säule', cells: [[0,2], [1,2], [2,2]], min: 0 },
+    { name: 'fallenden Diagonale', type: 'Diagonale', cells: [[0,0], [1,1], [2,2]], min: 0 },
+    { name: 'steigenden Diagonale', type: 'Diagonale', cells: [[0,2], [1,1], [2,0]], min: 0 },
+    { name: 'Dachfigur', type: 'Dreieck', cells: [[0,0], [0,2], [1,1]], min: 2 },
+    { name: 'linken Ecke', type: 'Ecke', cells: [[0,0], [1,0], [1,1]], min: 2 },
+    { name: 'Zickzack-Achse', type: 'Zickzack', cells: [[0,0], [1,1], [2,0]], min: 2 },
+    { name: 'Sechseck-Klammer', type: 'Sechseck', cells: [[0,1], [1,0], [1,2]], min: 3 }
   ];
   return shapes
     .filter(shape => lvl >= shape.min)
@@ -5696,22 +5765,83 @@ function detectHexGeometry(results) {
   return { ...best, grid, multiplier };
 }
 
+function clearHexGeometry() {
+  document.querySelectorAll('.reel-item.hex-cell').forEach(el => el.classList.remove('hex-cell'));
+  document.querySelectorAll('.reel.hex-line').forEach(el => el.classList.remove('hex-line'));
+  document.querySelector('.hex-geometry-layer')?.remove();
+  document.querySelector('.hex-verdict-chip')?.remove();
+  document.getElementById('reels-frame')?.classList.remove('hex-vision-mode');
+}
+
+function hexCellPoint(row, col) {
+  const wrapper = document.querySelector('.reels-wrapper');
+  const reel = document.getElementById(`reel-${col}`);
+  if (!wrapper || !reel) return null;
+  const wrapRect = wrapper.getBoundingClientRect();
+  const reelRect = reel.getBoundingClientRect();
+  const cellH = reelRect.height / 3;
+  return {
+    x: reelRect.left - wrapRect.left + reelRect.width / 2,
+    y: reelRect.top - wrapRect.top + cellH * (row + 0.5)
+  };
+}
+
+function markHexGeometryCells(cells) {
+  cells.forEach(([row, col]) => {
+    const strip = document.getElementById(`strip-${col}`);
+    const item = strip?.children?.[PRE_SPIN + row];
+    item?.classList.add('hex-cell');
+    document.getElementById(`reel-${col}`)?.classList.add('hex-line');
+  });
+}
+
+function drawHexGeometryPath(cells) {
+  const wrapper = document.querySelector('.reels-wrapper');
+  if (!wrapper) return;
+  const points = cells.map(([row, col]) => hexCellPoint(row, col)).filter(Boolean);
+  if (points.length < 2) return;
+  const layer = document.createElement('div');
+  layer.className = 'hex-geometry-layer';
+  const path = points.map((point, idx) => `${idx === 0 ? 'M' : 'L'} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(' ');
+  layer.innerHTML = `<svg aria-hidden="true"><path d="${path}"/>${points.map(point => `<circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="7"/>`).join('')}</svg>`;
+  wrapper.appendChild(layer);
+}
+
+function hexGeometryCopy(result) {
+  const cheeseText = result.cheese ? `${result.cheese.emoji} ${result.cheese.name}` : 'drei verschiedene Käse';
+  const verdict = result.same
+    ? `${result.type} bestätigt: ${cheeseText} in der ${result.name}.`
+    : `${result.type} gelesen: Die ${result.name} ist geordnet.`;
+  const chip = result.multiplier > 0
+    ? `⬢ ${result.type} erkannt · ${result.multiplier}× Einsatz`
+    : `⬢ ${result.type} erkannt`;
+  const sub = result.multiplier > 0
+    ? `Das Geometriegericht spricht: ${result.multiplier}× Einsatz.`
+    : 'Geometrie erkannt. Kein Bonus, aber sauber markiert.';
+  return { verdict, chip, sub };
+}
+
 function showHexGeometry(result) {
   if (!result) return;
+  clearHexGeometry();
   const frame = document.getElementById('reels-frame');
   if (frame) {
     frame.classList.add('hex-vision-mode');
-    setTimeout(() => frame.classList.remove('hex-vision-mode'), 1700);
   }
-  const reelIndexes = Array.from(new Set(result.cells.map(([, c]) => c)));
-  reelIndexes.forEach(i => document.getElementById(`reel-${i}`)?.classList.add('hex-line'));
-  setTimeout(() => reelIndexes.forEach(i => document.getElementById(`reel-${i}`)?.classList.remove('hex-line')), 1700);
-  const cheeseText = result.cheese ? `${result.cheese.emoji} ${result.cheese.name}` : 'drei verschiedene Käse';
-  showHexagonOverlay({
-    emoji: '⬢',
-    quote: `„${result.type}: ${cheeseText} im ${result.name}!”`,
-    sub: result.multiplier > 0 ? `Geometriegericht zahlt ${result.multiplier}× Einsatz.` : 'Geometrie erkannt. YoungFährmann nickt.'
-  });
+  markHexGeometryCells(result.cells);
+  drawHexGeometryPath(result.cells);
+  const copy = hexGeometryCopy(result);
+  const wrapper = document.querySelector('.reels-wrapper');
+  if (wrapper) {
+    const chip = document.createElement('div');
+    chip.className = 'hex-verdict-chip';
+    chip.textContent = copy.chip;
+    wrapper.appendChild(chip);
+  }
+  if (result.multiplier >= 8 || result.type === 'Sechseck') {
+    setTimeout(() => showHexagonOverlay({ emoji: '⬢', quote: copy.verdict, sub: copy.sub }), 520);
+  }
+  setTimeout(clearHexGeometry, 2300);
 }
 
 function forceVisibleReelResult(results, idx, cheese) {
@@ -5826,7 +5956,7 @@ function applyBarbourLossProtection(spinBet) {
   return true;
 }
 
-function applyBadgePostSpinEffects(results, spinBet, win, spinStartedInFreespins) {
+function applyBadgePostSpinEffects(results, spinBet, win, spinStartedInFreespins, spinStartedInWalhalla) {
   const sealId = activeSealId();
   const state = abilityState();
   const counts = id => results.filter(r => r.id === id).length;
@@ -5867,7 +5997,7 @@ function applyBadgePostSpinEffects(results, spinBet, win, spinStartedInFreespins
     }
   }
 
-  if (sealId === 'weisses-durag') {
+  if (sealId === 'weisses-durag' && !spinStartedInWalhalla) {
     const rareHits = counts('roquefort') + counts('parmesan') + counts('golden');
     if (rareHits > 0 && sealLevel('weisses-durag') >= 1) {
       state.walhallaPoints = abilityNumber('walhallaPoints') + rareHits;
@@ -5889,7 +6019,9 @@ async function doSpin() {
 
   // ⚠️ BET LOCK — Einsatz JETZT einfrieren, bevor irgendetwas passiert
   const spinStartedInFreespins = freespinActive;
+  const spinStartedInWalhalla = walhallaCallActive();
   const spinBet = freespinActive ? freespinBet : bet;
+  clearHexGeometry();
 
   if (!freespinActive) {
     if (credits < spinBet) {
@@ -5916,11 +6048,11 @@ async function doSpin() {
     delete reel.dataset.plateSpin;
   });
   const frame = document.getElementById('reels-frame');
-  if (frame) frame.classList.toggle('walhalla-call-mode', walhallaCallActive());
+  if (frame) frame.classList.toggle('walhalla-call-mode', spinStartedInWalhalla);
 
   const fsLabel = freespinActive
     ? `💙 REIFEKAMMER dreht… ${freespinsLeft} übrig · Schimmelgrad ${formatMulti(freespinRipenMulti)}`
-    : (walhallaCallActive()
+    : (spinStartedInWalhalla
       ? `🤍 WALHALLA-RUF dreht… ${6 - abilityNumber('walhallaEventSpins')}/5 · Nur Roquefort, Parmigiano und Golden`
       : spinMsgPool[Math.floor(Math.random() * spinMsgPool.length)]);
   setResult(fsLabel, freespinActive ? 'freespin' : '');
@@ -5941,6 +6073,13 @@ async function doSpin() {
     extraWildIds: activeExtraWildIds(),
     parmigianoDividend: activeSealId() === 'parmigiano-aktie' && hasActiveGameplaySeal('parmigiano-aktie')
   });
+  if (spinStartedInWalhalla && win.triggerFreespins) {
+    win = {
+      ...win,
+      triggerFreespins: false,
+      msg: String(win.msg || '').replace('FREE SPINS! 💙', 'WALHALLA-TREFFER!')
+    };
+  }
   win = applyBadgePreWinEffects(results, spinBet, win);
   const activeRipenMulti = freespinActive ? freespinRipenMulti : 1;
 
@@ -6007,7 +6146,7 @@ async function doSpin() {
       playWinSound(false);
     }
     if (win.geometry) setTimeout(() => showHexGeometry(win.geometry), 450);
-    if (walhallaCallActive()) {
+    if (spinStartedInWalhalla) {
       win.winReels.forEach(i => document.getElementById(`reel-${i}`)?.classList.add('walhalla-lit'));
     }
     addTicker(results, win, freespinActive);
@@ -6045,7 +6184,7 @@ async function doSpin() {
   refreshUI();
   checkMilestones();
   if (spinStartedInFreespins) freespinSessionSpins++;
-  applyBadgePostSpinEffects(results, spinBet, win, spinStartedInFreespins);
+  applyBadgePostSpinEffects(results, spinBet, win, spinStartedInFreespins, spinStartedInWalhalla);
   spendActiveModeCounters(results, win);
   if (schimmelEligible && spinStartedInFreespins) activeSchimmelFromFreespin = true;
 
@@ -6423,6 +6562,7 @@ function endFreespins() {
   freespinPlateCount = 0;
   freespinSchimmelbruchUsed = false;
   freespinNullRerollUsed = false;
+  clearHexGeometry();
   document.getElementById('reels-frame').classList.remove('freespin-mode');
   document.getElementById('reels-frame').classList.remove('ripen-150', 'ripen-175', 'ripen-200', 'ripen-225', 'schimmelbruch', 'walhalla-call-mode', 'hex-vision-mode');
   [0,1,2].forEach(i => {
@@ -9107,8 +9247,8 @@ function showHexagonOverlay(detail = {}) {
   const quote = overlay.querySelector('.hex-quote');
   const sub = overlay.querySelector('.hex-sub');
   if (emoji) emoji.textContent = detail.emoji || '🏔️';
-  if (quote) quote.textContent = detail.quote || '„Also ich mag es am liebsten aus dem Sechseck!"';
-  if (sub) sub.textContent = detail.sub || '3× Emmentaler — Hexagongewinn! 🧀';
+  if (quote) quote.textContent = detail.quote || 'Sechseck bestätigt: Der Emmentaler steht geometrisch sauber.';
+  if (sub) sub.textContent = detail.sub || '3× Emmentaler — Hexagongewinn.';
   // Animation zurücksetzen
   const wrap = overlay.querySelector('.hex-wrap');
   if (wrap) {
