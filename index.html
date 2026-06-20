@@ -621,6 +621,29 @@ body {
   box-shadow: inset 0 0 22px rgba(120,220,255,0.5), 0 0 24px rgba(120,220,255,0.7);
   animation: hexCellPulse 0.7s ease-in-out infinite alternate;
 }
+.reel-item.patina-wild-tile {
+  position: relative;
+  outline: 2px solid rgba(190,225,255,0.78);
+  box-shadow: inset 0 0 24px rgba(220,230,240,0.28), 0 0 20px rgba(120,180,255,0.45);
+  animation: patinaWildFlicker 0.9s ease-in-out infinite alternate;
+}
+.reel-item.patina-wild-tile::after {
+  content: 'PATINA-WILD';
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(18,24,30,0.88);
+  color: #e8f4ff;
+  border: 1px solid rgba(220,230,240,0.72);
+  font-size: 0.5em;
+  font-family: Arial, sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  text-shadow: none;
+}
 .hex-geometry-layer {
   position: absolute;
   inset: 0;
@@ -706,6 +729,11 @@ body {
   0% { opacity: 0; transform: translate(-50%, 8px) scale(0.94); }
   14%,78% { opacity: 1; transform: translate(-50%, 0) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -4px) scale(0.98); }
+}
+@keyframes patinaWildFlicker {
+  0% { filter: grayscale(0.15) brightness(1); }
+  45% { filter: grayscale(0.65) brightness(1.18); }
+  100% { filter: grayscale(0.35) brightness(1.28); }
 }
 
 /* ── FREE SPIN BANNER ── */
@@ -4837,6 +4865,7 @@ const ABILITY_STATE_LABELS = {
   walhallaEventSpins: 'Walhalla-Ruf'
 };
 const FAVORITE_CHEESE_IDS = ['cheddar','babybel','mimolette','brie','emmental','senf','roquefort','parmesan'];
+const WALHALLA_CALL_SPINS = 5;
 const SEAL_ABILITIES = {
   'oligarchengedeck': {
     title: 'Käse-Menü',
@@ -5403,7 +5432,7 @@ function buildStrip(reelIdx, result) {
   if (reelIdx === 1) { midReelTopSym = topItem; midReelBotSym = botItem; }
   if (reelIdx === 2) { reel2TopSym = topItem; reel2BotSym = botItem; }
   strip.innerHTML = items.map(c =>
-    `<div class="reel-item${c.id === 'senf' ? ' senf-tile' : ''}${activeSealId() === 'oligarchengedeck' && c.id === favoriteCheeseId() ? ' favorite-cheese-tile' : ''}" style="background:${c.bg}">
+    `<div class="reel-item${c.id === 'senf' ? ' senf-tile' : ''}${activeSealId() === 'oligarchengedeck' && c.id === favoriteCheeseId() ? ' favorite-cheese-tile' : ''}${activeSealId() === 'roquefort-patina' && hasActiveGameplaySeal('roquefort-patina') && sealLevel('roquefort-patina') >= 2 && freespinActive && c.id === patinaCheeseId() ? ' patina-wild-tile' : ''}" style="background:${c.bg}">
        <div class="ce">${c.emoji}</div>
        <div class="cn">${c.name}</div>
      </div>`
@@ -5682,8 +5711,19 @@ function walhallaCallActive() {
   return activeSealId() === 'weisses-durag'
     && hasActiveGameplaySeal('weisses-durag')
     && sealLevel('weisses-durag') >= 3
-    && abilityNumber('walhallaEventSpins') > 0
+    && walhallaEventSpinsRemaining() > 0
     && !freespinActive;
+}
+
+function walhallaEventSpinsRemaining({ normalize = true } = {}) {
+  const raw = Math.max(0, Math.floor(abilityNumber('walhallaEventSpins')));
+  if (!normalize) return raw;
+  const capped = Math.min(WALHALLA_CALL_SPINS, raw);
+  if (raw !== capped && activeSealId() === 'weisses-durag') {
+    abilityState().walhallaEventSpins = capped;
+    queueAbilityStateSync();
+  }
+  return capped;
 }
 
 function walhallaEventCheese() {
@@ -5922,7 +5962,7 @@ function spendActiveModeCounters(results, win) {
   const state = abilityState();
   if (activeSealId() === 'senf-depot' && abilityNumber('senfTakeoverSpins') > 0 && !freespinActive) state.senfTakeoverSpins = abilityNumber('senfTakeoverSpins') - 1;
   if (activeSealId() === 'senf-depot' && state.scharferSpinReady) state.scharferSpinReady = false;
-  if (activeSealId() === 'weisses-durag' && abilityNumber('walhallaEventSpins') > 0 && !freespinActive) state.walhallaEventSpins = abilityNumber('walhallaEventSpins') - 1;
+  if (activeSealId() === 'weisses-durag' && walhallaEventSpinsRemaining() > 0 && !freespinActive) state.walhallaEventSpins = walhallaEventSpinsRemaining() - 1;
   if (!walhallaCallActive()) document.getElementById('reels-frame')?.classList.remove('walhalla-call-mode');
   queueAbilityStateSync();
 }
@@ -6053,7 +6093,7 @@ async function doSpin() {
   const fsLabel = freespinActive
     ? `💙 REIFEKAMMER dreht… ${freespinsLeft} übrig · Schimmelgrad ${formatMulti(freespinRipenMulti)}`
     : (spinStartedInWalhalla
-      ? `🤍 WALHALLA-RUF dreht… ${6 - abilityNumber('walhallaEventSpins')}/5 · Nur Roquefort, Parmigiano und Golden`
+      ? `🤍 WALHALLA-RUF dreht… ${WALHALLA_CALL_SPINS + 1 - walhallaEventSpinsRemaining()}/${WALHALLA_CALL_SPINS} · Nur Roquefort, Parmigiano und Golden`
       : spinMsgPool[Math.floor(Math.random() * spinMsgPool.length)]);
   setResult(fsLabel, freespinActive ? 'freespin' : '');
 
@@ -6654,7 +6694,6 @@ function makeWin({ amount, msg, winReels, isJackpot = false, isWild = false, tri
 
 function calcWin(results, betAmt, options = {}) {
   const extraWildIds = new Set(options.extraWildIds || []);
-  const isWild = ch => ch?.wild === true || extraWildIds.has(ch?.id);
   const wildCh = CHEESES.find(c => c.wild);
   const candidates = [emptyWin()];
   const byId = id => CHEESES.find(c => c.id === id);
@@ -6664,8 +6703,23 @@ function calcWin(results, betAmt, options = {}) {
     counts[ch.id].indexes.push(idx);
   });
 
-  const wildIndexes = results.map((ch, i) => isWild(ch) ? i : -1).filter(i => i >= 0);
   const naturalWildIndexes = results.map((ch, i) => ch.wild ? i : -1).filter(i => i >= 0);
+  const partnerWildIndexes = results.map((ch, i) => !ch.wild && extraWildIds.has(ch.id) ? i : -1).filter(i => i >= 0);
+
+  function usableWildIndexesFor(cheese, naturalCount, targetCount) {
+    if (naturalCount <= 0) return [];
+    const needed = Math.max(0, targetCount - naturalCount);
+    if (needed <= 0) return [];
+    const naturalWilds = naturalWildIndexes.filter(i => results[i].id !== cheese.id);
+    const partnerWilds = cheese.id === 'golden'
+      ? []
+      : partnerWildIndexes.filter(i => results[i].id !== cheese.id);
+    const chosen = naturalWilds.slice(0, needed);
+    if (chosen.length < needed && partnerWilds.length) {
+      chosen.push(partnerWilds[0]);
+    }
+    return chosen.slice(0, needed);
+  }
 
   if (naturalWildIndexes.length === 3) {
     candidates.push(makeWin({
@@ -6675,12 +6729,21 @@ function calcWin(results, betAmt, options = {}) {
       isWild: true,
       rank: 70
     }));
+  } else if (naturalWildIndexes.length === 2) {
+    candidates.push(makeWin({
+      amount: betAmt * wildCh.twoX,
+      msg: `2× 🥛 Mozzarella Wild! (${wildCh.twoX}×)`,
+      winReels: naturalWildIndexes.slice(0, 2),
+      isWild: true,
+      comboId: 'mozz',
+      rank: 48
+    }));
   }
 
   for (const cheese of CHEESES) {
     if (cheese.id === 'mozz') continue;
     const natural = counts[cheese.id]?.indexes || [];
-    const usableWild = wildIndexes.filter(i => results[i].id !== cheese.id && (cheese.id !== 'golden' || results[i].wild === true));
+    const usableWild = usableWildIndexesFor(cheese, natural.length, 3);
     const total = natural.length + usableWild.length;
     if (total >= 3) {
       const usedWild = Math.max(0, 3 - natural.length);
@@ -6704,7 +6767,7 @@ function calcWin(results, betAmt, options = {}) {
   for (const cheese of CHEESES) {
     if (cheese.twoX <= 0) continue;
     const natural = counts[cheese.id]?.indexes || [];
-    const usableWild = wildIndexes.filter(i => results[i].id !== cheese.id && (cheese.id !== 'golden' || results[i].wild === true));
+    const usableWild = usableWildIndexesFor(cheese, natural.length, 2);
     const total = natural.length + usableWild.length;
     if (total >= 2) {
       const usedWild = Math.max(0, 2 - natural.length);
@@ -7794,7 +7857,7 @@ function abilityStatusHTML(sealId, glow) {
   } else if (sealId === 'weisses-durag') {
     bits.push(`Walhalla-Punkte: ${abilityNumber('walhallaPoints')}`);
     if (state.walhallaBlessingReady) bits.push('Segen geladen: nächster Big Win +20%');
-    if (abilityNumber('walhallaEventSpins') > 0) bits.push(`Walhalla-Ruf: ${abilityNumber('walhallaEventSpins')} Event-Spins übrig`);
+    if (walhallaEventSpinsRemaining() > 0) bits.push(`Walhalla-Ruf: ${walhallaEventSpinsRemaining()} Event-Spins übrig`);
   } else if (sealId === 'roquefort-patina') {
     const patina = cheeseById(patinaCheeseId());
     bits.push(`Patina-Käse: ${patina ? `${patina.emoji} ${patina.name}` : 'nicht gewählt'}`);
@@ -7820,7 +7883,7 @@ function abilityActionsHTML(sealId, glow) {
   } else if (sealId === 'weisses-durag') {
     const points = abilityNumber('walhallaPoints');
     actions.push(`<button type="button" onclick="activateWalhallaBlessing()" ${glow >= 2 && points >= 10 && !abilityState().walhallaBlessingReady ? '' : 'disabled'}>Segen laden (10)</button>`);
-    actions.push(`<button type="button" onclick="activateWalhallaCall()" ${glow >= 3 && points >= 20 && abilityNumber('walhallaEventSpins') <= 0 ? '' : 'disabled'}>Walhalla-Ruf (20)</button>`);
+    actions.push(`<button type="button" onclick="activateWalhallaCall()" ${glow >= 3 && points >= 20 && walhallaEventSpinsRemaining() <= 0 ? '' : 'disabled'}>Walhalla-Ruf (20)</button>`);
   } else if (sealId === 'roquefort-patina') {
     if (glow >= 2) {
       actions.push(cheeseChoiceGridHTML('patina', patinaCheeseId(), 'setPatinaCheese'));
@@ -7952,13 +8015,13 @@ function activateGrandeCave() {
 function activateWalhallaCall() {
   if (activeSealId() !== 'weisses-durag' || !hasActiveGameplaySeal('weisses-durag') || sealLevel() < 3) return;
   const state = abilityState();
-  if (abilityNumber('walhallaPoints') < 20 || abilityNumber('walhallaEventSpins') > 0) return;
-  state.walhallaEventSpins = 5;
+  if (abilityNumber('walhallaPoints') < 20 || walhallaEventSpinsRemaining() > 0) return;
+  state.walhallaEventSpins = WALHALLA_CALL_SPINS;
   state.walhallaPoints = abilityNumber('walhallaPoints') - 20;
   queueAbilityStateSync(true);
   renderPrestigePanel();
-  showWalhallaAnimation('WALHALLA-RUF', '5 Spins: Nur Roquefort, Parmigiano und Golden drehen im heiligen Licht.');
-  setResult('🤍 WALHALLA-RUF aktiv: 5 Event-Spins nur mit Roquefort, Parmigiano und Golden.', 'jackpot');
+  showWalhallaAnimation('WALHALLA-RUF', `${WALHALLA_CALL_SPINS} Spins: Nur Roquefort, Parmigiano und Golden drehen im heiligen Licht.`);
+  setResult(`🤍 WALHALLA-RUF aktiv: ${WALHALLA_CALL_SPINS} Event-Spins nur mit Roquefort, Parmigiano und Golden.`, 'jackpot');
 }
 
 function activateLiquidityRound() {
