@@ -1170,6 +1170,14 @@ body {
   border-color: rgba(255,238,170,0.46);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 0 10px rgba(255,215,0,0.14);
 }
+.seal-badge.glow-1::before {
+  content:'';
+  position:absolute;
+  inset:1px;
+  border-radius:inherit;
+  border:1px solid rgba(255,255,255,0.18);
+  pointer-events:none;
+}
 .seal-badge.glow-2 {
   border-color: rgba(255,225,95,0.72);
   box-shadow: 0 0 14px rgba(255,210,60,0.36), inset 0 0 10px rgba(255,210,60,0.16);
@@ -1205,6 +1213,73 @@ body {
 .seal-badge.just-upgraded,
 .seal-badge.just-revealed {
   animation: sealPop 1.3s cubic-bezier(0.18,0.9,0.22,1.2) both;
+}
+.seal-level-pips {
+  display:inline-flex;
+  gap:3px;
+  align-items:center;
+  margin-left:3px;
+  z-index:1;
+}
+.seal-level-pips i {
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.18);
+  border:1px solid rgba(255,255,255,0.18);
+  box-shadow:0 0 0 rgba(255,215,0,0);
+}
+.seal-level-pips i.on {
+  background:#ffe76f;
+  border-color:rgba(255,255,255,0.72);
+  box-shadow:0 0 8px rgba(255,215,0,0.72);
+}
+.seal-badge.icon-only .seal-level-pips {
+  position:absolute;
+  right:-2px;
+  bottom:-2px;
+  gap:1px;
+  margin:0;
+}
+.seal-badge.icon-only .seal-level-pips i {
+  width:4px;
+  height:4px;
+}
+.splitter-fly {
+  position:fixed;
+  z-index:10030;
+  pointer-events:none;
+  color:#ffe76f;
+  font-weight:900;
+  text-shadow:0 0 10px rgba(255,215,0,0.9);
+  animation: splitterFlight 900ms cubic-bezier(.2,.85,.2,1) forwards;
+}
+.splitter-meter.burst,
+.seal-shards.burst {
+  animation: splitterPulse 720ms ease both;
+}
+.fondue-screen-burst {
+  position:fixed;
+  inset:0;
+  z-index:10020;
+  pointer-events:none;
+  background:radial-gradient(circle at 50% 45%, rgba(255,205,70,0.32), rgba(255,130,20,0.14) 28%, transparent 58%);
+  animation: fondueBurst 900ms ease-out forwards;
+}
+@keyframes splitterFlight {
+  0% { transform:translate(0,0) scale(0.8) rotate(0deg); opacity:0; }
+  15% { opacity:1; }
+  100% { transform:translate(var(--dx), var(--dy)) scale(0.35) rotate(220deg); opacity:0; }
+}
+@keyframes splitterPulse {
+  0% { transform:scale(1); filter:brightness(1); }
+  42% { transform:scale(1.12); filter:brightness(1.75); }
+  100% { transform:scale(1); filter:brightness(1); }
+}
+@keyframes fondueBurst {
+  0% { opacity:0; transform:scale(0.92); }
+  28% { opacity:1; }
+  100% { opacity:0; transform:scale(1.08); }
 }
 @keyframes sealWalhalla {
   from { box-shadow: 0 0 8px rgba(255,215,0,0.3), 0 0 0 rgba(136,200,255,0); }
@@ -3255,10 +3330,13 @@ body {
 .schimmel-amount { font-size:1.3em; color:var(--gold); font-family:'Courier New'; font-weight:bold; margin-bottom:8px; }
 .schimmel-timer-bar  { height:4px; background:rgba(255,255,255,0.1); border-radius:2px; margin-bottom:12px; overflow:hidden; }
 .schimmel-timer-fill { height:100%; background:#5a9a5a; border-radius:2px; transition:width 0.1s linear; }
-.schimmel-btns { display:flex; gap:10px; }
-.schimmel-ja   { flex:1; background:linear-gradient(135deg,#2a7a2a,#1a5a1a); color:#88ff88; border:1px solid #3a8a3a; border-radius:10px; padding:11px; font-size:0.95em; font-weight:bold; cursor:pointer; font-family:Georgia,serif; transition:transform 0.15s; }
+.schimmel-btns { display:flex; gap:10px; flex-wrap:wrap; }
+.schimmel-ja   { flex:1 1 145px; background:linear-gradient(135deg,#2a7a2a,#1a5a1a); color:#88ff88; border:1px solid #3a8a3a; border-radius:10px; padding:11px; font-size:0.95em; font-weight:bold; cursor:pointer; font-family:Georgia,serif; transition:transform 0.15s; }
+.schimmel-ja span { display:block; margin-top:3px; font-size:0.75em; font-family:Arial,sans-serif; color:rgba(235,255,220,0.78); font-weight:700; }
+.schimmel-ja.parm-double { background:linear-gradient(135deg,#57421a,#1f1710); color:#ffe87a; border-color:rgba(255,220,95,0.72); box-shadow:0 0 14px rgba(255,215,0,0.18); }
+.schimmel-ja.parm-triple { background:linear-gradient(135deg,#6f2b12,#24110b); color:#ffd0a4; border-color:rgba(255,130,55,0.78); box-shadow:0 0 16px rgba(255,105,35,0.22); }
 .schimmel-ja:hover { transform:scale(1.04); }
-.schimmel-nein { flex:1; background:transparent; color:rgba(180,190,230,0.55); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:11px; font-size:0.9em; cursor:pointer; font-family:Arial; }
+.schimmel-nein { flex:1 1 145px; background:transparent; color:rgba(180,190,230,0.55); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:11px; font-size:0.9em; cursor:pointer; font-family:Arial; }
 
 /* ── SCHIMMEL COINFLIP-ANIMATION ── */
 .schimmel-flip-stage {
@@ -3519,6 +3597,26 @@ body {
     radial-gradient(circle at 82% 10%, rgba(255,210,70,0.16), transparent 28%),
     linear-gradient(0deg, rgba(255,65,20,0.22), transparent 48%);
   animation:fuegoHeat 0.7s ease-in-out infinite alternate;
+}
+.reels-frame.turbo-mode.porsche-turbo {
+  border-color:#fff0a6;
+  box-shadow:inset 0 0 42px rgba(0,0,0,0.9), 0 0 24px rgba(255,255,255,0.34), 0 0 40px rgba(255,30,30,0.24);
+}
+.reels-frame.turbo-mode.porsche-turbo::after {
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:12px;
+  pointer-events:none;
+  z-index:9;
+  background:
+    repeating-linear-gradient(105deg, transparent 0 18px, rgba(255,255,255,0.12) 18px 24px, transparent 24px 48px),
+    linear-gradient(90deg, rgba(255,0,0,0.1), transparent 45%, rgba(255,255,255,0.12));
+  animation:porscheTrack 0.55s linear infinite;
+}
+@keyframes porscheTrack {
+  from { background-position:0 0, 0 0; opacity:0.44; }
+  to { background-position:70px 0, 0 0; opacity:0.74; }
 }
 @keyframes fuegoHeat {
   from { opacity:0.45; filter:saturate(1); }
@@ -4823,18 +4921,16 @@ const SEAL_VISUAL_LEVELS = [
   { level: 2, className: 'glow-2', label: 'Goldene Aura + Partikel' },
   { level: 3, className: 'glow-3', label: 'Eigenes Badge-Thema' }
 ];
-const ACTIVE_GAMEPLAY_SEALS = ['oligarchengedeck', 'senf-depot', 'fuego-lizenz', 'babybel-bankett', 'zweitbarbour', 'schwarzes-durag', 'sechseck-orden', 'weisses-durag', 'roquefort-patina'];
+const ACTIVE_GAMEPLAY_SEALS = ['oligarchengedeck', 'senf-depot', 'fuego-lizenz', 'babybel-bankett', 'zweitbarbour', 'schwarzes-durag', 'sechseck-orden', 'weisses-durag', 'roquefort-patina', 'fondue-fonds', 'oligarchenporsche', 'parmigiano-aktie'];
 const TRANSIENT_ABILITY_KEYS = [
   'menuReady', 'menuCooldownUntil', 'menuSpinCounter', 'favoriteHits', 'favoriteWildSpins',
   'scharferSpinReady', 'senfDividendReady', 'senfTakeoverSpins',
   'fuegoDrySpins', 'fuegoRauschSpins', 'fuegoCooldownUntil',
   'buffetSpins', 'duragSpinCounter',
   'hexJudgementSpins', 'hexSpinCounter', 'hexCooldownUntil',
-  'premiumBoxReady', 'liquidityCooldownUntil', 'fondueBoxes',
-  'porscheAutoSpins', 'porscheDrySpins',
+  'premiumBoxReady',
   'grandeCaveReady', 'roqSpinCounter',
-  'parmiPoints', 'walhallaBlessingReady', 'walhallaSegenSpins', 'walhallaEventSpins', 'walhallaCooldownUntil',
-  'barbourReceipts'
+  'walhallaBlessingReady', 'walhallaSegenSpins', 'walhallaEventSpins', 'walhallaCooldownUntil'
 ];
 const ABILITY_STATE_LABELS = {
   favoriteCheese: 'Lieblingskäse',
@@ -4848,17 +4944,13 @@ const ABILITY_STATE_LABELS = {
   waxMarkers: 'Wachsmarker',
   babybelSauerBank: 'Sauer-Konto',
   buffetSpins: 'Rotes Buffet',
-  barbourReceipts: 'Barbour-Quittungen',
   barbourCooldownUntil: 'Barbour-Cooldown',
   duragSpinCounter: 'Nachtschatten-Spins',
   darkChamberCooldownUntil: 'Schattenkammer-Cooldown',
   hexSpinCounter: 'Geometrie-Spins',
   hexJudgementSpins: 'Hexagon-Urteil',
-  fondueBoxes: 'Fondue-Kisten',
-  porscheAutoSpins: 'Porsche-Autospins',
-  porscheDrySpins: 'Überholen-Serie',
+  premiumBoxReady: 'Premium-Fondue-Kiste',
   roqSpinCounter: 'Grande-Cave-Spins',
-  parmiPoints: 'Aktienpunkte',
   walhallaPoints: 'Walhalla-Punkte',
   walhallaBlessingReady: 'Segen geladen',
   walhallaSegenSpins: 'Segen-Spins',
@@ -4908,14 +5000,14 @@ const SEAL_ABILITIES = {
     levels: ['Einfache Linien, Spalten und Diagonalen werden erkannt und markiert.', 'Saubere Geometrie auf einem Verlustspin zahlt 3× Einsatz.', 'Dreieck, Ecke und Zickzack zahlen bis 5× Einsatz.', 'Geometriegericht: besondere Muster zahlen bis 8× Einsatz mit großem Sechseck-Urteil.']
   },
   'fondue-fonds': {
-    title: 'Couture-Kapital',
-    short: 'Günstigere Kisten, mehr Splitter und Premium-Kisten.',
-    levels: ['Duplikate geben Splitter.', 'Couture-Kisten kosten 85.000.', 'Kisten kosten 75.000; Duplikate +2 Splitter.', 'Alle 6h/5 Kisten: Liquiditätsrunde-Premiumkiste.']
+    title: 'Couture-Schmelze',
+    short: 'Fondue kümmert sich nur um Kisten, Duplikate, Splitter und Veredelungen.',
+    levels: ['Duplikate bekommen eine Fondue-Schmelzanimation; normale Splitterwerte bleiben.', 'Duplikate geben +1 Couture-Splitter.', 'Kisten kosten 85.000; Duplikate geben +2 Splitter.', 'Premium-Fondue-Kiste laden: nächste Kiste kostet 150.000, bevorzugt fehlende Badges und verdreifacht Duplikat-Splitter.']
   },
   'oligarchenporsche': {
-    title: 'Überholspur',
-    short: 'Mehr Auto-Spin, Turboziele, Nachdrehs und Rallye-Boni.',
-    levels: ['Auto-Spin-Limit +10.', 'Alle 50 Auto-Spins: 5 Turbo-Spins gratis.', 'Nach 18 Spins ohne Top-Win: kostenloser Nachdreh.', 'Alle 90 Min/150 Auto-Spins: Porsche-Rallye.']
+    title: 'Autospin-Überholspur',
+    short: 'Porsche ist der Grind-Komfort: mehr Auto-Spins, weniger Wartezeit und längerer Turbo.',
+    levels: ['Auto-Spin-Limit 20.', 'Auto-Spin-Limit 30 und kürzerer Auto-Spin-Delay.', 'Auto-Spin-Limit 40; Turbo hält mit aktivem Porsche 35% länger.', 'Auto-Spin-Limit 50; noch kürzerer Delay und bis zu 3 Pitstops pro Turbo, jeweils +20s.']
   },
   'roquefort-patina': {
     title: 'Reifekammer-Meister',
@@ -4923,9 +5015,9 @@ const SEAL_ABILITIES = {
     levels: ['Jede Reifekammer gibt 9 Freispiele.', 'Jede Reifekammer gibt 10 Freispiele und höheren Reifecap.', 'Gewählter Patina-Käse zählt in der Reifekammer als Wild-Partner.', 'Grande Cave alle 60 Min: nächste Reifekammer mit 12 Freispielen und höherem Reifecap.']
   },
   'parmigiano-aktie': {
-    title: 'Dividendenmaschine',
-    short: 'Parmigiano sammelt Aktienpunkte, Dividenden und Parmigiano-Freispiele.',
-    levels: ['Einzelner Parmigiano zahlt Dividende.', '10 Aktienpunkte zahlen 10x Einsatz.', '2x Parmigiano gibt 4 Freispiele und Aktienpunkte.', '30 Punkte: Parmigiano-Reifekammer.']
+    title: 'Risiko-Notar',
+    short: 'Parmigiano macht große Gewinne taktischer: Dividende, bessere Schimmelchance und ein x3-Hebel.',
+    levels: ['Einzelner Parmigiano zahlt Dividende, wenn kein besserer Gewinn vorliegt.', 'Parmigiano-Gewinne bekommen beim Schimmelrisiko 60% Frischchance.', 'Zusätzlich erscheint Dividendenhebel x3 mit 33% Chance.', 'Hauptversammlung: bei sehr großen Parmigiano-Wins oder 3× Parmigiano gibt es 65% auf x2, 33% auf x3 oder sicher behalten.']
   },
   'weisses-durag': {
     title: 'Walhalla-Segen',
@@ -4950,6 +5042,9 @@ let schimmelTimer       = null;
 let schimmelBarTimer    = null;
 let pendingSchimmelAmount = 0;
 let pendingSchimmelTimer  = null;
+let pendingSchimmelContext = {};
+let schimmelContext = {};
+let schimmelChoice = { multiplier: 2, chance: 0.5, label: 'Verdoppeln' };
 const SCHIMMEL_TIMEOUT  = 8000;
 
 // ── TURBO WALZEN ─────────────────────────────────────────────
@@ -5000,9 +5095,24 @@ const CHEESE_PLATE_MELTS   = [1.1, 1.25, 1.5];
 // Auto Spin
 const AUTO_SPIN_MAX = 10;
 let autoSpinCount   = 0;
+let porschePitstopsUsed = 0;
+const PORSCHE_MAX_PITSTOPS = 3;
 
 function maxAutoSpins() {
-  return activeSealId() === 'oligarchenporsche' && hasActiveGameplaySeal('oligarchenporsche') ? AUTO_SPIN_MAX + 10 : AUTO_SPIN_MAX;
+  if (activeSealId() !== 'oligarchenporsche' || !hasActiveGameplaySeal('oligarchenporsche')) return AUTO_SPIN_MAX;
+  const lvl = sealLevel('oligarchenporsche');
+  if (lvl >= 3) return 50;
+  if (lvl >= 2) return 40;
+  if (lvl >= 1) return 30;
+  return 20;
+}
+
+function autoSpinDelayMs() {
+  if (activeSealId() !== 'oligarchenporsche' || !hasActiveGameplaySeal('oligarchenporsche')) return 1400;
+  const lvl = sealLevel('oligarchenporsche');
+  if (lvl >= 3) return 850;
+  if (lvl >= 1) return 1050;
+  return 1250;
 }
 
 function hasActiveGameplaySeal(sealId = activeSealId()) {
@@ -5030,13 +5140,24 @@ function fuegoLevel() {
   return isFuegoActive() ? sealLevel('fuego-lizenz') : -1;
 }
 
+function isPorscheActive() {
+  return activeSealId() === 'oligarchenporsche' && hasActiveGameplaySeal('oligarchenporsche');
+}
+
+function porscheLevel() {
+  return isPorscheActive() ? sealLevel('oligarchenporsche') : -1;
+}
+
 function currentTurboCost() {
   return fuegoLevel() >= 2 ? Math.ceil(TURBO_COST * 0.75) : TURBO_COST;
 }
 
 function turboDurationMs() {
   const lvl = fuegoLevel();
-  const multiplier = lvl >= 1 ? 1.3 : lvl >= 0 ? 1.15 : 1;
+  const fuegoMultiplier = lvl >= 1 ? 1.3 : lvl >= 0 ? 1.15 : 1;
+  const pLvl = porscheLevel();
+  const porscheMultiplier = pLvl >= 3 ? 1.5 : pLvl >= 2 ? 1.35 : 1;
+  const multiplier = fuegoMultiplier * porscheMultiplier;
   return Math.floor(TURBO_SECS * multiplier * 1000);
 }
 
@@ -5058,6 +5179,7 @@ function applyTurboVisualState() {
   const btn = document.getElementById('turbo-btn');
   frame?.classList.toggle('turbo-mode', turboActive);
   frame?.classList.toggle('fuego-turbo', turboActive && isFuegoActive());
+  frame?.classList.toggle('porsche-turbo', turboActive && isPorscheActive());
   btn?.classList.toggle('active', turboActive);
 }
 
@@ -5967,6 +6089,18 @@ function spendActiveModeCounters(results, win) {
   queueAbilityStateSync();
 }
 
+function maybeGrantPorschePitstop() {
+  if (!autoOn || !turboActive || !isPorscheActive() || porscheLevel() < 3) return false;
+  if (porschePitstopsUsed >= PORSCHE_MAX_PITSTOPS) return false;
+  if (autoSpinCount <= 0 || autoSpinCount % 10 !== 0) return false;
+  porschePitstopsUsed++;
+  turboEndTime += 20 * 1000;
+  updateTurboBtn();
+  applyTurboVisualState();
+  setResult(`🏎️ Pitstop-Bonus: +20s Turbozeit (${porschePitstopsUsed}/${PORSCHE_MAX_PITSTOPS}).`, 'win');
+  return true;
+}
+
 function applyBarbourLossProtection(spinBet) {
   if (activeSealId() !== 'zweitbarbour' || !hasActiveGameplaySeal('zweitbarbour') || freespinActive || spinBet < 500) return false;
   const lvl = sealLevel('zweitbarbour');
@@ -6340,7 +6474,7 @@ async function doSpin() {
   //  5. Emmentaler 3× (22×)
   //  Ausgeschlossen: Jackpot (Golden 3×) und Freispiele (Roquefort 3×)
   if (schimmelEligible) {
-    queueSchimmelrisiko(win.amount, 2600);
+    queueSchimmelrisiko(win.amount, 2600, parmigianoSchimmelContext(results, win, spinBet));
   }
 
   // Krawatte — mittlere Walze oben/mitte/unten alle gleich
@@ -6394,7 +6528,8 @@ async function doSpin() {
       // Verbleibende Spins im Button anzeigen
       document.getElementById('auto-btn').textContent =
         `⏸ STOP (${autoMax - autoSpinCount} übrig)`;
-      autoTimer = setTimeout(doSpin, 1400);
+      maybeGrantPorschePitstop();
+      autoTimer = setTimeout(doSpin, autoSpinDelayMs());
     } else {
       toggleAuto();
     }
@@ -6413,7 +6548,8 @@ function resumeAutoAfterSchimmel() {
     document.getElementById('auto-btn').textContent =
       `⏸ STOP (${autoMax - autoSpinCount} übrig)`;
     clearTimeout(autoTimer);
-    autoTimer = setTimeout(doSpin, 1400);
+    maybeGrantPorschePitstop();
+    autoTimer = setTimeout(doSpin, autoSpinDelayMs());
   } else {
     toggleAuto();
   }
@@ -6805,6 +6941,18 @@ function calcWin(results, betAmt, options = {}) {
   }
 
   return candidates.reduce((best, candidate) => betterWin(best, candidate), emptyWin());
+}
+
+function parmigianoSchimmelContext(results, win, spinBet) {
+  if (activeSealId() !== 'parmigiano-aktie' || !hasActiveGameplaySeal('parmigiano-aktie') || !win || win.amount <= 0) return {};
+  const parmCount = results.filter(r => r.id === 'parmesan').length;
+  const involved = parmCount > 0 || win.comboId === 'parmesan';
+  if (!involved) return {};
+  return {
+    parmigiano: true,
+    parmigianoMajor: parmCount >= 3 || win.comboId === 'parmesan' && win.amount >= spinBet * 100 || win.amount >= spinBet * 160,
+    parmigianoCount: parmCount
+  };
 }
 
 function isCheddarAnimationWin(results, win) {
@@ -7657,8 +7805,7 @@ function currentBoxCost() {
   if (activeSealId() === 'fondue-fonds' && hasActiveGameplaySeal('fondue-fonds') && sealLevel('fondue-fonds') >= 3 && abilityState().premiumBoxReady) return 150000;
   if (activeSealId() === 'fondue-fonds' && hasActiveGameplaySeal('fondue-fonds')) {
     const lvl = sealLevel('fondue-fonds');
-    if (lvl >= 2) return 75000;
-    if (lvl >= 1) return 85000;
+    if (lvl >= 2) return 85000;
   }
   return PRESTIGE_BOX_COST;
 }
@@ -7708,11 +7855,12 @@ function sealBadgeHTML(sealId, profile = currentProfile, options = {}) {
     sealId && sealId === recentlyRevealedSealId ? 'just-revealed' : '',
     options.className || ''
   ].filter(Boolean).join(' ');
+  const pips = `<span class="seal-level-pips" aria-label="Veredelung ${glow}/3">${[1,2,3].map(level => `<i class="${level <= glow ? 'on' : ''}"></i>`).join('')}</span>`;
   if (options.iconOnly) {
-    return `<span class="seal-badge icon-only ${flair}" title="${escapeHtml(seal.name)} · ${seal.rarity} · ${GLOW_NAMES[glow]}">${sealIconHTML(seal)}</span>`;
+    return `<span class="seal-badge icon-only ${flair}" title="${escapeHtml(seal.name)} · ${seal.rarity} · ${GLOW_NAMES[glow]}">${sealIconHTML(seal)}${pips}</span>`;
   }
   const label = options.compact ? seal.name.replace(/^(Oligarchen|Parmigiano|Babybel)-?/, '') : seal.name;
-  return `<span class="seal-badge ${flair}" title="${escapeHtml(seal.name)} · ${seal.rarity} · ${GLOW_NAMES[glow]}">${sealIconHTML(seal)}<span>${escapeHtml(label)}</span></span>`;
+  return `<span class="seal-badge ${flair}" title="${escapeHtml(seal.name)} · ${seal.rarity} · ${GLOW_NAMES[glow]}">${sealIconHTML(seal)}<span>${escapeHtml(label)}</span>${pips}</span>`;
 }
 
 async function openPlayerProfile(name, options = {}) {
@@ -7865,6 +8013,20 @@ function abilityStatusHTML(sealId, glow) {
     if (glow >= 1) bits.push('Reifecap: erhöht');
     if (state.grandeCaveReady) bits.push('Grande Cave geladen: nächste Reifekammer wird episch');
     if (glow >= 3) bits.push(`Grande-Cave-Cooldown: ${formatAbilityCooldown(state.grandeCaveCooldownUntil)}`);
+  } else if (sealId === 'fondue-fonds') {
+    const duplicateBonus = glow >= 2 ? 2 : glow >= 1 ? 1 : 0;
+    bits.push(`Kistenpreis: ${currentBoxCost().toLocaleString('de-DE')}🪙`);
+    bits.push(`Duplikat-Splitter: normal${duplicateBonus ? ` +${duplicateBonus}` : ''}`);
+    if (glow >= 3) bits.push(state.premiumBoxReady ? 'Premium-Fondue-Kiste geladen' : 'Premium-Fondue-Kiste bereit per Button');
+  } else if (sealId === 'oligarchenporsche') {
+    bits.push(`Auto-Spin-Limit: ${maxAutoSpins()}`);
+    bits.push(`Auto-Spin-Delay: ${(autoSpinDelayMs() / 1000).toLocaleString('de-DE')}s`);
+    if (glow >= 2) bits.push(`Turbo-Dauer: ${formatTurboDuration()}${glow >= 3 ? ` · Pitstops ${porschePitstopsUsed}/${PORSCHE_MAX_PITSTOPS}` : ''}`);
+  } else if (sealId === 'parmigiano-aktie') {
+    bits.push('Einzelner Parmigiano zahlt Dividende, wenn kein besserer Gewinn vorliegt');
+    if (glow >= 1) bits.push(`Schimmelrisiko mit Parmigiano: ${glow >= 3 ? 'bis 65%' : '60%'} Frischchance auf ×2`);
+    if (glow >= 2) bits.push('Dividendenhebel: ×3 mit 33% Chance');
+    if (glow >= 3) bits.push('Hauptversammlung bei 3× Parmigiano oder sehr großem Parmigiano-Win');
   }
   return bits.length ? `<div class="ability-status">${bits.map(escapeHtml).join('<br>')}</div>` : '';
 }
@@ -7892,6 +8054,8 @@ function abilityActionsHTML(sealId, glow) {
       const ready = Number(abilityState().grandeCaveCooldownUntil || 0) <= Date.now() && !abilityState().grandeCaveReady;
       actions.push(`<button type="button" onclick="activateGrandeCave()" ${ready ? '' : 'disabled'}>Grande Cave laden</button>`);
     }
+  } else if (sealId === 'fondue-fonds' && glow >= 3) {
+    actions.push(`<button type="button" onclick="activatePremiumFondueBox()" ${abilityState().premiumBoxReady ? 'disabled' : ''}>Premium-Fondue-Kiste laden</button>`);
   }
   return actions.length ? `<div class="ability-actions">${actions.join('')}</div>` : '';
 }
@@ -8024,17 +8188,19 @@ function activateWalhallaCall() {
   setResult(`🤍 WALHALLA-RUF aktiv: ${WALHALLA_CALL_SPINS} Event-Spins nur mit Roquefort, Parmigiano und Golden.`, 'jackpot');
 }
 
-function activateLiquidityRound() {
+function activatePremiumFondueBox() {
   if (activeSealId() !== 'fondue-fonds' || !hasActiveGameplaySeal('fondue-fonds') || sealLevel('fondue-fonds') < 3) return;
   const state = abilityState();
-  const ready = Number(state.liquidityCooldownUntil || 0) <= Date.now() || abilityNumber('fondueBoxes') >= 5;
-  if (!ready) return;
+  if (state.premiumBoxReady) return;
   state.premiumBoxReady = true;
-  state.liquidityCooldownUntil = Date.now() + 6 * 60 * 60 * 1000;
-  state.fondueBoxes = 0;
   queueAbilityStateSync(true);
   renderPrestigePanel();
-  setResult('🫕 Liquiditätsrunde geladen: Die nächste Kiste ist eine Premium-Kiste für 150.000🪙.', 'win');
+  showFondueMeltBurst();
+  setResult('🫕 Premium-Fondue-Kiste geladen: nächste Kiste kostet 150.000🪙, sucht stärker nach fehlender Couture und verdreifacht Duplikat-Splitter.', 'win');
+}
+
+function activateLiquidityRound() {
+  activatePremiumFondueBox();
 }
 
 function renderPrestigePanel() {
@@ -8156,6 +8322,42 @@ function startCoutureVaultAnimation() {
   });
 }
 
+function showFondueMeltBurst() {
+  const burst = document.createElement('div');
+  burst.className = 'fondue-screen-burst';
+  document.body.appendChild(burst);
+  setTimeout(() => burst.remove(), 950);
+}
+
+function showSplitterBurst(amount = 1, sourceSelector = '#couture-result .seal-badge') {
+  const source = document.querySelector(sourceSelector) || document.getElementById('couture-result');
+  const target = document.querySelector('.splitter-meter') || document.querySelector('.seal-shards');
+  if (!source || !target) return;
+  const s = source.getBoundingClientRect();
+  const t = target.getBoundingClientRect();
+  const count = Math.max(4, Math.min(18, Math.ceil(Number(amount || 1) * 1.6)));
+  for (let i = 0; i < count; i++) {
+    const shard = document.createElement('span');
+    shard.className = 'splitter-fly';
+    shard.textContent = i % 3 === 0 ? '◆' : '✦';
+    const startX = s.left + s.width * (0.25 + Math.random() * 0.5);
+    const startY = s.top + s.height * (0.25 + Math.random() * 0.5);
+    const endX = t.left + t.width * (0.25 + Math.random() * 0.5);
+    const endY = t.top + t.height * (0.25 + Math.random() * 0.5);
+    shard.style.left = `${startX}px`;
+    shard.style.top = `${startY}px`;
+    shard.style.setProperty('--dx', `${endX - startX}px`);
+    shard.style.setProperty('--dy', `${endY - startY}px`);
+    shard.style.animationDelay = `${i * 28}ms`;
+    document.body.appendChild(shard);
+    setTimeout(() => shard.remove(), 1150 + i * 28);
+  }
+  target.classList.remove('burst');
+  void target.offsetWidth;
+  target.classList.add('burst');
+  setTimeout(() => target.classList.remove('burst'), 900);
+}
+
 function revealCoutureBoxResult(result) {
   const out = document.getElementById('couture-result');
   const ticker = document.getElementById('couture-rarity-ticker');
@@ -8176,6 +8378,10 @@ function revealCoutureBoxResult(result) {
   out.innerHTML = result.duplicate
     ? `<div class="couture-rarity">${escapeHtml(result.rarity)} Duplikat${result.premium ? ' · Premium' : ''}</div>${badge}<div>Schmilzt zu <strong>${result.shards} Couture-Splittern</strong>.</div>${abilityInfo}`
     : `<div class="couture-rarity">${escapeHtml(result.rarity)} Drop${result.premium ? ' · Premium' : ''}</div>${badge}<div>Neues Siegel freigeschaltet!</div>${abilityInfo}`;
+  if (result.duplicate && result.shards > 0) {
+    if (activeSealId() === 'fondue-fonds' && hasActiveGameplaySeal('fondue-fonds')) showFondueMeltBurst();
+    setTimeout(() => showSplitterBurst(result.shards), 180);
+  }
   renderPrestigePanel();
   updatePlayerTag();
   renderLeaderboard(lbCache);
@@ -8260,7 +8466,7 @@ async function openCoutureBox() {
       headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         name: playerName,
-        premium: activeSealId() === 'fondue-fonds' && hasActiveGameplaySeal('fondue-fonds') && !!abilityState().premiumBoxReady,
+        premium: activeSealId() === 'fondue-fonds' && hasActiveGameplaySeal('fondue-fonds') && sealLevel('fondue-fonds') >= 3 && !!abilityState().premiumBoxReady,
         credits,
         bestCoins: Math.max(myBestCoins || 0, currentRankScore()),
         bestSingleWin: myBestWin || 0,
@@ -8282,7 +8488,6 @@ async function openCoutureBox() {
     }
     if (currentProfile.activeSeal === 'fondue-fonds' && hasActiveGameplaySeal('fondue-fonds')) {
       currentProfile.abilityState = currentProfile.abilityState || {};
-      currentProfile.abilityState.fondueBoxes = (Number(currentProfile.abilityState.fondueBoxes || 0) + 1);
       if (currentProfile.abilityState.premiumBoxReady) currentProfile.abilityState.premiumBoxReady = false;
       queueAbilityStateSync(true);
     }
@@ -8359,11 +8564,15 @@ async function upgradeActiveSeal() {
     if (ticker) ticker.textContent = 'VEREDLUNG AKTIV';
     if (out) {
       const glow = Math.max(0, Math.min(3, Number(currentProfile.sealGlow?.[sealId] || 0)));
+      const ability = SEAL_ABILITIES[sealId];
+      const abilityText = ability?.levels?.[glow] || SEAL_UPGRADE_TEXT[glow] || 'Neue Aura aktiv.';
       out.classList.remove('reveal');
       void out.offsetHeight;
       out.classList.add('reveal');
-      out.innerHTML = `${sealBadgeHTML(sealId, currentProfile)}<div><strong>${escapeHtml(SEAL_BY_ID[sealId].name)}</strong> ist jetzt ${GLOW_NAMES[glow]}.</div>`;
+      out.innerHTML = `${sealBadgeHTML(sealId, currentProfile)}<div><strong>${escapeHtml(SEAL_BY_ID[sealId].name)}</strong> ist jetzt ${GLOW_NAMES[glow]}.</div><div class="ability-status">${escapeHtml(abilityText)}</div>`;
     }
+    showSplitterBurst(upgradeCost, '#couture-result .seal-badge');
+    showFondueMeltBurst();
     upgraded = true;
     updatePlayerTag();
     renderLeaderboard(lbCache);
@@ -8771,6 +8980,7 @@ function addTicker(results, win, isFreesp) {
   if (win && win.amount > 0) {
     if (win.isJackpot)                       { cls = 't-jackpot';  text = `[${time}] ${prefix} ${emojis}  →  🌟 JACKPOT! +${win.amount} 🪙`; }
     else if (isFreesp && win.amount > 0)     { cls = 't-freespin'; text = `[${time}] 🔵 ${emojis}  →  Freispin: +${win.amount} 🪙`; }
+    else if (activeSealId() === 'parmigiano-aktie' && hasActiveGameplaySeal('parmigiano-aktie') && results.some(r => r.id === 'parmesan') && win.amount >= bet * 15) { cls = 't-big'; text = `[${time}] 📈 ${emojis}  →  PARMIGIANO-TICKER! +${win.amount} 🪙`; }
     else if (win.amount >= bet * 15)         { cls = 't-big';      text = `[${time}] 🎲 ${emojis}  →  GROSSER GEWINN! +${win.amount} 🪙`; }
     else                                      { cls = 't-win';      text = `[${time}] 🎲 ${emojis}  →  Gewinn: +${win.amount} 🪙`; }
   }
@@ -9379,8 +9589,9 @@ function hasBlockingOverlayOpen() {
   });
 }
 
-function queueSchimmelrisiko(amount, delay = 0) {
+function queueSchimmelrisiko(amount, delay = 0, context = {}) {
   pendingSchimmelAmount = amount;
+  pendingSchimmelContext = context || {};
   clearTimeout(pendingSchimmelTimer);
   pendingSchimmelTimer = setTimeout(maybeShowQueuedSchimmelrisiko, delay);
 }
@@ -9399,10 +9610,12 @@ function maybeShowQueuedSchimmelrisiko() {
     return;
   }
   const amount = pendingSchimmelAmount;
+  const context = pendingSchimmelContext || {};
   pendingSchimmelAmount = 0;
+  pendingSchimmelContext = {};
   clearTimeout(pendingSchimmelTimer);
   pendingSchimmelTimer = null;
-  showSchimmelrisiko(amount);
+  showSchimmelrisiko(amount, context);
 }
 
 function resetSchimmelOverlay() {
@@ -9421,16 +9634,51 @@ function resetSchimmelOverlay() {
   document.getElementById('schimmel-flip-status').textContent = 'Der Käsewürfel rollt…';
 }
 
-function showSchimmelrisiko(amount) {
+function schimmelRiskOptions(context = schimmelContext) {
+  const options = [{ label: '×2 riskieren', sub: '50% Frischchance', chance: 0.5, multiplier: 2, kind: 'double' }];
+  if (context.parmigiano && activeSealId() === 'parmigiano-aktie' && hasActiveGameplaySeal('parmigiano-aktie')) {
+    const lvl = sealLevel('parmigiano-aktie');
+    if (lvl >= 1) {
+      const chance = lvl >= 3 && context.parmigianoMajor ? 0.65 : 0.6;
+      options[0] = {
+        label: lvl >= 3 && context.parmigianoMajor ? 'Hauptversammlung ×2' : 'Notar ×2',
+        sub: `${Math.round(chance * 100)}% Frischchance`,
+        chance,
+        multiplier: 2,
+        kind: 'parm-double'
+      };
+    }
+    if (lvl >= 2) {
+      options.push({ label: 'Dividendenhebel ×3', sub: '33% Chance, hoher Hebel', chance: 0.33, multiplier: 3, kind: 'parm-triple' });
+    }
+  }
+  return options;
+}
+
+function renderSchimmelChoices() {
+  const wrap = document.querySelector('#schimmel-overlay .schimmel-btns');
+  if (!wrap) return;
+  const options = schimmelRiskOptions();
+  wrap.innerHTML = `${options.map((option, idx) =>
+    `<button class="schimmel-ja ${option.kind || ''}" onclick="resolveSchimmelRisk(${idx})">🎲 ${escapeHtml(option.label)}<span>${escapeHtml(option.sub)}</span></button>`
+  ).join('')}<button class="schimmel-nein" onclick="resolveSchimmel(false)">🧀 Sicher behalten</button>`;
+}
+
+function showSchimmelrisiko(amount, context = {}) {
   if (hasBlockingOverlayOpen()) {
-    queueSchimmelrisiko(amount, 250);
+    queueSchimmelrisiko(amount, 250, context);
     return;
   }
   if (schimmelPending) return;
   schimmelPending = true;
   schimmelAmount  = amount;
+  schimmelContext = context || {};
+  schimmelChoice = schimmelRiskOptions(schimmelContext)[0] || { multiplier: 2, chance: 0.5, label: 'Verdoppeln' };
   resetSchimmelOverlay();
-  document.getElementById('schimmel-amount').textContent = `+${amount} 🪙 → Doppelt oder Nichts?`;
+  renderSchimmelChoices();
+  const title = document.querySelector('#schimmel-overlay .schimmel-title');
+  if (title) title.textContent = schimmelContext.parmigiano ? 'Parmigiano-Risiko — der Notar ist da!' : 'Schimmelrisiko — Doppelt oder Nichts!';
+  document.getElementById('schimmel-amount').textContent = `+${amount} 🪙 → Risiko wählen oder sicher behalten`;
   const fill = document.getElementById('schimmel-timer-fill');
   fill.style.transition = 'none';
   fill.style.width = '100%';
@@ -9446,6 +9694,12 @@ function showSchimmelrisiko(amount) {
   }, 100);
 }
 
+function resolveSchimmelRisk(index) {
+  const options = schimmelRiskOptions();
+  schimmelChoice = options[index] || options[0] || { multiplier: 2, chance: 0.5, label: 'Verdoppeln' };
+  resolveSchimmel(true);
+}
+
 function resolveSchimmel(accept) {
   if (!schimmelPending) return;
   clearInterval(schimmelBarTimer);
@@ -9456,13 +9710,16 @@ function resolveSchimmel(accept) {
     document.getElementById('schimmel-overlay').classList.remove('show');
     updateLeaderboard(playerName, credits, schimmelAmount);
     setResult(`🧀 Kein Risiko — +${schimmelAmount}🪙 sicher behalten.`, 'win');
+    schimmelContext = {};
+    schimmelChoice = { multiplier: 2, chance: 0.5, label: 'Verdoppeln' };
     completePendingFreespinSummary();
     resumeAutoAfterSchimmel();
     return;
   }
 
   // Outcome jetzt würfeln, Animation zeigen
-  const gewonnen = Math.random() < 0.5;
+  const option = schimmelChoice || { multiplier: 2, chance: 0.5, label: 'Verdoppeln' };
+  const gewonnen = Math.random() < option.chance;
   playSchimmelTicks();
   startSchimmelFlip(gewonnen);
 }
@@ -9475,12 +9732,14 @@ function playSchimmelTicks() {
 function startSchimmelFlip(gewonnen) {
   document.querySelector('#schimmel-overlay .schimmel-btns').style.display      = 'none';
   document.querySelector('#schimmel-overlay .schimmel-timer-bar').style.display = 'none';
-  document.getElementById('schimmel-amount').textContent = 'Der Käse entscheidet…';
+  const multiplier = schimmelChoice?.multiplier || 2;
+  const chance = Math.round((schimmelChoice?.chance || 0.5) * 100);
+  document.getElementById('schimmel-amount').textContent = `Der Käse entscheidet über ×${multiplier}…`;
   const stage  = document.getElementById('schimmel-flip-stage');
   const coin   = document.getElementById('schimmel-flip-coin');
   const status = document.getElementById('schimmel-flip-status');
   stage.classList.add('active');
-  status.textContent = '50:50 im Käsekeller…';
+  status.textContent = `${chance}% Frischchance im Käsekeller…`;
   coin.classList.remove('show-fresh', 'show-mold', 'flipping');
   void coin.offsetHeight;
   coin.classList.add('flipping');
@@ -9497,9 +9756,12 @@ function startSchimmelFlip(gewonnen) {
 function revealSchimmelResult(gewonnen) {
   const status = document.getElementById('schimmel-flip-status');
   const result = document.getElementById('schimmel-flip-result');
+  const multiplier = Math.max(2, Number(schimmelChoice?.multiplier || 2));
+  const totalWin = schimmelAmount * multiplier;
+  const extraWin = schimmelAmount * (multiplier - 1);
   status.style.display = 'none';
   if (gewonnen) {
-    result.textContent = `🟢 FRISCHER KÄSE! +${schimmelAmount * 2}🪙 insgesamt!`;
+    result.textContent = `🟢 FRISCHER KÄSE! +${totalWin}🪙 insgesamt!`;
     result.className = 'schimmel-flip-result show win';
     playWinSound(true);
     startConfetti(80);
@@ -9516,31 +9778,26 @@ function revealSchimmelResult(gewonnen) {
     status.style.display = '';
     resetSchimmelOverlay();
     if (gewonnen) {
-      credits += schimmelAmount;
+      credits += extraWin;
       if (activeSchimmelFromFreespin) {
-        addFreespinSessionWin(schimmelAmount, false);
-        freespinSessionBestWin = Math.max(freespinSessionBestWin, schimmelAmount * 2);
+        addFreespinSessionWin(extraWin, false);
+        freespinSessionBestWin = Math.max(freespinSessionBestWin, totalWin);
       }
       refreshUI();
-      // Der verdoppelte Gewinn (Original-Win + Schimmel-Gewinn = schimmelAmount * 2) zählt
-      // als Einzelgewinn in der Rangliste "Größter Einzelgewinn".
-      updateLeaderboard(playerName, credits, schimmelAmount * 2);
-      setResult(`🟢 SCHIMMEL VERLOREN, GEWINN VERDOPPELT! +${schimmelAmount * 2}🪙 insgesamt! 🎉`, 'win');
+      updateLeaderboard(playerName, credits, totalWin);
+      setResult(`🟢 SCHIMMEL VERLOREN, GEWINN ×${multiplier}! +${totalWin}🪙 insgesamt! 🎉`, 'win');
     } else {
-      let loss = schimmelAmount;
-      if (activeSealId() === 'zweitbarbour' && hasActiveGameplaySeal('zweitbarbour') && sealLevel('zweitbarbour') >= 2 && abilityNumber('barbourReceipts') >= 10) {
-        abilityState().barbourReceipts = Math.max(0, abilityNumber('barbourReceipts') - 10);
-        loss = Math.floor(schimmelAmount * 0.2);
-        queueAbilityStateSync(true);
-      }
+      const loss = schimmelAmount;
       credits -= loss;
       if (activeSchimmelFromFreespin) addFreespinSessionWin(-loss, false);
       if (credits < 0) credits = 0;
       refreshUI();
       updateLeaderboard(playerName, credits, 0);
-      setResult(loss < schimmelAmount ? `🧥 Kragen hoch! Schimmel-Verlust auf -${loss}🪙 reduziert.` : `🔴 Der Schimmel hat gewonnen! Gewinn verfault. +0🪙 🧀`, '');
+      setResult(`🔴 Der Schimmel hat gewonnen! Gewinn verfault. +0🪙 🧀`, '');
     }
     checkMilestones();
+    schimmelContext = {};
+    schimmelChoice = { multiplier: 2, chance: 0.5, label: 'Verdoppeln' };
     completePendingFreespinSummary();
     resumeAutoAfterSchimmel();
   }, 1800);
@@ -9655,8 +9912,9 @@ function buyTurbo() {
   refreshUI();
   turboActive  = true;
   turboEndTime = Date.now() + durationMs;
+  porschePitstopsUsed = 0;
   applyTurboVisualState();
-  setResult(`⚡ TURBO-WALZEN aktiviert — ${formatTurboDuration(durationMs)} Minuten Hochgeschwindigkeit${isFuegoActive() ? ' mit Fuego!' : '!'}`, 'win');
+  setResult(`⚡ TURBO-WALZEN aktiviert — ${formatTurboDuration(durationMs)} Minuten Hochgeschwindigkeit${isFuegoActive() ? ' mit Fuego!' : isPorscheActive() ? ' mit Porsche-Pitcrew!' : '!'}`, 'win');
   updateTurboBtn();
   clearInterval(turboCountdown);
   turboCountdown = setInterval(() => {
@@ -9664,6 +9922,7 @@ function buyTurbo() {
     if (rem <= 0) {
       clearInterval(turboCountdown);
       turboActive = false;
+      porschePitstopsUsed = 0;
       applyTurboVisualState();
       const b = document.getElementById('turbo-btn');
       b.textContent = `⚡ TURBO (${currentTurboCost().toLocaleString()}🪙)`;

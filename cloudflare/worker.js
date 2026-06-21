@@ -34,18 +34,16 @@ const RARITY_WEIGHTS = [
 const SHARDS_BY_RARITY = { common: 1, rare: 2, epic: 5, legendary: 12 };
 const DUPLICATE_DROP_CHANCE = 0.35;
 const SEAL_IDS = new Set(SEAL_DEFS.map(seal => seal.id));
-const ACTIVE_GAMEPLAY_SEALS = new Set(['oligarchengedeck', 'senf-depot', 'fuego-lizenz', 'babybel-bankett', 'zweitbarbour', 'schwarzes-durag', 'sechseck-orden', 'weisses-durag', 'roquefort-patina']);
+const ACTIVE_GAMEPLAY_SEALS = new Set(['oligarchengedeck', 'senf-depot', 'fuego-lizenz', 'babybel-bankett', 'zweitbarbour', 'schwarzes-durag', 'sechseck-orden', 'weisses-durag', 'roquefort-patina', 'fondue-fonds', 'oligarchenporsche', 'parmigiano-aktie']);
 const TRANSIENT_ABILITY_KEYS = [
   'menuReady', 'menuCooldownUntil', 'menuSpinCounter', 'favoriteHits', 'favoriteWildSpins',
   'scharferSpinReady', 'senfDividendReady', 'senfTakeoverSpins',
   'fuegoDrySpins', 'fuegoRauschSpins', 'fuegoCooldownUntil',
   'buffetSpins', 'duragSpinCounter',
   'hexJudgementSpins', 'hexSpinCounter', 'hexCooldownUntil',
-  'premiumBoxReady', 'liquidityCooldownUntil', 'fondueBoxes',
-  'porscheAutoSpins', 'porscheDrySpins',
+  'premiumBoxReady',
   'grandeCaveReady', 'roqSpinCounter',
-  'parmiPoints', 'walhallaBlessingReady', 'walhallaSegenSpins', 'walhallaEventSpins', 'walhallaCooldownUntil',
-  'barbourReceipts'
+  'walhallaBlessingReady', 'walhallaSegenSpins', 'walhallaEventSpins', 'walhallaCooldownUntil'
 ];
 const CHAT_OPENERS = [
   'Was ist euer Lieblingskäse?',
@@ -877,10 +875,7 @@ function prestigeBoxCost(profile, premium = false) {
     return 150000;
   }
   const glow = Math.max(0, toInt(profile?.sealGlow?.['fondue-fonds'], 0));
-  if (profile?.activeSeal === 'fondue-fonds' && gameplaySealActive('fondue-fonds')) {
-    if (glow >= 2) return 75000;
-    if (glow >= 1) return 85000;
-  }
+  if (profile?.activeSeal === 'fondue-fonds' && gameplaySealActive('fondue-fonds') && glow >= 2) return 85000;
   return PRESTIGE_BOX_COST;
 }
 
@@ -984,14 +979,15 @@ async function openPrestigeBox(db, name, premium = false) {
   }
   const rarity = pickRarity();
   let seal = pickSealForRarity(rarity, new Set(profile.seals));
-  if (premium && profile.activeSeal === 'fondue-fonds' && gameplaySealActive('fondue-fonds')) {
+  const fondueGlow = profile.activeSeal === 'fondue-fonds' && gameplaySealActive('fondue-fonds') ? Math.max(0, toInt(profile.sealGlow?.['fondue-fonds'], 0)) : 0;
+  const validPremiumFondue = premium && fondueGlow >= 3;
+  if (validPremiumFondue) {
     const fresh = SEAL_DEFS.filter(entry => !profile.seals.includes(entry.id));
     if (fresh.length && Math.random() < 0.65) seal = fresh[Math.floor(Math.random() * fresh.length)];
   }
   const duplicate = profile.seals.includes(seal.id);
-  const fondueGlow = profile.activeSeal === 'fondue-fonds' && gameplaySealActive('fondue-fonds') ? Math.max(0, toInt(profile.sealGlow?.['fondue-fonds'], 0)) : 0;
-  const shardBonus = fondueGlow >= 2 ? 2 : 0;
-  const shardMultiplier = premium && fondueGlow >= 3 ? 3 : 1;
+  const shardBonus = fondueGlow >= 2 ? 2 : fondueGlow >= 1 ? 1 : 0;
+  const shardMultiplier = validPremiumFondue ? 3 : 1;
   const shards = duplicate ? ((SHARDS_BY_RARITY[seal.rarity || rarity] || 1) + shardBonus) * shardMultiplier : 0;
 
   if (duplicate) {
@@ -1020,7 +1016,7 @@ async function openPrestigeBox(db, name, premium = false) {
   profiles[name] = savedProfile;
   return {
     ok: true,
-    result: { sealId: seal.id, rarity: seal.rarity || rarity, duplicate, shards, premium },
+    result: { sealId: seal.id, rarity: seal.rarity || rarity, duplicate, shards, premium: validPremiumFondue },
     player: { ...player, credits: nextCredits, updatedAt },
     profile: savedProfile,
     profileStats: await getPublicProfileStats(db, weekStart, name, savedProfile),
