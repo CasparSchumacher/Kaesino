@@ -4856,6 +4856,8 @@ let reel2BotSym   = null;
 let credits            = 100;
 let bet                = 10;
 let spinning           = false;
+let spinLock           = false;
+let spinSerial         = 0;
 let autoOn             = false;
 let autoTimer          = null;
 let playerName         = '';
@@ -5012,7 +5014,7 @@ const SEAL_ABILITIES = {
   'roquefort-patina': {
     title: 'Reifekammer-Meister',
     short: 'Natürliche und gekaufte Reifekammern bekommen mehr Spins, mehr Reife und einen Patina-Wild-Partner.',
-    levels: ['Jede Reifekammer gibt 9 Freispiele.', 'Jede Reifekammer gibt 10 Freispiele und höheren Reifecap.', 'Gewählter Patina-Käse zählt in der Reifekammer als Wild-Partner.', 'Grande Cave alle 60 Min: nächste Reifekammer mit 12 Freispielen und höherem Reifecap.']
+    levels: ['Jede Reifekammer gibt 9 Freispiele.', 'Jede Reifekammer gibt 10 Freispiele und höheren Reifecap.', 'Gewählter Patina-Käse zählt in der Reifekammer als Einfach-Wild und kann Käseklammern verbinden.', 'Grande Cave alle 60 Min: nächste Reifekammer mit 12 Freispielen und höherem Reifecap.']
   },
   'parmigiano-aktie': {
     title: 'Risiko-Notar',
@@ -5665,27 +5667,44 @@ function makeCheesePlateCandidate(results, targetId, hold, open, hasMozzarella =
   };
 }
 
+function patinaWildActive() {
+  return activeSealId() === 'roquefort-patina'
+    && hasActiveGameplaySeal('roquefort-patina')
+    && sealLevel('roquefort-patina') >= 2
+    && freespinActive;
+}
+
+function isSimpleChamberWild(cheese, targetId = '') {
+  if (!cheese) return false;
+  if (cheese.id === 'mozz') return true;
+  return patinaWildActive() && cheese.id === patinaCheeseId() && cheese.id !== targetId;
+}
+
+function simpleChamberWildIndexes(results, targetId) {
+  return results
+    .map((r, i) => isSimpleChamberWild(r, targetId) ? i : -1)
+    .filter(i => i >= 0);
+}
+
 function findCheesePlate(results) {
   if (!freespinActive) return null;
   const candidates = [];
-  const mozzIdx = results
-    .map((r, i) => r.id === 'mozz' ? i : -1)
-    .filter(i => i >= 0);
 
   for (const targetId of CHEESE_PLATE_TARGETS) {
     const targetIdx = results
       .map((r, i) => r.id === targetId ? i : -1)
       .filter(i => i >= 0);
+    const simpleWildIdx = simpleChamberWildIndexes(results, targetId);
 
     if (targetIdx.length === 2) {
       const openIdx = [0,1,2].find(i => !targetIdx.includes(i));
-      if (openIdx !== undefined && results[openIdx].id !== 'mozz') {
+      if (openIdx !== undefined && !isSimpleChamberWild(results[openIdx], targetId)) {
         candidates.push(makeCheesePlateCandidate(results, targetId, targetIdx, openIdx));
       }
     }
 
-    if (targetIdx.length === 1 && mozzIdx.length === 1) {
-      const hold = [targetIdx[0], mozzIdx[0]];
+    if (targetIdx.length === 1 && simpleWildIdx.length === 1) {
+      const hold = [targetIdx[0], simpleWildIdx[0]];
       const openIdx = [0,1,2].find(i => !hold.includes(i));
       if (openIdx !== undefined && results[openIdx].id !== targetId) {
         candidates.push(makeCheesePlateCandidate(results, targetId, hold, openIdx, true));
@@ -5721,11 +5740,11 @@ async function runCheesePlate(results, spinBet) {
 
     const completesPlate = plate.hasMozzarella
       ? next.id === plate.targetId
-      : (next.id === plate.targetId || next.id === 'mozz');
+      : (next.id === plate.targetId || isSimpleChamberWild(next, plate.targetId));
 
     if (completesPlate) {
       const melt = CHEESE_PLATE_MELTS[attempt];
-      const plateWin = calcWin(results, spinBet, { extraWildIds: activeExtraWildIds(), parmigianoDividend: activeSealId() === 'parmigiano-aktie' && hasActiveGameplaySeal('parmigiano-aktie') });
+      const plateWin = calcWin(results, spinBet, { extraWildIds: activeExtraWildIds(), simpleWildMode: freespinActive, parmigianoDividend: activeSealId() === 'parmigiano-aktie' && hasActiveGameplaySeal('parmigiano-aktie') });
       openReel.classList.remove('plate-open');
       delete openReel.dataset.plateSpin;
       openReel.classList.add('melt-hit');
@@ -5735,7 +5754,11 @@ async function runCheesePlate(results, spinBet) {
         amount: Math.floor(plateWin.amount * melt),
         msg: `${target.emoji} Käseplatte Melt ${formatMulti(melt)}`,
         melt,
-        targetId: plate.targetId
+        targetId: plate.targetId,
+        isJackpot: !!plateWin.isJackpot,
+        triggerFreespins: !!plateWin.triggerFreespins,
+        triggerSenfbombe: !!plateWin.triggerSenfbombe,
+        comboId: plateWin.comboId || plate.targetId
       };
     }
   }
@@ -5771,7 +5794,7 @@ async function runSchimmelbruch(results, spinBet) {
   if (reel) reel.classList.remove('schimmelbruch-target');
   if (frame) setTimeout(() => frame.classList.remove('schimmelbruch'), 600);
 
-  const breakWin = calcWin(results, spinBet, { extraWildIds: activeExtraWildIds(), parmigianoDividend: activeSealId() === 'parmigiano-aktie' && hasActiveGameplaySeal('parmigiano-aktie') });
+  const breakWin = calcWin(results, spinBet, { extraWildIds: activeExtraWildIds(), simpleWildMode: freespinActive, parmigianoDividend: activeSealId() === 'parmigiano-aktie' && hasActiveGameplaySeal('parmigiano-aktie') });
   const plateWin = await runCheesePlate(results, spinBet);
   if (plateWin && plateWin.amount > 0) {
     const baseAmount = Math.max(0, Math.floor(breakWin.amount || 0));
@@ -5782,11 +5805,11 @@ async function runSchimmelbruch(results, spinBet) {
       amount: totalAmount,
       msg: `🧫 Schimmelbruch + ${baseMsg}${plateWin.msg}`,
       winReels: [0,1,2],
-      isJackpot: !!breakWin.isJackpot || plateWin.targetId === 'golden',
+      isJackpot: !!breakWin.isJackpot || !!plateWin.isJackpot,
       isWild: true,
-      triggerFreespins: !!breakWin.triggerFreespins || plateWin.targetId === 'roquefort',
-      triggerSenfbombe: !!breakWin.triggerSenfbombe || plateWin.targetId === 'senf',
-      comboId: plateWin.targetId || breakWin.comboId
+      triggerFreespins: !!breakWin.triggerFreespins || !!plateWin.triggerFreespins,
+      triggerSenfbombe: !!breakWin.triggerSenfbombe || !!plateWin.triggerSenfbombe,
+      comboId: plateWin.comboId || plateWin.targetId || breakWin.comboId
     };
   }
 
@@ -6079,14 +6102,43 @@ function applyBadgePreWinEffects(results, spinBet, win) {
   return nextWin;
 }
 
-function spendActiveModeCounters(results, win) {
+const countedModeSpinIds = new Set();
+
+function rememberModeSpin(spinId) {
+  if (!spinId) return false;
+  if (countedModeSpinIds.has(spinId)) return true;
+  countedModeSpinIds.add(spinId);
+  if (countedModeSpinIds.size > 80) {
+    const [oldest] = countedModeSpinIds;
+    countedModeSpinIds.delete(oldest);
+  }
+  return false;
+}
+
+function spendActiveModeCounters(results, win, context = {}) {
   if (!hasActiveGameplaySeal()) return;
+  if (rememberModeSpin(context.spinId)) return;
   const state = abilityState();
-  if (activeSealId() === 'senf-depot' && abilityNumber('senfTakeoverSpins') > 0 && !freespinActive) state.senfTakeoverSpins = abilityNumber('senfTakeoverSpins') - 1;
-  if (activeSealId() === 'senf-depot' && state.scharferSpinReady) state.scharferSpinReady = false;
-  if (activeSealId() === 'weisses-durag' && walhallaEventSpinsRemaining() > 0 && !freespinActive) state.walhallaEventSpins = walhallaEventSpinsRemaining() - 1;
+  let changed = false;
+  if (activeSealId() === 'senf-depot' && abilityNumber('senfTakeoverSpins') > 0 && !context.startedInFreespins) {
+    state.senfTakeoverSpins = Math.max(0, abilityNumber('senfTakeoverSpins') - 1);
+    changed = true;
+  }
+  if (activeSealId() === 'senf-depot' && state.scharferSpinReady) {
+    state.scharferSpinReady = false;
+    changed = true;
+  }
+  if (activeSealId() === 'weisses-durag' && context.startedInWalhalla) {
+    state.walhallaEventSpins = Math.max(0, Math.min(WALHALLA_CALL_SPINS, abilityNumber('walhallaEventSpins')) - 1);
+    changed = true;
+  }
   if (!walhallaCallActive()) document.getElementById('reels-frame')?.classList.remove('walhalla-call-mode');
-  queueAbilityStateSync();
+  if (changed) {
+    profileCache[playerName] = currentProfile;
+    localStorage.setItem(`kaesino_profile_${playerName}`, JSON.stringify(currentProfile));
+    queueAbilityStateSync();
+    renderPrestigePanel();
+  }
 }
 
 function maybeGrantPorschePitstop() {
@@ -6189,6 +6241,33 @@ function applyBadgePostSpinEffects(results, spinBet, win, spinStartedInFreespins
 
 // ── HAUPT-SPIN ───────────────────────────────────────────────
 async function doSpin() {
+  if (spinLock || spinning || freespinPending || schimmelPending || pendingSchimmelAmount || hasBlockingOverlayOpen()) {
+    if (autoOn && !freespinPending && (schimmelPending || pendingSchimmelAmount || hasBlockingOverlayOpen())) {
+      clearTimeout(autoTimer);
+      autoTimer = setTimeout(resumeAutoAfterSchimmel, 350);
+    }
+    return;
+  }
+  spinLock = true;
+  const spinId = ++spinSerial;
+  try {
+    await doSpinLocked(spinId);
+  } catch (e) {
+    logSoftError('spin', e);
+    setResult('⚠️ Der Spin wurde sauber gestoppt. Bitte gleich nochmal drehen.', '');
+  } finally {
+    if (spinning) {
+      spinning = false;
+      document.querySelectorAll('.bet-btn').forEach(b => b.disabled = false);
+      const spinBtn = document.getElementById('spin-btn');
+      if (spinBtn) spinBtn.disabled = false;
+      updateFeatureButtons();
+    }
+    spinLock = false;
+  }
+}
+
+async function doSpinLocked(spinId) {
   if (spinning || freespinPending || schimmelPending || pendingSchimmelAmount) return;
 
   // ⚠️ BET LOCK — Einsatz JETZT einfrieren, bevor irgendetwas passiert
@@ -6245,6 +6324,7 @@ async function doSpin() {
   // Gewinn mit gelocketem Einsatz berechnen
   let win = calcWin(results, spinBet, {
     extraWildIds: activeExtraWildIds(),
+    simpleWildMode: freespinActive,
     parmigianoDividend: activeSealId() === 'parmigiano-aktie' && hasActiveGameplaySeal('parmigiano-aktie')
   });
   if (spinStartedInWalhalla && win.triggerFreespins) {
@@ -6264,8 +6344,9 @@ async function doSpin() {
       win.msg = win.msg ? `${win.msg} + ${plateWin.msg}` : plateWin.msg;
       win.winReels = [0,1,2];
       win.isWild = true;
-      if (plateWin.targetId === 'golden') win.isJackpot = true;
-      if (plateWin.targetId === 'roquefort') win.triggerFreespins = true;
+      if (plateWin.isJackpot) win.isJackpot = true;
+      if (plateWin.triggerFreespins) win.triggerFreespins = true;
+      if (plateWin.triggerSenfbombe) win.triggerSenfbombe = true;
     }
 
     if (win.amount <= 0 && freespinRipenMulti >= freespinCurrentCap && !freespinSchimmelbruchUsed) {
@@ -6282,7 +6363,7 @@ async function doSpin() {
       const next = rndCheese();
       results[idx] = next;
       await spinReel(idx, next, turboActive ? 900 : 1350);
-      const rerollWin = calcWin(results, spinBet, { extraWildIds: activeExtraWildIds(), parmigianoDividend: activeSealId() === 'parmigiano-aktie' && hasActiveGameplaySeal('parmigiano-aktie') });
+      const rerollWin = calcWin(results, spinBet, { extraWildIds: activeExtraWildIds(), simpleWildMode: freespinActive, parmigianoDividend: activeSealId() === 'parmigiano-aktie' && hasActiveGameplaySeal('parmigiano-aktie') });
       if (rerollWin.amount > 0) Object.assign(win, { ...rerollWin, msg: `🌑 Durag-Reroll: ${rerollWin.msg}` });
       else {
         freespinRipenMulti = Math.min(freespinCurrentCap, freespinRipenMulti + freespinCurrentStep);
@@ -6359,7 +6440,7 @@ async function doSpin() {
   checkMilestones();
   if (spinStartedInFreespins) freespinSessionSpins++;
   applyBadgePostSpinEffects(results, spinBet, win, spinStartedInFreespins, spinStartedInWalhalla);
-  spendActiveModeCounters(results, win);
+  spendActiveModeCounters(results, win, { spinId, startedInFreespins: spinStartedInFreespins, startedInWalhalla: spinStartedInWalhalla });
   if (schimmelEligible && spinStartedInFreespins) activeSchimmelFromFreespin = true;
 
   // Free Spins triggern / zählen
@@ -6521,9 +6602,11 @@ async function doSpin() {
       // 10 Spins voll — Auto Spin automatisch stoppen
       toggleAuto();
       setResult(`⏸ Auto Spin nach ${autoMax} Runden gestoppt. Manuell neu starten!`, '');
-    } else if (pendingSchimmelAmount || schimmelPending) {
+    } else if (pendingSchimmelAmount || schimmelPending || hasBlockingOverlayOpen()) {
       document.getElementById('auto-btn').textContent =
         `⏸ STOP (${autoMax - autoSpinCount} übrig)`;
+      clearTimeout(autoTimer);
+      autoTimer = setTimeout(resumeAutoAfterSchimmel, 350);
     } else if (credits >= bet) {
       // Verbleibende Spins im Button anzeigen
       document.getElementById('auto-btn').textContent =
@@ -6537,7 +6620,12 @@ async function doSpin() {
 }
 
 function resumeAutoAfterSchimmel() {
-  if (!autoOn || freespinPending || spinning || schimmelPending || pendingSchimmelAmount) return;
+  if (!autoOn || freespinPending) return;
+  if (spinning || schimmelPending || pendingSchimmelAmount || hasBlockingOverlayOpen()) {
+    clearTimeout(autoTimer);
+    autoTimer = setTimeout(resumeAutoAfterSchimmel, 350);
+    return;
+  }
   const autoMax = maxAutoSpins();
   if (autoSpinCount >= autoMax) {
     toggleAuto();
@@ -6830,6 +6918,7 @@ function makeWin({ amount, msg, winReels, isJackpot = false, isWild = false, tri
 
 function calcWin(results, betAmt, options = {}) {
   const extraWildIds = new Set(options.extraWildIds || []);
+  const simpleWildMode = options.simpleWildMode === true;
   const wildCh = CHEESES.find(c => c.wild);
   const candidates = [emptyWin()];
   const byId = id => CHEESES.find(c => c.id === id);
@@ -6854,7 +6943,7 @@ function calcWin(results, betAmt, options = {}) {
     if (chosen.length < needed && partnerWilds.length) {
       chosen.push(partnerWilds[0]);
     }
-    return chosen.slice(0, needed);
+    return chosen.slice(0, simpleWildMode ? Math.min(1, needed) : needed);
   }
 
   if (naturalWildIndexes.length === 3) {
@@ -8011,6 +8100,7 @@ function abilityStatusHTML(sealId, glow) {
     bits.push(`Patina-Käse: ${patina ? `${patina.emoji} ${patina.name}` : 'nicht gewählt'}`);
     bits.push(`Reifekammer-Spins: ${glow >= 1 ? 10 : 9}`);
     if (glow >= 1) bits.push('Reifecap: erhöht');
+    if (glow >= 2) bits.push('Einfach-Wild: verbindet eine fehlende Seite und kann Käseklammern öffnen; zwei Wilds allein bauen keinen Dreier.');
     if (state.grandeCaveReady) bits.push('Grande Cave geladen: nächste Reifekammer wird episch');
     if (glow >= 3) bits.push(`Grande-Cave-Cooldown: ${formatAbilityCooldown(state.grandeCaveCooldownUntil)}`);
   } else if (sealId === 'fondue-fonds') {
@@ -8044,8 +8134,9 @@ function abilityActionsHTML(sealId, glow) {
     actions.push(`<button type="button" onclick="activateSenfTakeover()" ${glow >= 3 && points >= 35 && abilityNumber('senfTakeoverSpins') <= 0 ? '' : 'disabled'}>Senf-Takeover (35)</button>`);
   } else if (sealId === 'weisses-durag') {
     const points = abilityNumber('walhallaPoints');
+    const walhallaBusy = spinLock || spinning || autoOn || freespinActive || freespinPending || schimmelPending || pendingSchimmelAmount || hasBlockingOverlayOpen();
     actions.push(`<button type="button" onclick="activateWalhallaBlessing()" ${glow >= 2 && points >= 10 && !abilityState().walhallaBlessingReady ? '' : 'disabled'}>Segen laden (10)</button>`);
-    actions.push(`<button type="button" onclick="activateWalhallaCall()" ${glow >= 3 && points >= 20 && walhallaEventSpinsRemaining() <= 0 ? '' : 'disabled'}>Walhalla-Ruf (20)</button>`);
+    actions.push(`<button type="button" onclick="activateWalhallaCall()" ${glow >= 3 && points >= 20 && walhallaEventSpinsRemaining() <= 0 && !walhallaBusy ? '' : 'disabled'}>Walhalla-Ruf (20)</button>`);
   } else if (sealId === 'roquefort-patina') {
     if (glow >= 2) {
       actions.push(cheeseChoiceGridHTML('patina', patinaCheeseId(), 'setPatinaCheese'));
@@ -8178,6 +8269,10 @@ function activateGrandeCave() {
 
 function activateWalhallaCall() {
   if (activeSealId() !== 'weisses-durag' || !hasActiveGameplaySeal('weisses-durag') || sealLevel() < 3) return;
+  if (spinLock || spinning || autoOn || freespinActive || freespinPending || schimmelPending || pendingSchimmelAmount || hasBlockingOverlayOpen()) {
+    setResult('🤍 Walhalla-Ruf wartet: Bitte erst laufende Spins, Auto-Spin oder Overlays beenden.', '');
+    return;
+  }
   const state = abilityState();
   if (abilityNumber('walhallaPoints') < 20 || walhallaEventSpinsRemaining() > 0) return;
   state.walhallaEventSpins = WALHALLA_CALL_SPINS;
