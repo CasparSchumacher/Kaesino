@@ -3647,6 +3647,83 @@ body {
 .daily-amount  { font-size:1.4em; color:var(--gold); font-family:'Courier New'; font-weight:bold; margin-bottom:14px; }
 .daily-close   { background:linear-gradient(135deg,var(--gold),var(--gold2)); color:#000; border:none; padding:12px 30px; border-radius:12px; font-size:1em; font-weight:bold; cursor:pointer; font-family:Georgia,serif; }
 
+/* ── KLAUSURENPHASE POP-UP ── */
+#klausurenphase-overlay {
+  display:none; position:fixed; inset:0; z-index:10120;
+  align-items:center; justify-content:center; padding:18px;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(255,215,0,0.16), transparent 36%),
+    rgba(3,4,14,0.86);
+}
+#klausurenphase-overlay.show { display:flex; }
+.klausurenphase-box {
+  width:min(92vw, 390px);
+  max-height:calc(100vh - 36px);
+  overflow:auto;
+  border:2px solid rgba(255,215,0,0.62);
+  border-radius:16px;
+  background:linear-gradient(155deg, #141018 0%, #251427 54%, #0d1228 100%);
+  text-align:center;
+  box-shadow:0 24px 70px rgba(0,0,0,0.78), 0 0 42px rgba(255,215,0,0.24);
+  animation:popIn 0.42s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+.klausurenphase-img {
+  display:block;
+  width:100%;
+  aspect-ratio:4 / 5;
+  object-fit:cover;
+  object-position:center 40%;
+  border-bottom:1px solid rgba(255,215,0,0.34);
+  background:#070812;
+}
+.klausurenphase-content {
+  padding:20px 18px 18px;
+}
+.klausurenphase-title {
+  color:var(--gold);
+  font-size:1.32em;
+  line-height:1.18;
+  letter-spacing:0.5px;
+  margin-bottom:10px;
+}
+.klausurenphase-msg {
+  color:rgba(235,240,255,0.9);
+  font-family:Arial,sans-serif;
+  font-size:0.96em;
+  line-height:1.48;
+  margin-bottom:16px;
+}
+.klausurenphase-msg strong {
+  color:#fff2a8;
+}
+.klausurenphase-close {
+  width:100%;
+  min-height:44px;
+  border:1px solid rgba(255,215,0,0.58);
+  border-radius:10px;
+  background:linear-gradient(135deg, var(--gold), var(--gold2));
+  color:#130b02;
+  font-family:Georgia,serif;
+  font-size:1em;
+  font-weight:bold;
+  cursor:pointer;
+}
+.klausurenphase-later {
+  margin-top:9px;
+  width:100%;
+  min-height:38px;
+  border:1px solid rgba(180,190,230,0.14);
+  border-radius:8px;
+  background:transparent;
+  color:rgba(180,190,230,0.68);
+  font-family:Arial,sans-serif;
+  font-size:0.82em;
+  cursor:pointer;
+}
+@media (prefers-reduced-motion: reduce) {
+  .klausurenphase-box { animation:none; }
+}
+
 /* ── SUPPORT KÄSE-ENTWICKLER BUTTON ── */
 .support-section { max-width:500px; width:100%; margin:20px auto 8px; }
 .support-btn {
@@ -4682,6 +4759,21 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
   </div>
 </div>
 
+<!-- Klausurenphase Erinnerung -->
+<div id="klausurenphase-overlay" onclick="closeKlausurenphasePopup()" role="dialog" aria-modal="true" aria-labelledby="klausurenphase-title">
+  <div class="klausurenphase-box" onclick="event.stopPropagation()">
+    <img class="klausurenphase-img" src="klausurenphase-klaus.jpeg" alt="Klausurenphase Erinnerung">
+    <div class="klausurenphase-content">
+      <div class="klausurenphase-title" id="klausurenphase-title">Klausurenphase im Käsino</div>
+      <div class="klausurenphase-msg">
+        <strong>Mädels..., Jungs...</strong>, es ist Klausurenphase! Flippt n paar Ankis, rechnet ne Altklasur und dann kommt später wieder!
+      </div>
+      <button class="klausurenphase-close" type="button" onclick="closeKlausurenphasePopup()">Ankis flippen 🧠</button>
+      <button class="klausurenphase-later" type="button" onclick="closeKlausurenphasePopup()">Noch ein Spin, dann wirklich</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════════════════
 //  🧀  KÄSE CASINO — Obatzda Oligarchen Edition  v4.4
@@ -4729,6 +4821,46 @@ const KAESINO_DEBUG = localStorage.getItem('kaesino_debug') === '1';
 function logSoftError(scope, error) {
   if (KAESINO_DEBUG) console.warn(`[kaesino:${scope}]`, error);
 }
+
+const KLAUSURENPHASE_POPUP = {
+  start: new Date('2026-06-28T00:00:00+02:00').getTime(),
+  end: new Date('2026-07-26T23:59:59+02:00').getTime(),
+  delayMs: 15 * 60 * 1000,
+  sessionKey: 'kaesino_klausurenphase_popup_2026'
+};
+let klausurenphaseTimer = null;
+
+function klausurenphasePopupActive(now = Date.now()) {
+  return now >= KLAUSURENPHASE_POPUP.start && now <= KLAUSURENPHASE_POPUP.end;
+}
+
+function scheduleKlausurenphasePopup() {
+  if (!klausurenphasePopupActive() || sessionStorage.getItem(KLAUSURENPHASE_POPUP.sessionKey)) return;
+  if (klausurenphaseTimer) clearTimeout(klausurenphaseTimer);
+  klausurenphaseTimer = setTimeout(showKlausurenphasePopup, KLAUSURENPHASE_POPUP.delayMs);
+}
+
+function showKlausurenphasePopup() {
+  klausurenphaseTimer = null;
+  if (!klausurenphasePopupActive() || sessionStorage.getItem(KLAUSURENPHASE_POPUP.sessionKey)) return;
+  if (typeof hasBlockingOverlayOpen === 'function' && hasBlockingOverlayOpen()) {
+    klausurenphaseTimer = setTimeout(showKlausurenphasePopup, 350);
+    return;
+  }
+  const overlay = document.getElementById('klausurenphase-overlay');
+  if (!overlay) return;
+  sessionStorage.setItem(KLAUSURENPHASE_POPUP.sessionKey, '1');
+  overlay.classList.add('show');
+}
+
+function closeKlausurenphasePopup() {
+  document.getElementById('klausurenphase-overlay')?.classList.remove('show');
+  if (typeof notifyOverlayClosed === 'function') notifyOverlayClosed();
+}
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') closeKlausurenphasePopup();
+});
 
 // ── WAVE HINTERGRUND ────────────────────────────────────────
 (function () {
@@ -5488,6 +5620,7 @@ function enterGame(name, initialState = null) {
   initGame();
   startMusic();
   setTimeout(() => showKaesebaer(), 300);
+  scheduleKlausurenphasePopup();
 }
 
 function maybeShowRestoredProgressMessage() {
@@ -9675,6 +9808,7 @@ const SCHIMMEL_BLOCKING_OVERLAYS = [
   'rang-overlay',
   'support-overlay',
   'daily-overlay',
+  'klausurenphase-overlay',
 ];
 
 function hasBlockingOverlayOpen() {
