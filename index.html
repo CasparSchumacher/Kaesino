@@ -349,8 +349,8 @@ body {
   transition: border-color 0.4s, box-shadow 0.4s;
 }
 .reels-frame.freespin-mode {
-  border-color: var(--blue);
-  box-shadow: inset 0 0 40px rgba(0,0,0,0.9), 0 0 24px rgba(34,68,170,0.55);
+  border-color: #a848df;
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.9), 0 0 24px rgba(177,76,255,0.55);
 }
 .reels-frame.freespin-mode::before {
   content: '';
@@ -360,23 +360,23 @@ body {
   pointer-events: none;
   z-index: 8;
   background:
-    radial-gradient(circle at 18% 82%, rgba(80,210,255,0.12), transparent 28%),
-    radial-gradient(circle at 82% 16%, rgba(120,255,220,0.08), transparent 32%),
-    linear-gradient(180deg, transparent 62%, rgba(32,120,150,0.16));
+    radial-gradient(circle at 18% 82%, rgba(210,140,255,0.14), transparent 28%),
+    radial-gradient(circle at 82% 16%, rgba(255,160,235,0.1), transparent 32%),
+    linear-gradient(180deg, transparent 62%, rgba(120,32,150,0.18));
   opacity: 0.65;
   animation: chamberBreathe 3.2s ease-in-out infinite;
 }
 .reels-frame.ripen-175 {
-  border-color: #3f86d8;
-  box-shadow: inset 0 0 42px rgba(0,0,0,0.9), 0 0 30px rgba(40,120,220,0.62);
+  border-color: #8f45d8;
+  box-shadow: inset 0 0 42px rgba(0,0,0,0.9), 0 0 30px rgba(155,68,220,0.62);
 }
 .reels-frame.ripen-200 {
-  border-color: #62d4d8;
-  box-shadow: inset 0 0 44px rgba(0,0,0,0.9), 0 0 38px rgba(80,210,255,0.72);
+  border-color: #c47cff;
+  box-shadow: inset 0 0 44px rgba(0,0,0,0.9), 0 0 38px rgba(195,110,255,0.72);
 }
 .reels-frame.ripen-225 {
-  border-color: #88ffff;
-  box-shadow: inset 0 0 48px rgba(0,0,0,0.92), 0 0 48px rgba(136,255,255,0.76), 0 0 0 1px rgba(255,215,0,0.24);
+  border-color: #f1ccff;
+  box-shadow: inset 0 0 48px rgba(0,0,0,0.92), 0 0 48px rgba(210,140,255,0.76), 0 0 0 1px rgba(255,215,0,0.24);
 }
 .reels-frame.schimmelbruch {
   animation: chamberBreak 0.26s ease-in-out 6;
@@ -623,8 +623,8 @@ body {
 }
 .reel-item.patina-wild-tile {
   position: relative;
-  outline: 2px solid rgba(190,225,255,0.78);
-  box-shadow: inset 0 0 24px rgba(220,230,240,0.28), 0 0 20px rgba(120,180,255,0.45);
+  outline: 2px solid rgba(215,155,255,0.82);
+  box-shadow: inset 0 0 24px rgba(190,90,255,0.25), 0 0 22px rgba(185,80,255,0.5);
   animation: patinaWildFlicker 0.9s ease-in-out infinite alternate;
 }
 .reel-item.patina-wild-tile::after {
@@ -635,9 +635,9 @@ body {
   transform: translateX(-50%);
   padding: 3px 7px;
   border-radius: 999px;
-  background: rgba(18,24,30,0.88);
-  color: #e8f4ff;
-  border: 1px solid rgba(220,230,240,0.72);
+  background: rgba(38,12,52,0.9);
+  color: #f6e6ff;
+  border: 1px solid rgba(225,165,255,0.76);
   font-size: 0.5em;
   font-family: Arial, sans-serif;
   font-weight: 900;
@@ -739,14 +739,14 @@ body {
 /* ── FREE SPIN BANNER ── */
 .freespin-banner {
   display: none;
-  background: linear-gradient(135deg, rgba(10,20,80,0.8), rgba(20,40,100,0.4));
-  border: 1px solid rgba(100,140,255,0.45);
+  background: linear-gradient(135deg, rgba(50,12,78,0.82), rgba(82,24,118,0.44));
+  border: 1px solid rgba(210,140,255,0.48);
   border-radius: 10px;
   padding: 9px 14px;
   text-align: center;
   font-family: Arial, sans-serif;
   font-size: 0.92em;
-  color: var(--blue-light);
+  color: #e5b6ff;
   margin-bottom: 14px;
   animation: freespinPulse 1.2s ease-in-out infinite;
 }
@@ -760,16 +760,16 @@ body {
   font-size: 0.86em;
 }
 .fs-pill {
-  border: 1px solid rgba(136,255,255,0.24);
+  border: 1px solid rgba(210,140,255,0.28);
   border-radius: 999px;
   padding: 3px 8px;
-  color: rgba(210,240,255,0.86);
-  background: rgba(20,50,120,0.18);
+  color: rgba(246,230,255,0.88);
+  background: rgba(92,30,130,0.22);
 }
 .fs-pill.hot {
-  color: #88ffff;
-  border-color: rgba(136,255,255,0.48);
-  box-shadow: 0 0 12px rgba(34,170,255,0.18);
+  color: #f1ccff;
+  border-color: rgba(210,140,255,0.52);
+  box-shadow: 0 0 12px rgba(177,76,255,0.22);
 }
 .ripen-meter {
   position: relative;
@@ -778,14 +778,14 @@ body {
   overflow: hidden;
   margin-top: 8px;
   background: rgba(4,10,24,0.72);
-  border: 1px solid rgba(136,255,255,0.22);
+  border: 1px solid rgba(210,140,255,0.28);
 }
 .ripen-fill {
   height: 100%;
   width: 0%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #2258d8, #49d7e6, #88ffcc, #ffd86b);
-  box-shadow: 0 0 18px rgba(80,210,255,0.58);
+  background: linear-gradient(90deg, #7e2bb8, #c47cff, #f1ccff, #ffd86b);
+  box-shadow: 0 0 18px rgba(195,110,255,0.58);
   transition: width 0.45s ease, filter 0.45s ease;
 }
 .ripen-meter.max .ripen-fill {
@@ -793,12 +793,12 @@ body {
   animation: ripenMax 0.8s ease-in-out infinite;
 }
 @keyframes ripenMax {
-  0%,100% { box-shadow: 0 0 14px rgba(80,210,255,0.55); }
+  0%,100% { box-shadow: 0 0 14px rgba(195,110,255,0.55); }
   50%     { box-shadow: 0 0 28px rgba(255,216,107,0.85); }
 }
 @keyframes freespinPulse {
-  0%,100% { border-color: rgba(100,140,255,0.35); }
-  50%      { border-color: rgba(100,140,255,0.8); box-shadow: 0 0 14px rgba(34,68,170,0.3); }
+  0%,100% { border-color: rgba(210,140,255,0.38); }
+  50%      { border-color: rgba(210,140,255,0.84); box-shadow: 0 0 14px rgba(177,76,255,0.34); }
 }
 
 /* ── RESULT BAR ── */
@@ -833,9 +833,9 @@ body {
   font-weight: bold;
 }
 .result-bar.freespin {
-  color: var(--blue-light);
-  border-color: rgba(100,140,255,0.45);
-  background: rgba(34,68,170,0.1);
+  color: #e5b6ff;
+  border-color: rgba(210,140,255,0.48);
+  background: rgba(92,30,130,0.16);
 }
 @keyframes resultWin {
   0%,100% { transform: scale(1); }
@@ -945,8 +945,8 @@ body {
   margin-bottom: 12px;
 }
 .spin-btn.freespin-btn {
-  background: linear-gradient(135deg, #1a3890 0%, #0c1f5a 40%, #1a3890 100%);
-  box-shadow: 0 5px 22px rgba(34,68,170,0.55), 0 0 0 1px rgba(100,140,255,0.2);
+  background: linear-gradient(135deg, #7e2bb8 0%, #3a0a54 40%, #a848df 100%);
+  box-shadow: 0 5px 22px rgba(177,76,255,0.55), 0 0 0 1px rgba(210,140,255,0.24);
 }
 .spin-btn::before {
   content: '';
@@ -965,7 +965,7 @@ body {
   box-shadow: 0 9px 28px rgba(184,40,72,0.75), 0 0 0 1px rgba(255,215,0,0.28);
 }
 .spin-btn.freespin-btn:hover:not(:disabled) {
-  box-shadow: 0 9px 28px rgba(34,68,170,0.75), 0 0 0 1px rgba(100,140,255,0.35);
+  box-shadow: 0 9px 28px rgba(177,76,255,0.75), 0 0 0 1px rgba(210,140,255,0.38);
 }
 .spin-btn:active:not(:disabled) {
   transform: translateY(2px);
@@ -1006,13 +1006,13 @@ body {
   background: rgba(184,40,72,0.1);
 }
 .extra-btn.reifekammer-btn {
-  border-color: rgba(100,140,255,0.32);
-  color: var(--blue-light);
-  background: rgba(34,68,170,0.08);
+  border-color: rgba(210,140,255,0.36);
+  color: #e5b6ff;
+  background: rgba(92,30,130,0.12);
 }
 .extra-btn.reifekammer-btn:hover:not(:disabled) {
-  border-color: rgba(136,255,255,0.55);
-  box-shadow: 0 0 16px rgba(34,68,170,0.28);
+  border-color: rgba(241,204,255,0.58);
+  box-shadow: 0 0 16px rgba(177,76,255,0.32);
 }
 .extra-btn:disabled {
   opacity: 0.5;
@@ -1028,10 +1028,10 @@ body {
 }
 .chamber-tier-menu.show { display: grid; }
 .chamber-tier-btn {
-  border: 1px solid rgba(100,160,255,0.32);
+  border: 1px solid rgba(210,140,255,0.34);
   border-radius: 8px;
-  background: rgba(34,68,170,0.1);
-  color: rgba(220,235,255,0.9);
+  background: rgba(92,30,130,0.14);
+  color: rgba(246,230,255,0.92);
   padding: 8px 6px;
   font-family: Arial, sans-serif;
   cursor: pointer;
@@ -1044,7 +1044,7 @@ body {
 .chamber-tier-btn small {
   display: block;
   margin-top: 2px;
-  color: rgba(180,205,255,0.7);
+  color: rgba(226,188,255,0.74);
   font-size: 0.68em;
 }
 .chamber-tier-btn:disabled {
@@ -1206,7 +1206,7 @@ body {
 .seal-badge.glow-3.seal-sechseck-orden { box-shadow:0 0 20px rgba(120,220,255,0.58), inset 0 0 14px rgba(120,220,255,0.16); }
 .seal-badge.glow-3.seal-fondue-fonds { box-shadow:0 0 20px rgba(255,185,65,0.6), inset 0 -8px 12px rgba(255,160,20,0.2); }
 .seal-badge.glow-3.seal-oligarchenporsche { box-shadow:0 0 22px rgba(255,255,255,0.5), 0 0 12px rgba(255,40,40,0.45); }
-.seal-badge.glow-3.seal-roquefort-patina { box-shadow:0 0 20px rgba(90,130,255,0.62), inset 0 0 14px rgba(40,80,255,0.22); }
+.seal-badge.glow-3.seal-roquefort-patina { box-shadow:0 0 20px rgba(185,85,255,0.68), inset 0 0 14px rgba(150,40,220,0.26); }
 .seal-badge.glow-3.seal-parmigiano-aktie { box-shadow:0 0 20px rgba(255,225,95,0.72), inset 0 0 14px rgba(255,225,95,0.18); }
 .seal-badge.glow-3.seal-weisses-durag { box-shadow:0 0 24px rgba(255,255,255,0.78), 0 0 24px rgba(255,215,0,0.45); }
 .seal-badge.glow-3.seal-oligarchengedeck { box-shadow:0 0 20px rgba(255,215,0,0.68), inset 0 0 14px rgba(120,60,20,0.24); }
@@ -2428,12 +2428,12 @@ body {
   font-family: Arial, sans-serif;
   font-size: 0.78em;
 }
-.pt-row.special { border-color: rgba(100,140,255,0.3); background: rgba(34,68,170,0.08); }
+.pt-row.special { border-color: rgba(210,140,255,0.34); background: rgba(92,30,130,0.12); }
 .pt-row.wild    { border-color: rgba(136,255,204,0.3); background: rgba(30,80,60,0.1); }
 .pt-emoji { font-size: 1.1em; white-space: nowrap; }
 .pt-name  { flex: 1; color: rgba(180,190,230,0.65); }
 .pt-mult  { color: var(--gold); font-weight: bold; font-family: 'Courier New'; }
-.pt-mult.special { color: var(--blue-light); }
+.pt-mult.special { color: #d28cff; }
 .pt-mult.wild { color: #88ffcc; }
 
 /* ── TICKER ── */
@@ -2459,7 +2459,7 @@ body {
 .t-item.t-win { color: rgba(255,215,0,0.75); }
 .t-item.t-big { color: #ff7090; font-weight: bold; }
 .t-item.t-jackpot { color: var(--gold); font-weight: bold; animation: jackTick 1s infinite; }
-.t-item.t-freespin { color: var(--blue-light); }
+.t-item.t-freespin { color: #d28cff; }
 @keyframes jackTick { 0%,100% { color: var(--gold); } 50% { color: #fff; } }
 
 /* ── OVERLAY BASE ── */
@@ -2641,37 +2641,37 @@ body {
 #freespin-start-overlay { z-index: 9994; }
 #freespin-summary-overlay { z-index: 9995; }
 .freespin-box {
-  background: linear-gradient(160deg, #050e2a, #0a1538);
-  border: 3px solid var(--blue-light);
+  background: linear-gradient(160deg, #17051f, #2d103c);
+  border: 3px solid #d28cff;
   border-radius: 22px;
   padding: 38px 32px;
   text-align: center;
   max-width: 92vw;
   width: 100%;
   max-width: 380px;
-  box-shadow: 0 0 60px rgba(34,68,170,0.6);
+  box-shadow: 0 0 60px rgba(155,68,220,0.58);
   animation: popIn 0.55s cubic-bezier(0.175,0.885,0.32,1.275);
 }
 .fs-icon   { font-size: 3em; margin-bottom: 8px; animation: starSpin 2s linear infinite; display: inline-block; }
-.fs-title  { font-size: 2em; color: var(--blue-light); margin-bottom: 8px; letter-spacing: 2px; }
+.fs-title  { font-size: 2em; color: #d28cff; margin-bottom: 8px; letter-spacing: 2px; }
 .fs-body   { color: rgba(180,190,230,0.75); font-family: Arial, sans-serif; font-size: 0.9em; line-height: 1.5; margin-bottom: 20px; }
-.fs-body strong { color: #88ffff; }
+.fs-body strong { color: #f1ccff; }
 .fs-go {
-  background: linear-gradient(135deg, var(--blue), #3366cc);
+  background: linear-gradient(135deg, #7e2bb8, #b14cff);
   color: #fff; border: none; padding: 14px 32px;
   border-radius: 12px; font-size: 1.1em; font-weight: bold;
   cursor: pointer; font-family: 'Georgia', serif;
   letter-spacing: 2px; transition: transform 0.15s;
-  box-shadow: 0 4px 18px rgba(34,68,170,0.5);
+  box-shadow: 0 4px 18px rgba(155,68,220,0.5);
 }
 .fs-go:hover { transform: translateY(-2px); }
 .fs-summary-amount {
   font-size: 2.25em;
-  color: #88ffff;
+  color: #f1ccff;
   font-family: 'Courier New', monospace;
   font-weight: 900;
   margin: 10px 0;
-  text-shadow: 0 0 24px rgba(136,255,255,0.55);
+  text-shadow: 0 0 24px rgba(210,140,255,0.55);
 }
 .fs-summary-meta {
   display: grid;
@@ -2681,17 +2681,75 @@ body {
   font-family: Arial, sans-serif;
 }
 .fs-summary-pill {
-  border: 1px solid rgba(136,255,255,0.28);
+  border: 1px solid rgba(210,140,255,0.32);
   border-radius: 10px;
   padding: 8px 6px;
-  background: rgba(136,255,255,0.07);
-  color: rgba(225,245,255,0.9);
+  background: rgba(210,140,255,0.09);
+  color: rgba(246,230,255,0.9);
   font-size: 0.78em;
 }
 .fs-summary-pill strong {
   display: block;
-  color: #88ffff;
+  color: #f1ccff;
   font-size: 1.12em;
+}
+
+#roquefort-switch-overlay {
+  z-index: 10040;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(190,80,255,0.28), transparent 30%),
+    rgba(8,5,18,0.94);
+}
+.roquefort-switch-box {
+  width: min(92vw, 430px);
+  padding: 30px 26px 28px;
+  text-align: center;
+  background: linear-gradient(160deg, #1a0826, #35134a 72%);
+  border: 2px solid rgba(218,155,255,0.86);
+  border-radius: 18px;
+  box-shadow: 0 0 70px rgba(177,76,255,0.45), 0 20px 80px rgba(0,0,0,0.72);
+  animation: popIn 0.48s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+.roquefort-switch-icon {
+  display: inline-block;
+  font-size: 3.2em;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 0 18px rgba(218,155,255,0.72));
+  animation: starSpin 2.4s linear infinite;
+}
+.roquefort-switch-title {
+  color: #e5b6ff;
+  font-size: clamp(1.45em, 6vw, 2.05em);
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+  text-shadow: 0 0 24px rgba(177,76,255,0.48);
+}
+.roquefort-switch-body {
+  color: rgba(236,226,255,0.86);
+  font-family: Arial, sans-serif;
+  font-size: 0.98em;
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+.roquefort-switch-body strong { color: #fff; }
+.roquefort-switch-close {
+  width: 100%;
+  padding: 13px 18px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7e2bb8, #d28cff);
+  color: #fff;
+  font-family: Georgia, serif;
+  font-weight: bold;
+  font-size: 0.98em;
+  line-height: 1.25;
+  cursor: pointer;
+  box-shadow: 0 5px 20px rgba(177,76,255,0.38);
+  transition: transform 0.15s, filter 0.15s;
+}
+.roquefort-switch-close:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
 }
 
 /* ── 1000 COINS MILESTONE OVERLAY ── */
@@ -2890,10 +2948,10 @@ body {
   animation: nearMissOut 0.4s ease-in forwards;
 }
 .near-miss-banner.roq {
-  background: rgba(5,12,50,0.96);
-  border: 2px solid rgba(100,140,255,0.85);
-  color: var(--blue-light);
-  box-shadow: 0 0 24px rgba(34,68,170,0.7);
+  background: rgba(38,8,56,0.96);
+  border: 2px solid rgba(210,140,255,0.86);
+  color: #e5b6ff;
+  box-shadow: 0 0 24px rgba(177,76,255,0.72);
 }
 .near-miss-banner.senf {
   background: rgba(50,35,0,0.96);
@@ -2938,8 +2996,8 @@ body {
              freespinGlow 0.9s ease-in-out 0.55s infinite alternate !important;
 }
 @keyframes freespinGlow {
-  from { box-shadow: 0 0 60px rgba(34,68,170,0.6); }
-  to   { box-shadow: 0 0 120px rgba(34,68,170,1), 0 0 50px rgba(100,140,255,0.6); }
+  from { box-shadow: 0 0 60px rgba(177,76,255,0.56); }
+  to   { box-shadow: 0 0 120px rgba(177,76,255,0.95), 0 0 50px rgba(210,140,255,0.58); }
 }
 
 /* ── KÄSEBÄR WELCOME OVERLAY ── */
@@ -4141,7 +4199,7 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
 
     <!-- Free Spin Banner (erscheint nur während Freispielen) -->
     <div class="freespin-banner" id="freespin-banner">
-      🔵 REIFEKAMMER — <span id="fs-counter">0</span> Freispiele verbleibend
+      🟣 REIFEKAMMER — <span id="fs-counter">0</span> Freispiele verbleibend
       <div class="fs-stats">
         <span class="fs-pill hot">Schimmelgrad <span id="fs-multi">1.50×</span></span>
         <span class="fs-pill">Bonus-Einsatz <span id="fs-bet">100</span>🪙</span>
@@ -4416,7 +4474,7 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
 <!-- Free Spins Start -->
 <div class="overlay-bg" id="freespin-start-overlay">
   <div class="freespin-box">
-    <div class="fs-icon">💙</div>
+    <div class="fs-icon">💜</div>
     <div class="fs-title">FREISPIELE!</div>
     <div class="fs-body">
       3× <strong>Roquefort</strong> — du hast<br>
@@ -4424,14 +4482,14 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
       <strong>8 Freispiele</strong> starten bei <strong>1.50×</strong>.<br><br>
       Nieten erhöhen den Schimmelgrad. Käseplatten können schmelzen.
     </div>
-    <button class="fs-go" onclick="startFreespinRound()">LOS GEHT'S! 🔵</button>
+    <button class="fs-go" onclick="startFreespinRound()">LOS GEHT'S! 🟣</button>
   </div>
 </div>
 
 <!-- Free Spins Summary -->
 <div class="overlay-bg" id="freespin-summary-overlay">
   <div class="freespin-box">
-    <div class="fs-icon">💙</div>
+    <div class="fs-icon">💜</div>
     <div class="fs-title">REIFEKAMMER-ABRECHNUNG</div>
     <div class="fs-body" id="fs-summary-body">Die Käse sind fertig gereift.</div>
     <div class="fs-summary-amount" id="fs-summary-amount">+0 🪙</div>
@@ -4440,7 +4498,7 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
       <div class="fs-summary-pill"><strong id="fs-summary-wins">0</strong>Gewinne</div>
       <div class="fs-summary-pill"><strong id="fs-summary-best">0🪙</strong>Bester Win</div>
     </div>
-    <button class="fs-go" onclick="closeFreespinSummary()">Ehre annehmen 🔵</button>
+    <button class="fs-go" onclick="closeFreespinSummary()">Ehre annehmen 🟣</button>
   </div>
 </div>
 
@@ -4759,6 +4817,21 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
   </div>
 </div>
 
+<!-- Roquefort Symbol Switch -->
+<div class="overlay-bg" id="roquefort-switch-overlay" role="dialog" aria-modal="true" aria-labelledby="roquefort-switch-title">
+  <div class="roquefort-switch-box">
+    <div class="roquefort-switch-icon">💜</div>
+    <div class="roquefort-switch-title" id="roquefort-switch-title">Roquefort wird lila</div>
+    <div class="roquefort-switch-body">
+      <strong>Faschos, Rechtsextreme und Dumme haben Käse-Verbot!</strong><br>
+      Das blaue Roquefort-Herz wird von nun an durch ein wunderschönes lila Herz ersetzt! Käsig bleiben!
+    </div>
+    <button class="roquefort-switch-close" type="button" onclick="closeRoquefortSwitchNotice()">
+      Nur ADF-Wähler stinken noch mehr als die Reifekammer!
+    </button>
+  </div>
+</div>
+
 <!-- Klausurenphase Erinnerung -->
 <div id="klausurenphase-overlay" onclick="closeKlausurenphasePopup()" role="dialog" aria-modal="true" aria-labelledby="klausurenphase-title">
   <div class="klausurenphase-box" onclick="event.stopPropagation()">
@@ -4858,6 +4931,37 @@ function closeKlausurenphasePopup(options = {}) {
   overlay?.classList.remove('show');
   if (typeof notifyOverlayClosed === 'function') notifyOverlayClosed();
   if (wasOpen && options.reschedule !== false) scheduleKlausurenphasePopup();
+}
+
+const ROQUEFORT_SWITCH_NOTICE_VERSION = 'purple-heart-2026-06-30';
+
+function roquefortSwitchNoticeKey() {
+  return `kaesino_roquefort_switch_seen_${ROQUEFORT_SWITCH_NOTICE_VERSION}_${playerName || 'gast'}`;
+}
+
+function hasSeenRoquefortSwitchNotice() {
+  try {
+    return !!localStorage.getItem(roquefortSwitchNoticeKey());
+  } catch (_) {
+    return false;
+  }
+}
+
+function showRoquefortSwitchNotice() {
+  if (!playerName || hasSeenRoquefortSwitchNotice()) return;
+  if (typeof hasBlockingOverlayOpen === 'function' && hasBlockingOverlayOpen()) {
+    setTimeout(showRoquefortSwitchNotice, 350);
+    return;
+  }
+  document.getElementById('roquefort-switch-overlay')?.classList.add('show');
+}
+
+function closeRoquefortSwitchNotice() {
+  try {
+    localStorage.setItem(roquefortSwitchNoticeKey(), '1');
+  } catch (_) {}
+  document.getElementById('roquefort-switch-overlay')?.classList.remove('show');
+  if (typeof notifyOverlayClosed === 'function') notifyOverlayClosed();
 }
 
 function leaveKlausurenphaseToStudy(event) {
@@ -4988,10 +5092,10 @@ const CHEESES = [
   },
   {
     // FREISPIELE — 3× triggert 8 Reifekammer-Freispiele
-    id:'roquefort', name:'Roquefort',   emoji:'💙',
+    id:'roquefort', name:'Roquefort',   emoji:'💜',
     weight:9,  twoX:12, threeX:90,
     freespins: true,
-    bg:'linear-gradient(145deg,#00008B,#2244aa)'
+    bg:'linear-gradient(145deg,#3a0a54,#8b2ec8)'
   },
   {
     id:'parmesan',  name:'Parmigiano',  emoji:'⭐',
@@ -5065,7 +5169,7 @@ const SEAL_DEFS = [
   { id:'sechseck-orden', rarity:'rare', emoji:'⬢', name:'Sechseck-Orden', desc:'Verliehen von YoungFährmann (Geometrie Geselle aus der Wiener Oligarchie.)' },
   { id:'fondue-fonds', rarity:'rare', emoji:'🫕', name:'Fondue-Fonds', desc:'Ein liquider Käsefonds mit maximaler Schmelzgefahr und null Anlegerschutz.' },
   { id:'oligarchenporsche', rarity:'epic', emoji:'🏎️', name:'Oligarchenporsche', desc:'Leasing läuft auf den Käsekeller. Niemand stellt Fragen.' },
-  { id:'roquefort-patina', rarity:'epic', emoji:'🟦', name:'Roquefort-Patina', desc:'Schimmel, aber mit Selbstbewusstsein. Reift schneller als dein Kontostand.' },
+  { id:'roquefort-patina', rarity:'epic', emoji:'🟪', name:'Roquefort-Patina', desc:'Schimmel, aber mit Selbstbewusstsein. Reift schneller als dein Kontostand.' },
   { id:'parmigiano-aktie', rarity:'epic', emoji:'⭐', name:'Parmigiano-Aktie', desc:'Nur für diejenigen, die auch im Käsino grinden, wie an der Käseraspel!' },
   { id:'weisses-durag', rarity:'legendary', emoji:'', name:'Weißes Durag', icon:'durag-white', desc:'Legendär. Vom Capitano geehrt, vom Putschenden begehrt...' }
 ];
@@ -5653,6 +5757,7 @@ function enterGame(name, initialState = null) {
   initGame();
   startMusic();
   setTimeout(() => showKaesebaer(), 300);
+  setTimeout(showRoquefortSwitchNotice, 850);
   scheduleKlausurenphasePopup();
 }
 
@@ -6470,7 +6575,7 @@ async function doSpinLocked(spinId) {
   if (frame) frame.classList.toggle('walhalla-call-mode', spinStartedInWalhalla);
 
   const fsLabel = freespinActive
-    ? `💙 REIFEKAMMER dreht… ${freespinsLeft} übrig · Schimmelgrad ${formatMulti(freespinRipenMulti)}`
+    ? `💜 REIFEKAMMER dreht… ${freespinsLeft} übrig · Schimmelgrad ${formatMulti(freespinRipenMulti)}`
     : (spinStartedInWalhalla
       ? `🤍 WALHALLA-RUF dreht… ${WALHALLA_CALL_SPINS + 1 - walhallaEventSpinsRemaining()}/${WALHALLA_CALL_SPINS} · Nur Roquefort, Parmigiano und Golden`
       : spinMsgPool[Math.floor(Math.random() * spinMsgPool.length)]);
@@ -6497,7 +6602,7 @@ async function doSpinLocked(spinId) {
     win = {
       ...win,
       triggerFreespins: false,
-      msg: String(win.msg || '').replace('FREE SPINS! 💙', 'WALHALLA-TREFFER!')
+      msg: String(win.msg || '').replace('FREE SPINS! 💜', 'WALHALLA-TREFFER!')
     };
   }
   win = applyBadgePreWinEffects(results, spinBet, win);
@@ -6589,7 +6694,7 @@ async function doSpinLocked(spinId) {
       updateFreespinUI();
     }
     document.getElementById('win-val').textContent = '0';
-    setResult(freespinActive ? `💙 Kein Gewinn — der Roquefort reift weiter auf ${formatMulti(freespinRipenMulti)}.` : lossMsg(), freespinActive ? 'freespin' : '');
+    setResult(freespinActive ? `💜 Kein Gewinn — der Roquefort reift weiter auf ${formatMulti(freespinRipenMulti)}.` : lossMsg(), freespinActive ? 'freespin' : '');
     let protectedLoss = false;
     if (!freespinActive) {
       const geometry = detectHexGeometry(results);
@@ -6615,7 +6720,7 @@ async function doSpinLocked(spinId) {
     if (win.triggerFreespins) {
       freespinsLeft += FREESPIN_COUNT;
       updateFreespinUI();
-      setResult(`🔵 RE-TRIGGER! +${FREESPIN_COUNT} Reifekammer-Spins! 🎉`, 'freespin');
+      setResult(`🟣 RE-TRIGGER! +${FREESPIN_COUNT} Reifekammer-Spins! 🎉`, 'freespin');
     } else {
       updateFreespinUI();
     }
@@ -6680,7 +6785,7 @@ async function doSpinLocked(spinId) {
     setTimeout(() => showNearMissTeaser('roquefort'), 120);
     [0,1,2].forEach(i => {
       if (results[i].id === 'roquefort') {
-        document.getElementById(`reel-${i}`).style.boxShadow = '0 0 0 3px #88aaff, 0 0 24px rgba(34,68,170,0.9)';
+        document.getElementById(`reel-${i}`).style.boxShadow = '0 0 0 3px #d28cff, 0 0 24px rgba(177,76,255,0.9)';
         setTimeout(() => { document.getElementById(`reel-${i}`).style.boxShadow = ''; }, 3500);
       }
     });
@@ -6708,7 +6813,7 @@ async function doSpinLocked(spinId) {
       machine.classList.add('shake-anxiety');
       setTimeout(() => machine.classList.remove('shake-anxiety'), 1800);
       credits += 10; refreshUI();
-      setTimeout(() => setResult('💙 Käse-Rettungspaket! +10 Coins — Kopf hoch! 🧀', 'win'), 900);
+      setTimeout(() => setResult('💜 Käse-Rettungspaket! +10 Coins — Kopf hoch! 🧀', 'win'), 900);
       lossStreak = 0;
     }
   }
@@ -6939,11 +7044,11 @@ function startFreespinRound(options = {}) {
   freespinNullRerollUsed = false;
   document.getElementById('reels-frame').classList.add('freespin-mode');
   document.getElementById('spin-btn').classList.add('freespin-btn');
-  document.getElementById('spin-btn').textContent = '🔵 FREISPIN!';
+  document.getElementById('spin-btn').textContent = '🟣 FREISPIN!';
   updateFreespinUI();
   refreshUI({ persist: false });
   updateFeatureButtons();
-  setResult(`💙 REIFEKAMMER GEÖFFNET! ${count} Spins · Einsatz ${freespinBet} · Start ${formatMulti(freespinRipenMulti)}!`, 'freespin');
+  setResult(`💜 REIFEKAMMER GEÖFFNET! ${count} Spins · Einsatz ${freespinBet} · Start ${formatMulti(freespinRipenMulti)}!`, 'freespin');
   startConfetti(150);
 }
 
@@ -7005,7 +7110,7 @@ function endFreespins() {
   spinBtn.textContent = '🎰 DREHEN! 🎰';
   document.getElementById('freespin-banner').classList.remove('show');
   if (boughtRound) startFreespinBuyCooldown();
-  setResult('💙 Reifekammer geschlossen! Weiter geht\'s!', 'win');
+  setResult('💜 Reifekammer geschlossen! Weiter geht\'s!', 'win');
   refreshUI({ persist: false });
   updateFeatureButtons();
   if (activeSchimmelFromFreespin || schimmelPending || pendingSchimmelAmount) pendingFreespinSummary = summary;
@@ -7053,7 +7158,7 @@ function buyFreespinTier(cost, tierBet) {
     return;
   }
   if (credits < cost) {
-    setResult(`💙 Nicht genug Coins! Diese Reifekammer kostet ${cost.toLocaleString()}🪙.`, '');
+    setResult(`💜 Nicht genug Coins! Diese Reifekammer kostet ${cost.toLocaleString()}🪙.`, '');
     return;
   }
   if (autoOn) toggleAuto();
@@ -7061,7 +7166,7 @@ function buyFreespinTier(cost, tierBet) {
   pendingFreespinBet = tierBet;
   document.getElementById('chamber-tier-menu')?.classList.remove('show');
   refreshUI();
-  setResult(`💙 ${cost.toLocaleString()}🪙 Eintritt gezahlt. Reifekammer mit Einsatz ${tierBet} öffnet sich...`, 'freespin');
+  setResult(`💜 ${cost.toLocaleString()}🪙 Eintritt gezahlt. Reifekammer mit Einsatz ${tierBet} öffnet sich...`, 'freespin');
   setTimeout(() => startFreespinRound({ bought: true, bet: tierBet }), 800);
 }
 
@@ -7142,7 +7247,7 @@ function calcWin(results, betAmt, options = {}) {
       candidates.push(makeWin({
         amount: betAmt * cheese.threeX,
         msg: cheese.senfbombe ? senfBombeMsg()
-          : cheese.freespins ? `3× ${cheese.emoji} ${cheese.name}! FREE SPINS! 💙`
+          : cheese.freespins ? `3× ${cheese.emoji} ${cheese.name}! FREE SPINS! 💜`
           : `${usedWild ? 'Wild + ' : ''}3× ${cheese.emoji} ${cheese.name}! (${cheese.threeX}×)`,
         winReels: reels,
         isJackpot: cheese.id === 'golden' && usedWild === 0,
@@ -7224,7 +7329,7 @@ const spinMsgPool = [
   '🔴 Babybel dreht durch!',
   '🟡 Senfgefahr im Verzug…',
   '🏔️ Der Emmentaler bebt!',
-  '💙 Roquefort schimmelt sich frei…',
+  '💜 Roquefort schimmelt sich frei…',
   '🌟 Das Gold glänzt irgendwo da drin…',
   '🧀 Der Käse rollt…',
   '⭐ Parmigiano erwacht…',
@@ -7235,7 +7340,7 @@ const spinMsgPool = [
   '🥛 Mozzarella schleicht sich an…',
   '🌟 Jackpot? Vielleicht. Vielleicht auch nicht.',
   '🧀 Im Käseuniversum dreht sich alles…',
-  '💙 Drei Roquefort… bitte… bitte…',
+  '💜 Drei Roquefort… bitte… bitte…',
   '🟡 Drei Senf und es platzt! Oder nicht.',
   '🧀 Der Emmentaler hat mehr Löcher als Argumente.',
 ];
@@ -7262,7 +7367,7 @@ function lossMsg() {
     'Kurze Krawatte, langer Weg zum Jackpot! 👔',
     'Wer nicht wagt, der nicht käst! 🎲',
     'Fast! Noch ein Stück Käse fehlt…',
-    'Ich kann den Roquefort riechen… von weit weg. 💙',
+    'Ich kann den Roquefort riechen… von weit weg. 💜',
     'Die Krawatte sitzt schief — das bringt Glück! 👔',
     // Cheesy
     'Gouda Gott, das war nix! 😅',
@@ -7815,9 +7920,9 @@ function updateFeatureButtons() {
     } else if (cooldown > 0) {
       fsBtn.textContent = `🧀 Käsekeller lüftet ${formatClock(cooldown)}`;
     } else if (!canAffordAnyTier) {
-      fsBtn.textContent = `💙 REIFEKAMMER braucht 10.000🪙`;
+      fsBtn.textContent = `💜 REIFEKAMMER braucht 10.000🪙`;
     } else {
-      fsBtn.textContent = `💙 REIFEKAMMER-TIERS`;
+      fsBtn.textContent = `💜 REIFEKAMMER-TIERS`;
     }
   }
   document.querySelectorAll('.chamber-tier-btn').forEach(btn => {
@@ -7846,7 +7951,7 @@ function updateFeatureButtons() {
   if (chamberCard && chamberTitle && chamberBody) {
     chamberCard.classList.toggle('unlocked', chamberUnlocked);
     chamberCard.classList.toggle('locked', !chamberUnlocked);
-    chamberTitle.textContent = chamberUnlocked ? '💙 Reifekammer offen' : '🔒 Käsebaron-Privileg';
+    chamberTitle.textContent = chamberUnlocked ? '💜 Reifekammer offen' : '🔒 Käsebaron-Privileg';
     chamberBody.textContent = chamberUnlocked
       ? (getFreespinCooldownRemaining() > 0
           ? `Der Käsekeller muss auslüften: noch ${formatClock(getFreespinCooldownRemaining())}. Natürliche Freispiele bleiben möglich.`
@@ -8347,7 +8452,7 @@ function setPatinaCheese(id) {
   if (!FAVORITE_CHEESE_IDS.includes(id)) return;
   setAbilityValue('patinaCheese', id, { sync: true });
   const c = cheeseById(id);
-  setResult(`🟦 Patina gesetzt: ${c.emoji} ${c.name} ist dein Reifekammer-Partner.`, 'freespin');
+  setResult(`🟪 Patina gesetzt: ${c.emoji} ${c.name} ist dein Reifekammer-Partner.`, 'freespin');
 }
 
 function activateMenuCall() {
@@ -8430,7 +8535,7 @@ function activateGrandeCave() {
   state.grandeCaveCooldownUntil = Date.now() + 60 * 60 * 1000;
   queueAbilityStateSync(true);
   renderPrestigePanel();
-  setResult('🟦 Grande Cave geladen: die nächste Reifekammer wird zum 12-Spin-Event.', 'freespin');
+  setResult('🟪 Grande Cave geladen: die nächste Reifekammer wird zum 12-Spin-Event.', 'freespin');
 }
 
 function activateWalhallaCall() {
@@ -8956,7 +9061,7 @@ function showNearMissTeaser(type, count) {
   const banner = document.getElementById('near-miss-banner');
   if (!banner) return;
   if (type === 'roquefort') {
-    banner.innerHTML = `💙💙 <strong>FAST!</strong> Noch ein Roquefort = 8 FREISPIELE! 💙`;
+    banner.innerHTML = `💜💜 <strong>FAST!</strong> Noch ein Roquefort = 8 FREISPIELE! 💜`;
     banner.className = 'near-miss-banner show roq';
   } else {
     banner.innerHTML = `🟡🟡 <strong>VORSICHT!</strong> Noch ein Senf = SENFBOMBE! 💥`;
@@ -9236,11 +9341,11 @@ function closeJackpot() {
 function addTicker(results, win, isFreesp) {
   const emojis = results.map(r => r.emoji).join(' ');
   const time   = new Date().toLocaleTimeString('de-DE', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const prefix = isFreesp ? '🔵' : '🎲';
+  const prefix = isFreesp ? '🟣' : '🎲';
   let cls = '', text = `[${time}] ${prefix} ${emojis}  →  Kein Gewinn`;
   if (win && win.amount > 0) {
     if (win.isJackpot)                       { cls = 't-jackpot';  text = `[${time}] ${prefix} ${emojis}  →  🌟 JACKPOT! +${win.amount} 🪙`; }
-    else if (isFreesp && win.amount > 0)     { cls = 't-freespin'; text = `[${time}] 🔵 ${emojis}  →  Freispin: +${win.amount} 🪙`; }
+    else if (isFreesp && win.amount > 0)     { cls = 't-freespin'; text = `[${time}] 🟣 ${emojis}  →  Freispin: +${win.amount} 🪙`; }
     else if (activeSealId() === 'parmigiano-aktie' && hasActiveGameplaySeal('parmigiano-aktie') && results.some(r => r.id === 'parmesan') && win.amount >= bet * 15) { cls = 't-big'; text = `[${time}] 📈 ${emojis}  →  PARMIGIANO-TICKER! +${win.amount} 🪙`; }
     else if (win.amount >= bet * 15)         { cls = 't-big';      text = `[${time}] 🎲 ${emojis}  →  GROSSER GEWINN! +${win.amount} 🪙`; }
     else                                      { cls = 't-win';      text = `[${time}] 🎲 ${emojis}  →  Gewinn: +${win.amount} 🪙`; }
@@ -9258,7 +9363,7 @@ function buildPaytable() {
   const rows = CHEESES.map(c => {
     let extra = '';
     if (c.wild)         extra = ' <span style="color:#ffdd44;font-size:.85em">WILD</span>';
-    if (c.freespins)    extra = ' <span style="color:#88aaff;font-size:.85em">FREE SPINS</span>';
+    if (c.freespins)    extra = ' <span style="color:#d28cff;font-size:.85em">FREE SPINS</span>';
     if (c.scatterBonus) extra = ' <span style="color:#FFD700;font-size:.85em">BONUS</span>';
     const rowCls   = c.wild ? 'wild' : c.freespins ? 'special' : '';
     const twoXDisp = c.twoX > 0 ? `${c.twoX}×` : '—';
@@ -9297,9 +9402,9 @@ function buildPaytable() {
        <span class="pt-mult" style="color:#FFD700">40×</span>
      </div>
      <div class="pt-row special" style="grid-column:span 2">
-       <span class="pt-emoji">💙💙💙</span>
+       <span class="pt-emoji">💜💜💜</span>
        <span class="pt-name">Roquefort 3× → 8× REIFEKAMMER · ab 1.50×</span>
-       <span class="pt-mult special">🔵</span>
+       <span class="pt-mult special">🟣</span>
      </div>
      <div class="pt-row" style="grid-column:span 2;border-color:rgba(153,102,255,0.3);background:rgba(80,40,160,0.08)">
        <span class="pt-emoji">👔</span>
@@ -9841,6 +9946,7 @@ const SCHIMMEL_BLOCKING_OVERLAYS = [
   'rang-overlay',
   'support-overlay',
   'daily-overlay',
+  'roquefort-switch-overlay',
   'klausurenphase-overlay',
 ];
 
