@@ -449,6 +449,46 @@ body {
   72%  { opacity: 1; transform: translate(-50%, -58%) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -70%) scale(0.96); }
 }
+.walhalla-point-pop {
+  position: absolute;
+  left: 50%;
+  top: 18%;
+  transform: translate(-50%, -50%);
+  z-index: 47;
+  min-width: min(88%, 270px);
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(18,18,28,0.94);
+  border: 1px solid rgba(255,255,255,0.74);
+  color: #fff;
+  font-family: Arial, sans-serif;
+  font-size: 0.78em;
+  font-weight: 900;
+  line-height: 1.25;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 0 28px rgba(255,255,255,0.36), 0 0 42px rgba(255,215,0,0.22);
+}
+.walhalla-point-pop.show {
+  animation: walhallaPointPop 1.55s ease-out;
+}
+.walhalla-point-pop small {
+  display: block;
+  margin-top: 3px;
+  color: rgba(255,245,190,0.86);
+  font-size: 0.86em;
+  font-weight: 700;
+}
+.reel.walhalla-point-hit {
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.82), 0 0 26px rgba(255,215,0,0.72) !important;
+}
+@keyframes walhallaPointPop {
+  0%   { opacity: 0; transform: translate(-50%, -30%) scale(0.9); }
+  15%  { opacity: 1; transform: translate(-50%, -52%) scale(1.05); }
+  76%  { opacity: 1; transform: translate(-50%, -58%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -72%) scale(0.96); }
+}
 .wl-left, .wl-right {
   position: absolute;
   top: 50%;
@@ -4183,6 +4223,7 @@ button, .bet-btn, .spin-btn, .extra-btn, .jk-close, .start-btn, .milestone-close
       <span class="wl-left">◄</span>
       <span class="wl-right">►</span>
       <div class="ripen-pop" id="ripen-pop">+0.25× REIFE</div>
+      <div class="walhalla-point-pop" id="walhalla-point-pop">+1 Walhalla-Punkt</div>
       <div class="reels-wrapper">
         <div class="wl-line"></div>
         <div class="reel" id="reel-0"><div class="reel-strip" id="strip-0"></div></div>
@@ -5228,7 +5269,8 @@ const ABILITY_STATE_LABELS = {
   walhallaEventSpins: 'Walhalla-Ruf'
 };
 const FAVORITE_CHEESE_IDS = ['cheddar','babybel','mimolette','brie','emmental','senf','roquefort','parmesan'];
-const WALHALLA_CALL_SPINS = 5;
+const WALHALLA_CALL_SPINS = 4;
+const WALHALLA_POINT_CHEESE_IDS = ['roquefort', 'parmesan', 'golden'];
 const SEAL_ABILITIES = {
   'oligarchengedeck': {
     title: 'Käse-Menü',
@@ -5293,7 +5335,7 @@ const SEAL_ABILITIES = {
   'weisses-durag': {
     title: 'Walhalla-Segen',
     short: 'Roquefort, Parmigiano und Golden sammeln Punkte für Segen und einen epischen Walhalla-Ruf.',
-    levels: ['Walhalla-Flair für Profil und Big Wins.', 'Roquefort, Parmigiano und Golden sammeln Walhalla-Punkte.', '10 Punkte: Segen laden, nächster Big Win bekommt +20%.', '20 Punkte: Walhalla-Ruf, 5 Event-Spins nur mit Roquefort, Parmigiano und Golden.']
+    levels: ['Walhalla-Flair für Profil und Big Wins.', 'Roquefort, Parmigiano und Golden sammeln Walhalla-Punkte.', '10 Punkte: Segen laden, nächster Big Win bekommt +20%.', '20 Punkte: Walhalla-Ruf, 4 Event-Spins nur mit Roquefort, Parmigiano und Golden.']
   }
 };
 let currentProfile = { seals: [], activeSeal: '', sealShards: 0, sealGlow: {}, abilityState: {}, openedBoxes: 0 };
@@ -5895,6 +5937,28 @@ function showRipenPop(text) {
   pop.classList.add('show');
 }
 
+function showWalhallaPointPop(hits, totalPoints) {
+  const pop = document.getElementById('walhalla-point-pop');
+  if (!pop || !hits?.length) return;
+  const amount = hits.length;
+  const labels = hits.map(hit => `${hit.cheese.emoji} ${hit.cheese.name}`).join(' · ');
+  pop.innerHTML = `+${amount} Walhalla-Punkt${amount === 1 ? '' : 'e'}<small>${escapeHtml(labels)} · Konto: ${Math.max(0, Math.floor(totalPoints || 0))}/20</small>`;
+  pop.classList.remove('show');
+  void pop.offsetHeight;
+  pop.classList.add('show');
+  hits.forEach(hit => {
+    const reel = document.getElementById(`reel-${hit.index}`);
+    reel?.classList.add('walhalla-point-hit');
+    setTimeout(() => reel?.classList.remove('walhalla-point-hit'), 1600);
+  });
+}
+
+function walhallaPointHits(results) {
+  return results
+    .map((cheese, index) => ({ cheese, index }))
+    .filter(hit => WALHALLA_POINT_CHEESE_IDS.includes(hit.cheese?.id));
+}
+
 function cheesePlateValue(targetId) {
   return CHEESES.find(c => c.id === targetId)?.threeX || 0;
 }
@@ -6494,10 +6558,11 @@ function applyBadgePostSpinEffects(results, spinBet, win, spinStartedInFreespins
     }
   }
 
-  if (sealId === 'weisses-durag' && !spinStartedInWalhalla) {
-    const rareHits = counts('roquefort') + counts('parmesan') + counts('golden');
-    if (rareHits > 0 && sealLevel('weisses-durag') >= 1) {
-      state.walhallaPoints = abilityNumber('walhallaPoints') + rareHits;
+  if (sealId === 'weisses-durag' && !spinStartedInWalhalla && !spinStartedInFreespins) {
+    const hits = walhallaPointHits(results);
+    if (hits.length > 0 && sealLevel('weisses-durag') >= 1) {
+      state.walhallaPoints = abilityNumber('walhallaPoints') + hits.length;
+      showWalhallaPointPop(hits, state.walhallaPoints);
       changed = true;
     }
   }
@@ -6568,7 +6633,7 @@ async function doSpinLocked(spinId) {
 
   [0,1,2].forEach(i => {
     const reel = document.getElementById(`reel-${i}`);
-    reel.classList.remove('winning', 'wild-win', 'plate-locked', 'plate-open', 'melt-hit', 'schimmelbruch-target', 'walhalla-lit', 'hex-line');
+    reel.classList.remove('winning', 'wild-win', 'plate-locked', 'plate-open', 'melt-hit', 'schimmelbruch-target', 'walhalla-lit', 'walhalla-point-hit', 'hex-line');
     delete reel.dataset.plateSpin;
   });
   const frame = document.getElementById('reels-frame');
@@ -7989,10 +8054,21 @@ function escapeHtml(value) {
   }[ch]));
 }
 
+function normalizeAbilityState(state = {}) {
+  const clean = state && typeof state === 'object' && !Array.isArray(state) ? { ...state } : {};
+  if (clean.walhallaEventSpins !== undefined) {
+    clean.walhallaEventSpins = Math.max(0, Math.min(WALHALLA_CALL_SPINS, Math.floor(Number(clean.walhallaEventSpins || 0))));
+  }
+  if (clean._updatedAt !== undefined) {
+    clean._updatedAt = Math.max(0, Math.floor(Number(clean._updatedAt || 0)));
+  }
+  return clean;
+}
+
 function normalizeProfile(profile, name = '') {
   const seals = Array.isArray(profile?.seals) ? profile.seals.filter(id => SEAL_BY_ID[id]) : [];
   const sealGlow = profile?.sealGlow && typeof profile.sealGlow === 'object' ? profile.sealGlow : {};
-  const abilityState = profile?.abilityState && typeof profile.abilityState === 'object' ? profile.abilityState : {};
+  const abilityState = normalizeAbilityState(profile?.abilityState);
   const activeSeal = SEAL_BY_ID[profile?.activeSeal] && seals.includes(profile.activeSeal)
     ? profile.activeSeal
     : (seals[seals.length - 1] || '');
@@ -8008,10 +8084,18 @@ function normalizeProfile(profile, name = '') {
   };
 }
 
-function cacheProfiles(profiles = {}) {
+function hasUnsyncedAbilityState() {
+  return abilityStateSyncInFlight || !!abilityStateSyncTimer || abilityStateLocalVersion > abilityStateSyncedVersion;
+}
+
+function cacheProfiles(profiles = {}, options = {}) {
   if (!profiles || typeof profiles !== 'object') return;
   Object.entries(profiles).forEach(([name, profile]) => {
-    profileCache[name] = normalizeProfile(profile, name);
+    const incoming = normalizeProfile(profile, name);
+    if (name === playerName && !options.acceptAbilityState && hasUnsyncedAbilityState() && currentProfile?.abilityState) {
+      incoming.abilityState = normalizeAbilityState(currentProfile.abilityState);
+    }
+    profileCache[name] = incoming;
   });
   if (playerName && profileCache[playerName]) {
     currentProfile = profileCache[playerName];
@@ -8134,7 +8218,21 @@ function setAbilityValue(key, value, options = {}) {
 }
 
 let abilityStateSyncTimer = null;
+let abilityStateSyncInFlight = false;
+let abilityStateLocalVersion = 0;
+let abilityStateSyncedVersion = 0;
+
+function markAbilityStateChanged() {
+  abilityStateLocalVersion++;
+  abilityState()._updatedAt = Date.now();
+  if (playerName) {
+    profileCache[playerName] = currentProfile;
+    localStorage.setItem(`kaesino_profile_${playerName}`, JSON.stringify(currentProfile));
+  }
+}
+
 function queueAbilityStateSync(immediate = false) {
+  markAbilityStateChanged();
   if (!playerName || !kasinoApiAvailable()) return;
   if (abilityStateSyncTimer) clearTimeout(abilityStateSyncTimer);
   abilityStateSyncTimer = setTimeout(syncAbilityState, immediate ? 0 : 1200);
@@ -8143,16 +8241,28 @@ function queueAbilityStateSync(immediate = false) {
 async function syncAbilityState() {
   if (!playerName || !kasinoApiAvailable()) return;
   abilityStateSyncTimer = null;
+  const syncVersion = abilityStateLocalVersion;
+  const syncState = normalizeAbilityState(abilityState());
+  abilityStateSyncInFlight = true;
   try {
     const r = await fetch(kasinoApiUrl('/api/profile/ability'), {
       method: 'POST',
       headers: authHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ name: playerName, abilityState: abilityState() })
+      body: JSON.stringify({ name: playerName, abilityState: syncState })
     });
     if (r.status === 401 || r.status === 403) handleAuthFailure();
     const data = await r.json().catch(() => ({}));
-    if (data.profile) cacheProfiles({ [playerName]: data.profile });
+    if (syncVersion === abilityStateLocalVersion) {
+      abilityStateSyncedVersion = syncVersion;
+      abilityStateSyncInFlight = false;
+      if (data.profile) cacheProfiles({ [playerName]: data.profile }, { acceptAbilityState: true });
+    } else {
+      abilityStateSyncInFlight = false;
+      if (data.profile) cacheProfiles({ [playerName]: data.profile });
+      queueAbilityStateSync(true);
+    }
   } catch (e) {
+    abilityStateSyncInFlight = false;
     logSoftError('ability-sync', e);
   }
 }
@@ -8363,7 +8473,9 @@ function abilityStatusHTML(sealId, glow) {
     if (glow >= 1) bits.push(`Geometrie-Bonus: bis ${glow >= 3 ? 8 : glow >= 2 ? 5 : 3}× Einsatz auf Verlustspins`);
     if (glow >= 2) bits.push('Erkennt Linien, Säulen, Diagonalen, Dreiecke, Ecken und Zickzack');
   } else if (sealId === 'weisses-durag') {
-    bits.push(`Walhalla-Punkte: ${abilityNumber('walhallaPoints')}`);
+    bits.push(`Walhalla-Punkte: ${abilityNumber('walhallaPoints')}/20`);
+    bits.push('Zählt klar: +1 pro sichtbarem Roquefort, Parmigiano oder Golden in normalen Spins.');
+    bits.push('Keine Punkte während Reifekammern oder aktivem Walhalla-Ruf.');
     if (state.walhallaBlessingReady) bits.push('Segen geladen: nächster Big Win +20%');
     if (walhallaEventSpinsRemaining() > 0) bits.push(`Walhalla-Ruf: ${walhallaEventSpinsRemaining()} Event-Spins übrig`);
   } else if (sealId === 'roquefort-patina') {

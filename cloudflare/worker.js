@@ -11,6 +11,7 @@ const CHAT_OPENER_AUTHOR = 'Käsino-Croupier';
 const CHAT_OPENER_INTERVAL_MS = 12 * 60 * 60 * 1000;
 const PRESTIGE_BOX_COST = 100000;
 const PRESTIGE_UPGRADE_COSTS = [10, 20, 30];
+const WALHALLA_CALL_SPINS = 4;
 const SEAL_DEFS = [
   { id: 'oligarchengedeck', rarity: 'common' },
   { id: 'senf-depot', rarity: 'common' },
@@ -821,7 +822,7 @@ function normalizeProfile(row, name = '') {
     ? safeJson(row.seals_json, []).filter(id => SEAL_IDS.has(id))
     : [];
   const sealGlow = safeJson(row.seal_glow_json, {});
-  const abilityState = safeJson(row.ability_state_json, {});
+  const abilityState = cleanAbilityState(safeJson(row.ability_state_json, {}));
   const cleanGlow = {};
   for (const [id, value] of Object.entries(sealGlow)) {
     if (SEAL_IDS.has(id)) cleanGlow[id] = Math.max(0, Math.min(3, toInt(value, 0)));
@@ -835,7 +836,7 @@ function normalizeProfile(row, name = '') {
     activeSeal,
     sealShards: Math.max(0, toInt(row.seal_shards, 0)),
     sealGlow: cleanGlow,
-    abilityState: abilityState && typeof abilityState === 'object' ? abilityState : {},
+    abilityState,
     openedBoxes: Math.max(0, toInt(row.opened_boxes, 0)),
     updatedAt: Math.max(0, toInt(row.updated_at, 0))
   };
@@ -851,6 +852,9 @@ function cleanAbilityState(raw) {
     else if (typeof value === 'boolean') clean[safeKey] = value;
     else if (typeof value === 'string') clean[safeKey] = value.slice(0, 80);
     else if (value && typeof value === 'object' && !Array.isArray(value)) clean[safeKey] = cleanAbilityState(value);
+  }
+  if (clean.walhallaEventSpins !== undefined) {
+    clean.walhallaEventSpins = Math.max(0, Math.min(WALHALLA_CALL_SPINS, toInt(clean.walhallaEventSpins, 0)));
   }
   return clean;
 }
@@ -893,7 +897,13 @@ async function getProfile(db, name) {
 
 async function updateAbilityState(db, name, abilityState) {
   const profile = await getProfile(db, name);
-  profile.abilityState = cleanAbilityState(abilityState || {});
+  const incoming = cleanAbilityState(abilityState || {});
+  const incomingUpdatedAt = toInt(incoming._updatedAt, 0);
+  const currentUpdatedAt = toInt(profile.abilityState?._updatedAt, 0);
+  if (currentUpdatedAt && (!incomingUpdatedAt || incomingUpdatedAt < currentUpdatedAt)) {
+    return profile;
+  }
+  profile.abilityState = incoming;
   return saveProfile(db, profile);
 }
 
