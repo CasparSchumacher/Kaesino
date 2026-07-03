@@ -1923,6 +1923,11 @@ body {
   font-size:1em;
   margin:8px auto;
 }
+.couture-shard-pending {
+  margin-top:6px;
+  color:rgba(255,231,111,0.9);
+  font-weight:900;
+}
 .couture-rarity {
   text-transform:uppercase;
   font-size:0.72em;
@@ -5341,6 +5346,7 @@ const SEAL_ABILITIES = {
 let currentProfile = { seals: [], activeSeal: '', sealShards: 0, sealGlow: {}, abilityState: {}, openedBoxes: 0 };
 let profileCache = {};
 let profileStatsCache = {};
+let coutureProfileRevealLocked = false;
 let coutureOpening = false;
 let coutureUpgrading = false;
 let coutureRitualTimers = [];
@@ -8095,6 +8101,13 @@ function cacheProfiles(profiles = {}, options = {}) {
     if (name === playerName && !options.acceptAbilityState && hasUnsyncedAbilityState() && currentProfile?.abilityState) {
       incoming.abilityState = normalizeAbilityState(currentProfile.abilityState);
     }
+    if (name === playerName && coutureProfileRevealLocked) {
+      incoming.seals = currentProfile.seals || [];
+      incoming.activeSeal = currentProfile.activeSeal || '';
+      incoming.sealShards = currentProfile.sealShards || 0;
+      incoming.sealGlow = currentProfile.sealGlow || {};
+      incoming.openedBoxes = currentProfile.openedBoxes || 0;
+    }
     profileCache[name] = incoming;
   });
   if (playerName && profileCache[playerName]) {
@@ -8810,7 +8823,7 @@ function showFondueMeltBurst() {
 function showSplitterBurst(amount = 1, sourceSelector = '#couture-result .seal-badge') {
   const source = document.querySelector(sourceSelector) || document.getElementById('couture-result');
   const target = document.querySelector('.splitter-meter') || document.querySelector('.seal-shards');
-  if (!source || !target) return;
+  if (!source || !target) return Promise.resolve();
   const s = source.getBoundingClientRect();
   const t = target.getBoundingClientRect();
   const count = Math.max(4, Math.min(18, Math.ceil(Number(amount || 1) * 1.6)));
@@ -8830,16 +8843,31 @@ function showSplitterBurst(amount = 1, sourceSelector = '#couture-result .seal-b
     document.body.appendChild(shard);
     setTimeout(() => shard.remove(), 1150 + i * 28);
   }
-  target.classList.remove('burst');
-  void target.offsetWidth;
-  target.classList.add('burst');
-  setTimeout(() => target.classList.remove('burst'), 900);
+  const flightDuration = 1150 + (count - 1) * 28;
+  setTimeout(() => {
+    target.classList.remove('burst');
+    void target.offsetWidth;
+    target.classList.add('burst');
+    setTimeout(() => target.classList.remove('burst'), 900);
+  }, Math.max(360, flightDuration - 420));
+  return wait(flightDuration + 80);
 }
 
-function revealCoutureBoxResult(result) {
+async function revealCoutureBoxResult(result, options = {}) {
   const out = document.getElementById('couture-result');
   const ticker = document.getElementById('couture-rarity-ticker');
   if (!out || !ticker || !result) return;
+  const applyProfileUpdate = typeof options.applyProfileUpdate === 'function' ? options.applyProfileUpdate : () => {};
+  let profileApplied = false;
+  const applyOnce = () => {
+    if (profileApplied) return;
+    profileApplied = true;
+    applyProfileUpdate();
+    renderPrestigePanel();
+    updatePlayerTag();
+    renderLeaderboard(lbCache);
+    if (profileDetailName === playerName) renderPlayerProfile(playerName);
+  };
   const profile = currentProfile;
   const seal = SEAL_BY_ID[result.sealId];
   const badge = sealBadgeHTML(result.sealId, profile);
@@ -8854,15 +8882,26 @@ function revealCoutureBoxResult(result) {
   void out.offsetHeight;
   out.classList.add('reveal');
   out.innerHTML = result.duplicate
-    ? `<div class="couture-rarity">${escapeHtml(result.rarity)} Duplikat${result.premium ? ' · Premium' : ''}</div>${badge}<div>Schmilzt zu <strong>${result.shards} Couture-Splittern</strong>.</div>${abilityInfo}`
+    ? `<div class="couture-rarity">${escapeHtml(result.rarity)} Duplikat${result.premium ? ' · Premium' : ''}</div>${badge}<div>Duplikat erkannt. Splitter werden geladen...</div><div class="couture-shard-pending" id="couture-shard-pending">Splitter noch versiegelt</div>${abilityInfo}`
     : `<div class="couture-rarity">${escapeHtml(result.rarity)} Drop${result.premium ? ' · Premium' : ''}</div>${badge}<div>Neues Siegel freigeschaltet!</div>${abilityInfo}`;
   if (result.duplicate && result.shards > 0) {
     if (activeSealId() === 'fondue-fonds' && hasActiveGameplaySeal('fondue-fonds')) showFondueMeltBurst();
-    setTimeout(() => showSplitterBurst(result.shards), 180);
+    await wait(180);
+    await showSplitterBurst(result.shards, '#couture-crate');
+    applyOnce();
+    const shardLabel = document.getElementById('couture-shard-pending');
+    if (shardLabel) shardLabel.innerHTML = `<strong>+${Math.max(0, Math.floor(Number(result.shards || 0)))}</strong> Couture-Splitter geladen.`;
+    const target = document.querySelector('.splitter-meter') || document.querySelector('.seal-shards');
+    if (target) {
+      target.classList.remove('burst');
+      void target.offsetWidth;
+      target.classList.add('burst');
+      setTimeout(() => target.classList.remove('burst'), 900);
+    }
+  } else {
+    await wait(180);
+    applyOnce();
   }
-  renderPrestigePanel();
-  updatePlayerTag();
-  renderLeaderboard(lbCache);
   setTimeout(() => {
     if (recentlyRevealedSealId === result.sealId) {
       recentlyRevealedSealId = '';
@@ -8933,6 +8972,7 @@ async function openCoutureBox() {
   openCouturePanel();
   setCoutureError('');
   coutureOpening = true;
+  coutureProfileRevealLocked = true;
   renderPrestigePanel();
   const out = document.getElementById('couture-result');
   if (out) out.textContent = 'Der Tresor prüft deine Oligarchen-Bonität…';
@@ -8956,28 +8996,33 @@ async function openCoutureBox() {
     if (!r.ok || data.ok === false) throw new Error(data.error || `prestige ${r.status}`);
     await animationReady;
     if (data.player) applyServerPlayerProgress(data.player);
-    if (data.profiles) cacheProfiles(data.profiles);
-    if (data.profile) cacheProfiles({ [playerName]: data.profile });
-    if (data.profileStats) cacheProfileStats(data.profileStats);
-    if (data.leaderboard) {
-      lbCache = normalizeLeaderboard(data.leaderboard);
-      cacheProfiles(data.leaderboard.profiles || {});
-      renderLeaderboard(lbCache);
-    }
-    if (currentProfile.activeSeal === 'fondue-fonds' && hasActiveGameplaySeal('fondue-fonds')) {
-      currentProfile.abilityState = currentProfile.abilityState || {};
-      if (currentProfile.abilityState.premiumBoxReady) currentProfile.abilityState.premiumBoxReady = false;
-      queueAbilityStateSync(true);
-    }
-    revealCoutureBoxResult(data.result);
+    const applyProfileUpdate = () => {
+      coutureProfileRevealLocked = false;
+      if (data.profiles) cacheProfiles(data.profiles);
+      if (data.profile) cacheProfiles({ [playerName]: data.profile });
+      if (data.profileStats) cacheProfileStats(data.profileStats);
+      if (data.leaderboard) {
+        lbCache = normalizeLeaderboard(data.leaderboard);
+        cacheProfiles(data.leaderboard.profiles || {});
+        renderLeaderboard(lbCache);
+      }
+      if (currentProfile.activeSeal === 'fondue-fonds' && hasActiveGameplaySeal('fondue-fonds')) {
+        currentProfile.abilityState = currentProfile.abilityState || {};
+        if (currentProfile.abilityState.premiumBoxReady) currentProfile.abilityState.premiumBoxReady = false;
+        queueAbilityStateSync(true);
+      }
+    };
+    await revealCoutureBoxResult(data.result, { applyProfileUpdate });
     setResult(`💎 Couture-Kiste geöffnet! ${data.result.duplicate ? `+${data.result.shards} Splitter` : 'Neues Siegel!'}`, 'win');
   } catch (e) {
+    coutureProfileRevealLocked = false;
     logSoftError('prestige-open', e);
     if (localEntry) queuePlayerProgressServerSave(localEntry, true);
     openCouturePanel();
     setCoutureError(e.message || 'Couture-Kiste klemmt gerade.');
     setResult('💎 Couture-Kiste klemmt gerade. Versuch es gleich nochmal.', '');
   } finally {
+    coutureProfileRevealLocked = false;
     coutureOpening = false;
     renderPrestigePanel();
   }
