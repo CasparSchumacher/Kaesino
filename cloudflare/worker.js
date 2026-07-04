@@ -8,7 +8,7 @@ const CHAT_LIMIT = 80;
 const CHAT_MAX_LENGTH = 260;
 const ONLINE_WINDOW_MS = 90000;
 const CHAT_OPENER_AUTHOR = 'Käsino-Croupier';
-const CHAT_OPENER_INTERVAL_MS = 12 * 60 * 60 * 1000;
+const CHAT_OPENER_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const PRESTIGE_BOX_COST = 100000;
 const PRESTIGE_UPGRADE_COSTS = [10, 20, 30];
 const WALHALLA_CALL_SPINS = 4;
@@ -52,7 +52,21 @@ const CHAT_OPENERS = [
   'Wer ist euer Zweitlieblingsoligarch?',
   'Welcher Käse ist massiv unterschätzt?',
   'Was ist der perfekte Snack zum Käsino?',
-  'Welche Oligarchenstrategie fährt ihr heute?'
+  'Welche Oligarchenstrategie fährt ihr heute?',
+  'Welcher Käse hätte eine eigene Hymne verdient?',
+  'Was ist euer Notfall-Snack, wenn die Reifekammer ruft?',
+  'Welche Käseplatte gewinnt jedes Familientreffen?',
+  'Welcher Käse ist euer persönlicher Endgegner?',
+  'Was gehört niemals auf eine stabile Käseplatte?',
+  'Welche Beilage macht Obatzda erst komplett?',
+  'Welcher Käsino-Moment war heute am knappsten?',
+  'Welche Sorte riecht wild, liefert aber zuverlässig ab?',
+  'Wenn euer Kontostand ein Käse wäre: welcher?',
+  'Was ist der beste Dip für einen langen Spin-Abend?',
+  'Welcher Käse braucht dringend ein Comeback?',
+  'Welche Reifekammer-Regel sollte weltweit gelten?',
+  'Wer bringt Brot mit und wer bringt Größenwahn?',
+  'Welche Käsesorte wäre im Käsino sofort VIP?'
 ];
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const PIN_MIN_LENGTH = 4;
@@ -259,6 +273,14 @@ async function handleApi(request, env, url) {
       bestSingleWin: toInt(payload.bestSingleWin, 0),
       updatedAt: toInt(payload.updatedAt, Date.now())
     });
+    const activeSeal = cleanSealId(payload.activeSeal);
+    if (activeSeal) {
+      try {
+        await applyActiveSeal(env.DB, name, activeSeal, { cleanup: false });
+      } catch (e) {
+        return json({ ok: false, error: e.message || 'Aktives Siegel konnte nicht synchronisiert werden.' }, 400);
+      }
+    }
     const result = await openPrestigeBox(env.DB, name, payload.premium === true);
     return json(result, result.status || 200);
   }
@@ -1040,10 +1062,14 @@ function jsonLikeError(error, status) {
 }
 
 async function setActiveSeal(db, name, sealId) {
+  return applyActiveSeal(db, name, sealId, { cleanup: true });
+}
+
+async function applyActiveSeal(db, name, sealId, options = {}) {
   const profile = await getProfile(db, name);
   if (!profile.seals.includes(sealId)) throw new Error('Siegel nicht freigeschaltet.');
   profile.activeSeal = sealId;
-  profile.abilityState = cleanupTransientAbilityState(profile.abilityState);
+  if (options.cleanup !== false) profile.abilityState = cleanupTransientAbilityState(profile.abilityState);
   return saveProfile(db, profile);
 }
 

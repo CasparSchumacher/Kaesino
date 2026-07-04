@@ -8985,6 +8985,7 @@ async function openCoutureBox() {
       body: JSON.stringify({
         name: playerName,
         premium: activeSealId() === 'fondue-fonds' && hasActiveGameplaySeal('fondue-fonds') && sealLevel('fondue-fonds') >= 3 && !!abilityState().premiumBoxReady,
+        activeSeal: activeSealId(),
         credits,
         bestCoins: Math.max(myBestCoins || 0, currentRankScore()),
         bestSingleWin: myBestWin || 0,
