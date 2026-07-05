@@ -5,3 +5,4 @@ Thumbs.db
 .env.*
 .cloudflare-token
 test-animations.html
+.wrangler/

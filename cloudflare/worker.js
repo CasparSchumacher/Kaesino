@@ -281,7 +281,10 @@ async function handleApi(request, env, url) {
         return json({ ok: false, error: e.message || 'Aktives Siegel konnte nicht synchronisiert werden.' }, 400);
       }
     }
-    const result = await openPrestigeBox(env.DB, name, payload.premium === true);
+    const expectedOpenedBoxes = Number.isFinite(Number(payload.expectedOpenedBoxes))
+      ? Math.max(0, Math.floor(Number(payload.expectedOpenedBoxes)))
+      : -1;
+    const result = await openPrestigeBox(env.DB, name, payload.premium === true, expectedOpenedBoxes);
     return json(result, result.status || 200);
   }
 
@@ -591,7 +594,9 @@ async function archiveAndReset(db, oldWeek, currentWeek) {
 async function upsertPlayer(db, entry) {
   const weekStart = await ensureCurrentWeek(db);
   const now = Date.now();
-  const updatedAt = Math.max(0, Number(entry.updatedAt || now));
+  // Client-Timestamps auf Serverzeit clampen — sonst kann eine vorgehende
+  // Client-Uhr per verspätetem Save frischere Server-Abzüge überschreiben.
+  const updatedAt = Math.min(now, Math.max(0, Number(entry.updatedAt || now)));
   const credits = Math.max(0, Math.floor(Number(entry.credits || 0)));
   const bestCoins = Math.max(credits, Math.floor(Number(entry.bestCoins || 0)));
   const bestSingleWin = Math.max(0, Math.floor(Number(entry.bestSingleWin || 0)));
@@ -929,12 +934,28 @@ async function updateAbilityState(db, name, abilityState) {
   return saveProfile(db, profile);
 }
 
-async function saveProfile(db, profile) {
+async function saveProfile(db, profile, options = {}) {
   const now = Date.now();
   const activeSeal = profile.activeSeal && profile.seals.includes(profile.activeSeal)
     ? profile.activeSeal
     : (profile.seals[profile.seals.length - 1] || null);
-  await db.prepare(
+  // Optionaler Compare-and-Set-Guard: Update greift nur, wenn opened_boxes
+  // noch dem gelesenen Stand entspricht — blockt parallele Kisten-Käufe.
+  const expected = Number.isInteger(options.expectedOpenedBoxes) ? options.expectedOpenedBoxes : null;
+  const guard = expected === null ? '' : `
+       WHERE player_profiles.opened_boxes = ?`;
+  const binds = [
+    profile.name,
+    JSON.stringify(profile.seals),
+    activeSeal,
+    Math.max(0, toInt(profile.sealShards, 0)),
+    JSON.stringify(profile.sealGlow || {}),
+    JSON.stringify(cleanAbilityState(profile.abilityState || {})),
+    Math.max(0, toInt(profile.openedBoxes, 0)),
+    now
+  ];
+  if (expected !== null) binds.push(expected);
+  const result = await db.prepare(
     `INSERT INTO player_profiles
       (name, seals_json, active_seal, seal_shards, seal_glow_json, ability_state_json, opened_boxes, updated_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -945,17 +966,11 @@ async function saveProfile(db, profile) {
        seal_glow_json = excluded.seal_glow_json,
        ability_state_json = excluded.ability_state_json,
        opened_boxes = excluded.opened_boxes,
-       updated_at = excluded.updated_at`
-  ).bind(
-    profile.name,
-    JSON.stringify(profile.seals),
-    activeSeal,
-    Math.max(0, toInt(profile.sealShards, 0)),
-    JSON.stringify(profile.sealGlow || {}),
-    JSON.stringify(cleanAbilityState(profile.abilityState || {})),
-    Math.max(0, toInt(profile.openedBoxes, 0)),
-    now
-  ).run();
+       updated_at = excluded.updated_at${guard}`
+  ).bind(...binds).run();
+  if (expected !== null && Number(result?.meta?.changes || 0) !== 1) {
+    throw new Error('Diese Kiste wurde gerade schon geöffnet. Kurz warten und nochmal probieren.');
+  }
   return { ...profile, activeSeal: activeSeal || '', abilityState: cleanAbilityState(profile.abilityState || {}), updatedAt: now };
 }
 
@@ -1001,14 +1016,31 @@ function pickSealForRarity(rarity, owned) {
   return choices[Math.floor(Math.random() * choices.length)];
 }
 
-async function openPrestigeBox(db, name, premium = false) {
+async function openPrestigeBox(db, name, premium = false, expectedOpenedBoxes = -1) {
   const weekStart = await ensureCurrentWeek(db);
   const player = await getPlayer(db, weekStart, name);
   const profile = await getProfile(db, name);
+  // Optimistischer Lock: weicht der Kistenzähler vom Stand des Clients ab,
+  // lief bereits ein anderer Kauf (zweiter Tab, Retry) — nicht doppelt abbuchen.
+  if (expectedOpenedBoxes >= 0 && Math.max(0, toInt(profile.openedBoxes, 0)) !== expectedOpenedBoxes) {
+    return jsonLikeError('Diese Kiste wurde gerade schon geöffnet. Kurz warten und nochmal probieren.', 409);
+  }
   const boxCost = prestigeBoxCost(profile, premium);
   if (!player || player.credits < boxCost) {
     return jsonLikeError('Nicht genug Coins für die Couture-Kiste.', 400);
   }
+  // Abzug bedingt und relativ (credits = credits - ?), damit ein paralleler
+  // zweiter Kauf nicht den Abzug des ersten mit einem Absolutwert überschreibt.
+  const updatedAt = Date.now();
+  const charge = await db.prepare(
+    `UPDATE players
+     SET credits = credits - ?, best_coins = max(best_coins, ?), updated_at = ?
+     WHERE week_start = ? AND name = ? AND credits >= ?`
+  ).bind(boxCost, player.bestCoins, updatedAt, weekStart, name, boxCost).run();
+  if (Number(charge?.meta?.changes || 0) !== 1) {
+    return jsonLikeError('Nicht genug Coins für die Couture-Kiste.', 400);
+  }
+
   const rarity = pickRarity();
   let seal = pickSealForRarity(rarity, new Set(profile.seals));
   const fondueGlow = profile.activeSeal === 'fondue-fonds' && gameplaySealActive('fondue-fonds') ? Math.max(0, toInt(profile.sealGlow?.['fondue-fonds'], 0)) : 0;
@@ -1022,22 +1054,27 @@ async function openPrestigeBox(db, name, premium = false) {
   const shardMultiplier = validPremiumFondue ? 3 : 1;
   const shards = duplicate ? ((SHARDS_BY_RARITY[seal.rarity || rarity] || 1) + shardBonus) * shardMultiplier : 0;
 
-  if (duplicate) {
-    profile.sealShards += shards;
-  } else {
-    profile.seals.push(seal.id);
-    profile.activeSeal = seal.id;
-    profile.abilityState = cleanupTransientAbilityState(profile.abilityState);
+  let savedProfile;
+  try {
+    const openedBoxesBefore = Math.max(0, toInt(profile.openedBoxes, 0));
+    if (duplicate) {
+      profile.sealShards += shards;
+    } else {
+      profile.seals.push(seal.id);
+      profile.activeSeal = seal.id;
+      profile.abilityState = cleanupTransientAbilityState(profile.abilityState);
+    }
+    profile.openedBoxes = openedBoxesBefore + 1;
+    savedProfile = await saveProfile(db, profile, { expectedOpenedBoxes: openedBoxesBefore });
+  } catch (error) {
+    // Drop konnte nicht gespeichert werden — bezahlten Betrag zurückbuchen.
+    await db.prepare(
+      `UPDATE players SET credits = credits + ?, updated_at = ? WHERE week_start = ? AND name = ?`
+    ).bind(boxCost, Date.now(), weekStart, name).run();
+    throw error;
   }
-  profile.openedBoxes += 1;
-  const savedProfile = await saveProfile(db, profile);
-  const updatedAt = Date.now();
-  const nextCredits = player.credits - boxCost;
-  await db.prepare(
-    `UPDATE players
-     SET credits = ?, best_coins = max(best_coins, ?), updated_at = ?
-     WHERE week_start = ? AND name = ?`
-  ).bind(nextCredits, player.bestCoins, updatedAt, weekStart, name).run();
+  const chargedPlayer = await getPlayer(db, weekStart, name);
+  const nextCredits = chargedPlayer ? chargedPlayer.credits : Math.max(0, player.credits - boxCost);
 
   const leaderboard = await buildLeaderboard(db, weekStart, name);
   const profiles = await getProfilesMap(db, uniqueNames([
@@ -1068,6 +1105,9 @@ async function setActiveSeal(db, name, sealId) {
 async function applyActiveSeal(db, name, sealId, options = {}) {
   const profile = await getProfile(db, name);
   if (!profile.seals.includes(sealId)) throw new Error('Siegel nicht freigeschaltet.');
+  // Bereits aktiv → No-op, sonst würde ein erneuter Klick geladene
+  // (bezahlte) Ready-States wie Segen oder Premium-Fondue wegwischen.
+  if (profile.activeSeal === sealId) return profile;
   profile.activeSeal = sealId;
   if (options.cleanup !== false) profile.abilityState = cleanupTransientAbilityState(profile.abilityState);
   return saveProfile(db, profile);

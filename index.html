@@ -8098,8 +8098,14 @@ function cacheProfiles(profiles = {}, options = {}) {
   if (!profiles || typeof profiles !== 'object') return;
   Object.entries(profiles).forEach(([name, profile]) => {
     const incoming = normalizeProfile(profile, name);
-    if (name === playerName && !options.acceptAbilityState && hasUnsyncedAbilityState() && currentProfile?.abilityState) {
-      incoming.abilityState = normalizeAbilityState(currentProfile.abilityState);
+    if (name === playerName && !options.acceptAbilityState && currentProfile?.abilityState) {
+      // Lokalen State auch gegen Antworten schützen, deren Request VOR dem
+      // letzten Sync gestartet ist (Stale-Read) — sonst springen Zähler zurück.
+      const localTs = Number(currentProfile.abilityState._updatedAt || 0);
+      const incomingTs = Number(incoming.abilityState?._updatedAt || 0);
+      if (hasUnsyncedAbilityState() || incomingTs < localTs) {
+        incoming.abilityState = normalizeAbilityState(currentProfile.abilityState);
+      }
     }
     if (name === playerName && coutureProfileRevealLocked) {
       incoming.seals = currentProfile.seals || [];
@@ -8265,6 +8271,9 @@ async function syncAbilityState() {
     });
     if (r.status === 401 || r.status === 403) handleAuthFailure();
     const data = await r.json().catch(() => ({}));
+    // Fehlerantworten nicht als Sync-Erfolg werten, sonst gilt der lokale
+    // State als gesichert und kann vom nächsten Poll überschrieben werden.
+    if (!r.ok || data.ok === false) throw new Error(data.error || `ability sync ${r.status}`);
     if (syncVersion === abilityStateLocalVersion) {
       abilityStateSyncedVersion = syncVersion;
       abilityStateSyncInFlight = false;
@@ -8542,7 +8551,8 @@ function abilityActionsHTML(sealId, glow) {
       actions.push(`<button type="button" onclick="activateGrandeCave()" ${ready ? '' : 'disabled'}>Grande Cave laden</button>`);
     }
   } else if (sealId === 'fondue-fonds' && glow >= 3) {
-    actions.push(`<button type="button" onclick="activatePremiumFondueBox()" ${abilityState().premiumBoxReady ? 'disabled' : ''}>Premium-Fondue-Kiste laden</button>`);
+    const premiumReady = !!abilityState().premiumBoxReady;
+    actions.push(`<button type="button" onclick="togglePremiumFondueBox()" ${coutureOpening ? 'disabled' : ''}>${premiumReady ? 'Premium-Fondue-Kiste entladen' : 'Premium-Fondue-Kiste laden'}</button>`);
   }
   return actions.length ? `<div class="ability-actions">${actions.join('')}</div>` : '';
 }
@@ -8690,8 +8700,21 @@ function activatePremiumFondueBox() {
   setResult('🫕 Premium-Fondue-Kiste geladen: nächste Kiste kostet 150.000🪙, sucht stärker nach fehlender Couture und verdreifacht Duplikat-Splitter.', 'win');
 }
 
-function activateLiquidityRound() {
+function togglePremiumFondueBox() {
+  if (activeSealId() !== 'fondue-fonds' || !hasActiveGameplaySeal('fondue-fonds') || sealLevel('fondue-fonds') < 3 || coutureOpening) return;
+  const state = abilityState();
+  if (state.premiumBoxReady) {
+    state.premiumBoxReady = false;
+    queueAbilityStateSync(true);
+    renderPrestigePanel();
+    setResult('🫕 Premium-Fondue-Kiste entladen: die nächste Kiste kostet wieder den normalen Preis.', '');
+    return;
+  }
   activatePremiumFondueBox();
+}
+
+function activateLiquidityRound() {
+  togglePremiumFondueBox();
 }
 
 function renderPrestigePanel() {
@@ -8976,7 +8999,9 @@ async function openCoutureBox() {
   renderPrestigePanel();
   const out = document.getElementById('couture-result');
   if (out) out.textContent = 'Der Tresor prüft deine Oligarchen-Bonität…';
-  const localEntry = saveCurrentPlayerState('prestige-open', { immediate: true });
+  // Nur lokal sichern — der Server bekommt die Credits über die open-box-Payload.
+  // Ein paralleler PUT /api/player könnte sonst den Kistenabzug überschreiben.
+  const localEntry = saveCurrentPlayerState('prestige-open', { server: false });
   const animationReady = startCoutureVaultAnimation();
   try {
     const r = await fetch(kasinoApiUrl('/api/profile/open-box'), {
@@ -8989,6 +9014,7 @@ async function openCoutureBox() {
         credits,
         bestCoins: Math.max(myBestCoins || 0, currentRankScore()),
         bestSingleWin: myBestWin || 0,
+        expectedOpenedBoxes: Math.max(0, Math.floor(Number(currentProfile.openedBoxes || 0))),
         updatedAt: Date.now()
       })
     });
@@ -9031,6 +9057,9 @@ async function openCoutureBox() {
 
 async function setActiveSeal(sealId) {
   if (!playerName || !currentProfile.seals?.includes(sealId)) return;
+  // Klick auf das bereits aktive Siegel darf geladene Ready-States
+  // (Segen, Dividende, Premium-Fondue, Event-Spins) nicht wegwischen.
+  if (sealId === currentProfile.activeSeal) return;
   cleanupTransientAbilityState(abilityState());
   currentProfile.activeSeal = sealId;
   profileCache[playerName] = currentProfile;
