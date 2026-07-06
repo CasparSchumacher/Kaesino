@@ -9038,9 +9038,11 @@ async function openCoutureBox() {
         cacheProfiles(data.leaderboard.profiles || {});
         renderLeaderboard(lbCache);
       }
-      if (currentProfile.activeSeal === 'fondue-fonds' && hasActiveGameplaySeal('fondue-fonds')) {
-        currentProfile.abilityState = currentProfile.abilityState || {};
-        if (currentProfile.abilityState.premiumBoxReady) currentProfile.abilityState.premiumBoxReady = false;
+      // Premium-Flag nur löschen, wenn der Server die Kiste WIRKLICH als Premium
+      // abgerechnet hat. Sonst würde ein geladenes Premium beim normalen Öffnen
+      // verpuffen — oder umgekehrt hängenbleiben und weiter 150.000 kosten.
+      if (data.result?.premium && currentProfile.abilityState?.premiumBoxReady) {
+        currentProfile.abilityState.premiumBoxReady = false;
         queueAbilityStateSync(true);
       }
     };

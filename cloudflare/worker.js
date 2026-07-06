@@ -1064,6 +1064,12 @@ async function openPrestigeBox(db, name, premium = false, expectedOpenedBoxes = 
       profile.activeSeal = seal.id;
       profile.abilityState = cleanupTransientAbilityState(profile.abilityState);
     }
+    // Premium ist Single-Use: sobald eine Premium-Kiste (150.000) abgerechnet
+    // wurde, muss das Flag verbraucht sein — auch beim Duplikat-Drop, sonst
+    // bleibt es stehen und jede weitere Kiste kostet weiter 150.000 statt 85.000.
+    if (validPremiumFondue && profile.abilityState && typeof profile.abilityState === 'object') {
+      delete profile.abilityState.premiumBoxReady;
+    }
     profile.openedBoxes = openedBoxesBefore + 1;
     savedProfile = await saveProfile(db, profile, { expectedOpenedBoxes: openedBoxesBefore });
   } catch (error) {
