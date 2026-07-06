@@ -5318,8 +5318,8 @@ const SEAL_ABILITIES = {
   },
   'sechseck-orden': {
     title: 'Geometriegericht',
-    short: 'Die sichtbaren oberen, mittleren und unteren Felder werden als 3×3-Geometrie gelesen und spektakulär markiert.',
-    levels: ['Einfache Linien, Spalten und Diagonalen werden erkannt und markiert.', 'Saubere Geometrie auf einem Verlustspin zahlt 3× Einsatz.', 'Dreieck, Ecke und Zickzack zahlen bis 5× Einsatz.', 'Geometriegericht: besondere Muster zahlen bis 8× Einsatz mit großem Sechseck-Urteil.']
+    short: 'Drei GLEICHE Käse in einer klaren Form (Reihe, Spalte, Diagonale, Ecke, Sechseck) im sichtbaren 3×3-Feld zahlen auf Verlustspins.',
+    levels: ['Drei gleiche Käse in Reihe, Spalte oder Diagonale werden erkannt und markiert.', 'Drei gleiche Käse in Reihe, Spalte oder Diagonale zahlen auf einem Verlustspin 2× Einsatz.', 'Dazu: drei gleiche Käse als Dreieck oder Ecke zahlen 3× Einsatz.', 'Krönung: drei gleiche Käse in der Sechseck-Klammer zahlen 5× Einsatz mit großem Urteil.']
   },
   'fondue-fonds': {
     title: 'Couture-Schmelze',
@@ -6248,37 +6248,33 @@ function sameCheeseLine(cells) {
   return cells.every(Boolean) && cells.every(cell => cell.id === cells[0].id);
 }
 
-function uniqueCheeseLine(cells) {
-  if (!cells.every(Boolean)) return false;
-  return new Set(cells.map(cell => cell.id)).size === cells.length;
-}
-
 function geometricShapeCandidates(grid, lvl) {
+  // Geometrie zählt NUR bei drei GLEICHEN Käse in einer klaren Anordnung.
+  // Früher galten auch drei verschiedene Käse als „Geometrie" — das wirkte
+  // zufällig, ergab spielerisch keinen Sinn und triggerte auf fast jedem
+  // Verlustspin (der 5.000er-Dauerbonus). tier steuert Seltenheit + Auszahlung.
+  // Die mittlere Reihe ist bewusst NICHT dabei: drei Gleiche dort sind bereits
+  // ein normaler Liniengewinn, kein Geometrie-Trostbonus.
   const shapes = [
-    { name: 'oberen Linie', type: 'Linie', cells: [[0,0], [0,1], [0,2]], min: 0 },
-    { name: 'Gewinnlinie', type: 'Linie', cells: [[1,0], [1,1], [1,2]], min: 0 },
-    { name: 'unteren Linie', type: 'Linie', cells: [[2,0], [2,1], [2,2]], min: 0 },
-    { name: 'linken Säule', type: 'Säule', cells: [[0,0], [1,0], [2,0]], min: 0 },
-    { name: 'mittleren Säule', type: 'Säule', cells: [[0,1], [1,1], [2,1]], min: 0 },
-    { name: 'rechten Säule', type: 'Säule', cells: [[0,2], [1,2], [2,2]], min: 0 },
-    { name: 'fallenden Diagonale', type: 'Diagonale', cells: [[0,0], [1,1], [2,2]], min: 0 },
-    { name: 'steigenden Diagonale', type: 'Diagonale', cells: [[0,2], [1,1], [2,0]], min: 0 },
-    { name: 'Dachfigur', type: 'Dreieck', cells: [[0,0], [0,2], [1,1]], min: 2 },
-    { name: 'linken Ecke', type: 'Ecke', cells: [[0,0], [1,0], [1,1]], min: 2 },
-    { name: 'Zickzack-Achse', type: 'Zickzack', cells: [[0,0], [1,1], [2,0]], min: 2 },
-    { name: 'Sechseck-Klammer', type: 'Sechseck', cells: [[0,1], [1,0], [1,2]], min: 3 }
+    { name: 'obere Reihe', type: 'Reihe', cells: [[0,0], [0,1], [0,2]], tier: 1 },
+    { name: 'untere Reihe', type: 'Reihe', cells: [[2,0], [2,1], [2,2]], tier: 1 },
+    { name: 'linke Spalte', type: 'Spalte', cells: [[0,0], [1,0], [2,0]], tier: 1 },
+    { name: 'mittlere Spalte', type: 'Spalte', cells: [[0,1], [1,1], [2,1]], tier: 1 },
+    { name: 'rechte Spalte', type: 'Spalte', cells: [[0,2], [1,2], [2,2]], tier: 1 },
+    { name: 'fallende Diagonale', type: 'Diagonale', cells: [[0,0], [1,1], [2,2]], tier: 1 },
+    { name: 'steigende Diagonale', type: 'Diagonale', cells: [[0,2], [1,1], [2,0]], tier: 1 },
+    { name: 'Dachfigur', type: 'Dreieck', cells: [[0,0], [0,2], [1,1]], tier: 2 },
+    { name: 'linke Ecke', type: 'Ecke', cells: [[0,0], [1,0], [1,1]], tier: 2 },
+    { name: 'rechte Ecke', type: 'Ecke', cells: [[0,2], [1,2], [1,1]], tier: 2 },
+    { name: 'Sechseck-Klammer', type: 'Sechseck', cells: [[0,1], [1,0], [1,2]], tier: 3 }
   ];
+  const minLvlForTier = { 1: 0, 2: 2, 3: 3 };
   return shapes
-    .filter(shape => lvl >= shape.min)
+    .filter(shape => lvl >= minLvlForTier[shape.tier])
     .map(shape => {
       const cells = shape.cells.map(([r, c]) => grid[r]?.[c]);
-      const same = sameCheeseLine(cells);
-      const unique = uniqueCheeseLine(cells);
-      if (!same && !(lvl >= 2 && unique)) return null;
-      const cheese = same ? cells[0] : null;
-      const richness = same ? schimmelbruchIconValue(cheese) : cells.reduce((sum, cell) => sum + schimmelbruchIconValue(cell), 0) / 8;
-      const tier = shape.min >= 3 ? 3 : shape.min >= 2 ? 2 : 1;
-      return { ...shape, same, unique, cheese, richness, tier };
+      if (!sameCheeseLine(cells)) return null;
+      return { ...shape, same: true, cheese: cells[0], richness: schimmelbruchIconValue(cells[0]) };
     })
     .filter(Boolean)
     .sort((a, b) => (b.tier - a.tier) || (b.richness - a.richness));
@@ -6291,7 +6287,9 @@ function detectHexGeometry(results) {
   const grid = visibleReelGrid(results);
   const [best] = geometricShapeCandidates(grid, lvl);
   if (!best) return null;
-  const multiplier = lvl >= 3 && best.tier >= 3 ? 8 : lvl >= 2 ? 5 : lvl >= 1 ? 3 : 0;
+  // Auszahlung nach Form-Seltenheit: Reihe/Spalte/Diagonale 2×, Dreieck/Ecke 3×,
+  // Sechseck-Klammer 5×. Auf Glow 0 nur erkennen/markieren (0×).
+  const multiplier = best.tier >= 3 && lvl >= 3 ? 5 : best.tier >= 2 && lvl >= 2 ? 3 : lvl >= 1 ? 2 : 0;
   return { ...best, grid, multiplier };
 }
 
@@ -6338,16 +6336,14 @@ function drawHexGeometryPath(cells) {
 }
 
 function hexGeometryCopy(result) {
-  const cheeseText = result.cheese ? `${result.cheese.emoji} ${result.cheese.name}` : 'drei verschiedene Käse';
-  const verdict = result.same
-    ? `${result.type} bestätigt: ${cheeseText} in der ${result.name}.`
-    : `${result.type} gelesen: Die ${result.name} ist geordnet.`;
+  const cheeseText = result.cheese ? `3× ${result.cheese.emoji} ${result.cheese.name}` : 'drei gleiche Käse';
+  const verdict = `${result.type} erkannt: ${cheeseText} bilden die ${result.name}.`;
   const chip = result.multiplier > 0
-    ? `⬢ ${result.type} erkannt · ${result.multiplier}× Einsatz`
-    : `⬢ ${result.type} erkannt`;
+    ? `⬢ ${result.name} · ${cheeseText} · ${result.multiplier}× Einsatz`
+    : `⬢ ${result.name} · ${cheeseText} erkannt`;
   const sub = result.multiplier > 0
-    ? `Das Geometriegericht spricht: ${result.multiplier}× Einsatz.`
-    : 'Geometrie erkannt. Kein Bonus, aber sauber markiert.';
+    ? `Drei gleiche Käse in geometrischer Ordnung — das Geometriegericht zahlt ${result.multiplier}× Einsatz.`
+    : `Drei gleiche Käse in der ${result.name} erkannt. Ab Glänzend gibt es dafür Coins.`;
   return { verdict, chip, sub };
 }
 
@@ -6435,7 +6431,7 @@ function applyBadgePreWinEffects(results, spinBet, win) {
     if (geometry && geometry.multiplier > 0) {
       nextWin = makeWin({
         amount: spinBet * geometry.multiplier,
-        msg: `⬢ Geometriegericht: ${geometry.type} im ${geometry.name}! (${geometry.multiplier}×)`,
+        msg: `⬢ ${geometry.name}: 3× ${geometry.cheese.emoji} ${geometry.cheese.name} in Reihe! (${geometry.multiplier}×)`,
         winReels: Array.from(new Set(geometry.cells.map(([, c]) => c))).sort((a, b) => a - b),
         comboId: 'hex-geometry',
         rank: 46 + geometry.multiplier,
@@ -8495,9 +8491,9 @@ function abilityStatusHTML(sealId, glow) {
     if (glow >= 2) bits.push('Erster Null-Freispin dreht die schwächste Walze neu');
     if (glow >= 3) bits.push('Schattenkammer aktiv: langer Verlustlauf kann riesig werden');
   } else if (sealId === 'sechseck-orden') {
-    bits.push('Geometrie-Lupe: sichtbares 3×3 über den Walzen');
-    if (glow >= 1) bits.push(`Geometrie-Bonus: bis ${glow >= 3 ? 8 : glow >= 2 ? 5 : 3}× Einsatz auf Verlustspins`);
-    if (glow >= 2) bits.push('Erkennt Linien, Säulen, Diagonalen, Dreiecke, Ecken und Zickzack');
+    bits.push('Geometrie-Lupe: nur DREI GLEICHE Käse im sichtbaren 3×3 bilden eine Form');
+    if (glow >= 1) bits.push(`Bonus auf Verlustspins: Reihe/Spalte/Diagonale 2×${glow >= 2 ? ' · Dreieck/Ecke 3×' : ''}${glow >= 3 ? ' · Sechseck 5×' : ''} Einsatz`);
+    else bits.push('Formen werden erst erkannt und markiert (ab Glänzend gibt es Coins)');
   } else if (sealId === 'weisses-durag') {
     bits.push(`Walhalla-Punkte: ${abilityNumber('walhallaPoints')}/20`);
     bits.push('Zählt klar: +1 pro sichtbarem Roquefort, Parmigiano oder Golden in normalen Spins.');
