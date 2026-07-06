@@ -5274,6 +5274,10 @@ const ABILITY_STATE_LABELS = {
   walhallaEventSpins: 'Walhalla-Ruf'
 };
 const FAVORITE_CHEESE_IDS = ['cheddar','babybel','mimolette','brie','emmental','senf','roquefort','parmesan'];
+// Patina-Wild bewusst nur aus selteneren Käse wählbar: die häufigen Symbole
+// (Cheddar 20, Babybel 16, Mimolette 13) würden als Reifekammer-Wild zu oft
+// Kombos vervollständigen und Freispiele nachtriggern. Balance-Nerf.
+const PATINA_CHEESE_IDS = ['brie', 'emmental', 'senf'];
 const WALHALLA_CALL_SPINS = 4;
 const WALHALLA_POINT_CHEESE_IDS = ['roquefort', 'parmesan', 'golden'];
 const SEAL_ABILITIES = {
@@ -5330,7 +5334,7 @@ const SEAL_ABILITIES = {
   'roquefort-patina': {
     title: 'Reifekammer-Meister',
     short: 'Natürliche und gekaufte Reifekammern bekommen mehr Spins, mehr Reife und einen Patina-Wild-Partner.',
-    levels: ['Jede Reifekammer gibt 9 Freispiele.', 'Jede Reifekammer gibt 10 Freispiele und höheren Reifecap.', 'Gewählter Patina-Käse zählt in der Reifekammer als Einfach-Wild und kann Käseklammern verbinden.', 'Grande Cave alle 60 Min: nächste Reifekammer mit 12 Freispielen und höherem Reifecap.']
+    levels: ['Jede Reifekammer gibt 9 Freispiele.', 'Jede Reifekammer gibt 10 Freispiele und höheren Reifecap.', 'Ein Patina-Käse aus kleiner Auswahl (Brie, Emmentaler, Senf) zählt in der Reifekammer als Einfach-Wild und kann Käseklammern verbinden.', 'Grande Cave alle 60 Min: nächste Reifekammer mit 12 Freispielen und höherem Reifecap.']
   },
   'parmigiano-aktie': {
     title: 'Risiko-Notar',
@@ -8309,7 +8313,7 @@ function favoriteCheeseId() {
 
 function patinaCheeseId() {
   const saved = abilityState().patinaCheese;
-  return FAVORITE_CHEESE_IDS.includes(saved) ? saved : 'roquefort';
+  return PATINA_CHEESE_IDS.includes(saved) ? saved : PATINA_CHEESE_IDS[0];
 }
 
 function cheeseById(id) {
@@ -8568,7 +8572,8 @@ function abilityPanelHTML(sealId, glow) {
 }
 
 function cheeseChoiceGridHTML(kind, selectedId, handlerName) {
-  return `<div class="cheese-choice-grid" role="group" aria-label="${kind === 'patina' ? 'Patina-Käse wählen' : 'Lieblingskäse wählen'}">${FAVORITE_CHEESE_IDS.map(id => {
+  const ids = kind === 'patina' ? PATINA_CHEESE_IDS : FAVORITE_CHEESE_IDS;
+  return `<div class="cheese-choice-grid" role="group" aria-label="${kind === 'patina' ? 'Patina-Käse wählen' : 'Lieblingskäse wählen'}">${ids.map(id => {
     const c = cheeseById(id);
     if (!c) return '';
     const active = selectedId === id ? ' active' : '';
@@ -8584,7 +8589,7 @@ function setFavoriteCheese(id) {
 }
 
 function setPatinaCheese(id) {
-  if (!FAVORITE_CHEESE_IDS.includes(id)) return;
+  if (!PATINA_CHEESE_IDS.includes(id)) return;
   setAbilityValue('patinaCheese', id, { sync: true });
   const c = cheeseById(id);
   setResult(`🟪 Patina gesetzt: ${c.emoji} ${c.name} ist dein Reifekammer-Partner.`, 'freespin');
