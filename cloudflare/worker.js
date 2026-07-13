@@ -11,6 +11,7 @@ const CHAT_OPENER_AUTHOR = 'Käsino-Croupier';
 const CHAT_OPENER_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const PRESTIGE_BOX_COST = 100000;
 const PRESTIGE_UPGRADE_COSTS = [10, 20, 30];
+const ACTIVE_SEAL_CHANGE_COOLDOWN_MS = 60 * 60 * 1000;
 const WALHALLA_CALL_SPINS = 4;
 const SEAL_DEFS = [
   { id: 'oligarchengedeck', rarity: 'common' },
@@ -296,7 +297,9 @@ async function handleApi(request, env, url) {
     if (!sealId) return json({ ok: false, error: 'Siegel fehlt.' }, 400);
     const authError = await requireAuthName(env.DB, request, name);
     if (authError) return authError;
-    const profile = await setActiveSeal(env.DB, name, sealId);
+    const profileResult = await setActiveSeal(env.DB, name, sealId);
+    if (profileResult?.ok === false) return json(profileResult, profileResult.status || 400);
+    const profile = profileResult;
     return json({
       ok: true,
       profile,
@@ -1105,7 +1108,7 @@ function jsonLikeError(error, status) {
 }
 
 async function setActiveSeal(db, name, sealId) {
-  return applyActiveSeal(db, name, sealId, { cleanup: true });
+  return applyActiveSeal(db, name, sealId, { cleanup: true, enforceCooldown: true });
 }
 
 async function applyActiveSeal(db, name, sealId, options = {}) {
@@ -1114,8 +1117,15 @@ async function applyActiveSeal(db, name, sealId, options = {}) {
   // Bereits aktiv → No-op, sonst würde ein erneuter Klick geladene
   // (bezahlte) Ready-States wie Segen oder Premium-Fondue wegwischen.
   if (profile.activeSeal === sealId) return profile;
+  const now = Date.now();
+  const lastChangedAt = Math.max(0, toInt(profile.abilityState?.activeSealChangedAt, 0));
+  const remaining = lastChangedAt ? Math.max(0, lastChangedAt + ACTIVE_SEAL_CHANGE_COOLDOWN_MS - now) : 0;
+  if (options.enforceCooldown && remaining > 0) {
+    return jsonLikeError(`Badge-Wechsel ist nur einmal pro Stunde möglich. Noch ${Math.ceil(remaining / 60000)} Minuten.`, 429);
+  }
   profile.activeSeal = sealId;
   if (options.cleanup !== false) profile.abilityState = cleanupTransientAbilityState(profile.abilityState);
+  if (options.enforceCooldown) profile.abilityState.activeSealChangedAt = now;
   return saveProfile(db, profile);
 }
 

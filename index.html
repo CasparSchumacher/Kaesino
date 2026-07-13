@@ -2180,6 +2180,14 @@ body {
 .seal-tile.rare { border-color: rgba(90,180,255,0.5); }
 .seal-tile.epic { border-color: rgba(190,110,255,0.55); }
 .seal-tile.legendary { border-color: rgba(255,215,0,0.72); }
+.seal-tile.locked-preview {
+  opacity: 0.46;
+  cursor: default;
+  filter: grayscale(0.55);
+}
+.seal-tile:disabled {
+  cursor: not-allowed;
+}
 .profile-name-btn {
   appearance: none;
   border: 0;
@@ -5200,6 +5208,7 @@ let mentionActiveIndex = 0;
 const PRESTIGE_BOX_COST = 100000;
 const PRESTIGE_UPGRADE_COSTS = [10, 20, 30];
 const OLIGARCH_UNLOCK = 100000;
+const ACTIVE_SEAL_CHANGE_COOLDOWN_MS = 60 * 60 * 1000;
 const HIGH_BET_UNLOCKS = {
   250: 250000,
   500: 500000,
@@ -8226,6 +8235,12 @@ function abilityNumber(key, fallback = 0) {
   return Math.max(0, Math.floor(Number(abilityState()[key] || fallback)));
 }
 
+function activeSealChangeCooldownRemaining(profile = currentProfile) {
+  const changedAt = Math.max(0, Math.floor(Number(profile?.abilityState?.activeSealChangedAt || 0)));
+  if (!changedAt) return 0;
+  return Math.max(0, changedAt + ACTIVE_SEAL_CHANGE_COOLDOWN_MS - Date.now());
+}
+
 function setAbilityValue(key, value, options = {}) {
   abilityState()[key] = value;
   if (playerName) {
@@ -8725,9 +8740,10 @@ function renderPrestigePanel() {
   const upgradeBtn = document.getElementById('upgrade-seal-btn');
   const panelCollection = document.getElementById('seal-collection-panel');
   const activeCard = document.getElementById('couture-active-card');
-  const unlocked = currentRankScore() >= OLIGARCH_UNLOCK;
+  const salesUnlocked = currentRankScore() >= OLIGARCH_UNLOCK;
+  const switchCooldown = activeSealChangeCooldownRemaining();
   if (launch) {
-    launch.classList.toggle('show', !!playerName && unlocked);
+    launch.classList.toggle('show', !!playerName);
     if (launchIcon) {
       launchIcon.innerHTML = currentProfile.activeSeal
         ? sealBadgeHTML(currentProfile.activeSeal, currentProfile, { iconOnly: true })
@@ -8736,10 +8752,12 @@ function renderPrestigePanel() {
   }
   if (openBtn) {
     const boxCost = currentBoxCost();
-    openBtn.disabled = coutureOpening || coutureUpgrading || !unlocked || credits < boxCost || spinning || freespinActive || freespinPending;
+    openBtn.disabled = coutureOpening || coutureUpgrading || !salesUnlocked || credits < boxCost || spinning || freespinActive || freespinPending;
     openBtn.textContent = coutureOpening
       ? 'Käselaib knackt…'
-      : credits >= boxCost ? `Käselaib knacken · ${boxCost.toLocaleString('de-DE')}🪙` : `Kiste braucht ${boxCost.toLocaleString('de-DE')}🪙`;
+      : !salesUnlocked
+        ? `Kistenverkauf ab ${OLIGARCH_UNLOCK.toLocaleString('de-DE')}🪙`
+        : credits >= boxCost ? `Käselaib knacken · ${boxCost.toLocaleString('de-DE')}🪙` : `Kiste braucht ${boxCost.toLocaleString('de-DE')}🪙`;
   }
   if (upgradeBtn) {
     const upgradeCost = sealUpgradeCost(currentProfile.activeSeal);
@@ -8761,16 +8779,22 @@ function renderPrestigePanel() {
     const splitterMeter = active ? `<div class="splitter-meter" title="Couture-Splitter für die nächste Veredelung"><span class="splitter-orb">✦</span><span>${Number.isFinite(upgradeCost) ? `${shards}/${upgradeCost}` : shards} Splitter</span><span class="splitter-progress"><span style="width:${progress}%"></span></span></div>` : '';
     activeCard.classList.toggle('upgrading', coutureUpgrading);
     activeCard.innerHTML = active
-      ? `${sealBadgeHTML(active.id, currentProfile)}<div class="couture-active-meta"><strong>${escapeHtml(active.name)}</strong><br>${escapeHtml(active.rarity)} · ${GLOW_NAMES[glow]}${splitterMeter}${abilityPanelHTML(active.id, glow)}</div>`
-      : `<span class="seal-badge icon-only">💎</span><div class="couture-active-meta"><strong>Noch kein aktives Siegel</strong><br>Knack den ersten Käselaib.</div>`;
+      ? `${sealBadgeHTML(active.id, currentProfile)}<div class="couture-active-meta"><strong>${escapeHtml(active.name)}</strong><br>${escapeHtml(active.rarity)} · ${GLOW_NAMES[glow]}${switchCooldown > 0 ? `<div class="ability-status">Badge-Wechsel wieder in ${formatClock(switchCooldown)}</div>` : ''}${splitterMeter}${abilityPanelHTML(active.id, glow)}</div>`
+      : `<span class="seal-badge icon-only">💎</span><div class="couture-active-meta"><strong>Couture-Vorschau</strong><br>Kisten öffnen erst ab 100.000 Coins Wochen-Beststand.</div>`;
   }
   const galleryHtml = currentProfile.seals?.length
     ? `<div class="seal-gallery">${currentProfile.seals.map(id => {
         const seal = SEAL_BY_ID[id];
         const active = id === currentProfile.activeSeal ? ' active' : '';
-        return `<button class="seal-tile ${seal.rarity}${active}" type="button" onclick="setActiveSeal('${id}')" title="${escapeHtml(seal.name)}">${sealBadgeHTML(id, currentProfile, { iconOnly: true })}</button>`;
+        const blocked = id !== currentProfile.activeSeal && switchCooldown > 0;
+        const title = blocked
+          ? `${seal.name} · Wechsel wieder in ${formatClock(switchCooldown)}`
+          : seal.name;
+        return `<button class="seal-tile ${seal.rarity}${active}" type="button" onclick="setActiveSeal('${id}')" title="${escapeHtml(title)}" ${blocked ? 'disabled' : ''}>${sealBadgeHTML(id, currentProfile, { iconOnly: true })}</button>`;
       }).join('')}</div>`
-    : '<span class="feature-body">Noch keine Couture. Der Tresor wartet.</span>';
+    : `<div class="seal-gallery">${SEAL_DEFS.map(seal =>
+        `<button class="seal-tile locked-preview ${seal.rarity}" type="button" disabled title="${escapeHtml(`${seal.name} · Vorschau`)}">${sealBadgeHTML(seal.id, { seals: [], activeSeal: '', sealGlow: {} }, { iconOnly: true })}</button>`
+      ).join('')}</div><span class="feature-body">Couture-Vorschau: Badges bleiben dir dauerhaft, Kisten öffnest du ab 100.000 Coins.</span>`;
   if (panelCollection) panelCollection.innerHTML = galleryHtml;
 }
 
@@ -9063,7 +9087,17 @@ async function setActiveSeal(sealId) {
   // Klick auf das bereits aktive Siegel darf geladene Ready-States
   // (Segen, Dividende, Premium-Fondue, Event-Spins) nicht wegwischen.
   if (sealId === currentProfile.activeSeal) return;
-  cleanupTransientAbilityState(abilityState());
+  const cooldown = activeSealChangeCooldownRemaining();
+  if (cooldown > 0) {
+    openCouturePanel();
+    setCoutureError(`Badge-Wechsel ist nur einmal pro Stunde möglich. Noch ${formatClock(cooldown)}.`);
+    setResult(`💎 Badge-Wechsel wieder in ${formatClock(cooldown)}.`, '');
+    return;
+  }
+  const previousProfile = JSON.parse(JSON.stringify(currentProfile));
+  const changedAt = Date.now();
+  currentProfile.abilityState = cleanupTransientAbilityState(abilityState());
+  currentProfile.abilityState.activeSealChangedAt = changedAt;
   currentProfile.activeSeal = sealId;
   profileCache[playerName] = currentProfile;
   localStorage.setItem(`kaesino_profile_${playerName}`, JSON.stringify(currentProfile));
@@ -9080,10 +9114,18 @@ async function setActiveSeal(sealId) {
       body: JSON.stringify({ name: playerName, sealId })
     });
     if (r.status === 401 || r.status === 403) handleAuthFailure();
-    const data = await r.json();
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || data.ok === false) throw new Error(data.error || `active seal ${r.status}`);
     if (data.profile) cacheProfiles({ [playerName]: data.profile });
     if (data.profileStats) cacheProfileStats(data.profileStats);
   } catch (e) {
+    currentProfile = previousProfile;
+    profileCache[playerName] = currentProfile;
+    localStorage.setItem(`kaesino_profile_${playerName}`, JSON.stringify(currentProfile));
+    renderPrestigePanel();
+    updatePlayerTag();
+    renderLeaderboard(lbCache);
+    setCoutureError(e.message || 'Badge-Wechsel gerade nicht möglich.');
     logSoftError('prestige-active', e);
   }
 }
