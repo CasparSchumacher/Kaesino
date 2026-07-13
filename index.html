@@ -2176,6 +2176,10 @@ body {
   border-color: rgba(255,215,0,0.7);
   box-shadow: 0 0 14px rgba(255,215,0,0.24);
 }
+.seal-tile.viewing:not(.active) {
+  border-color: rgba(255,255,255,0.62);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.12);
+}
 .seal-tile.common { border-color: rgba(230,235,255,0.18); }
 .seal-tile.rare { border-color: rgba(90,180,255,0.5); }
 .seal-tile.epic { border-color: rgba(190,110,255,0.55); }
@@ -5363,6 +5367,7 @@ let coutureProfileRevealLocked = false;
 let coutureOpening = false;
 let coutureUpgrading = false;
 let coutureRitualTimers = [];
+let coutureInspectedSealId = '';
 let profileDetailName = '';
 let recentlyUpgradedSealId = '';
 let recentlyRevealedSealId = '';
@@ -8241,6 +8246,20 @@ function activeSealChangeCooldownRemaining(profile = currentProfile) {
   return Math.max(0, changedAt + ACTIVE_SEAL_CHANGE_COOLDOWN_MS - Date.now());
 }
 
+function inspectedCoutureSealId() {
+  const owned = currentProfile.seals || [];
+  if (owned.includes(coutureInspectedSealId)) return coutureInspectedSealId;
+  return currentProfile.activeSeal && owned.includes(currentProfile.activeSeal)
+    ? currentProfile.activeSeal
+    : (owned[0] || '');
+}
+
+function inspectCoutureSeal(sealId) {
+  if (!currentProfile.seals?.includes(sealId)) return;
+  coutureInspectedSealId = sealId;
+  renderPrestigePanel();
+}
+
 function setAbilityValue(key, value, options = {}) {
   abilityState()[key] = value;
   if (playerName) {
@@ -8572,14 +8591,16 @@ function abilityActionsHTML(sealId, glow) {
   return actions.length ? `<div class="ability-actions">${actions.join('')}</div>` : '';
 }
 
-function abilityPanelHTML(sealId, glow) {
+function abilityPanelHTML(sealId, glow, options = {}) {
   const ability = activeAbilityDef(sealId);
   if (!ability) return '';
+  const interactive = options.interactive !== false;
   const current = ability.levels.slice(0, glow + 1).map((text, idx) =>
     `${idx === 0 ? 'Basis' : GLOW_NAMES[idx]}: ${text}`
   ).join('<br>');
   const next = hasActiveGameplaySeal(sealId) && glow < 3 ? `<div class="ability-status">Nächste Veredelung: ${escapeHtml(ability.levels[glow + 1])}</div>` : '';
-  return `<div class="ability-panel"><div class="ability-title">${escapeHtml(ability.title)}</div>${escapeHtml(ability.short)}<div class="ability-status">${current}</div>${abilityStatusHTML(sealId, glow)}${next}${abilityActionsHTML(sealId, glow)}</div>`;
+  const inactiveHint = interactive ? '' : '<div class="ability-status">Zum Ausführen aktiv anlegen. Anschauen kostet keinen Badge-Wechsel.</div>';
+  return `<div class="ability-panel"><div class="ability-title">${escapeHtml(ability.title)}</div>${escapeHtml(ability.short)}<div class="ability-status">${current}</div>${abilityStatusHTML(sealId, glow)}${next}${inactiveHint}${interactive ? abilityActionsHTML(sealId, glow) : ''}</div>`;
 }
 
 function cheeseChoiceGridHTML(kind, selectedId, handlerName) {
@@ -8742,6 +8763,9 @@ function renderPrestigePanel() {
   const activeCard = document.getElementById('couture-active-card');
   const salesUnlocked = currentRankScore() >= OLIGARCH_UNLOCK;
   const switchCooldown = activeSealChangeCooldownRemaining();
+  const inspectedId = inspectedCoutureSealId();
+  const inspected = SEAL_BY_ID[inspectedId];
+  const inspectedIsActive = !!inspectedId && inspectedId === currentProfile.activeSeal;
   if (launch) {
     launch.classList.toggle('show', !!playerName);
     if (launchIcon) {
@@ -8760,37 +8784,44 @@ function renderPrestigePanel() {
         : credits >= boxCost ? `Käselaib knacken · ${boxCost.toLocaleString('de-DE')}🪙` : `Kiste braucht ${boxCost.toLocaleString('de-DE')}🪙`;
   }
   if (upgradeBtn) {
-    const upgradeCost = sealUpgradeCost(currentProfile.activeSeal);
-    const canUpgrade = currentProfile.activeSeal && Number.isFinite(upgradeCost) && (currentProfile.sealShards || 0) >= upgradeCost
-      && Number(currentProfile.sealGlow?.[currentProfile.activeSeal] || 0) < 3;
+    const upgradeCost = sealUpgradeCost(inspectedId);
+    const canUpgrade = inspectedIsActive && Number.isFinite(upgradeCost) && (currentProfile.sealShards || 0) >= upgradeCost
+      && Number(currentProfile.sealGlow?.[inspectedId] || 0) < 3;
     upgradeBtn.disabled = coutureOpening || coutureUpgrading || !canUpgrade;
     upgradeBtn.textContent = coutureUpgrading
       ? 'Veredelung läuft…'
-      : Number.isFinite(upgradeCost)
+      : !inspectedIsActive && inspected
+        ? 'Zum Veredeln aktiv anlegen'
+        : Number.isFinite(upgradeCost)
         ? `${currentProfile.sealShards || 0}/${upgradeCost} Splitter · Veredeln`
         : 'Walhalla erreicht';
   }
   if (activeCard) {
-    const active = SEAL_BY_ID[currentProfile.activeSeal];
-    const glow = Math.max(0, Math.min(3, Number(currentProfile.sealGlow?.[currentProfile.activeSeal] || 0)));
-    const upgradeCost = sealUpgradeCost(currentProfile.activeSeal);
+    const glow = Math.max(0, Math.min(3, Number(currentProfile.sealGlow?.[inspectedId] || 0)));
+    const upgradeCost = sealUpgradeCost(inspectedId);
     const shards = currentProfile.sealShards || 0;
     const progress = Number.isFinite(upgradeCost) ? Math.min(100, Math.round((shards / upgradeCost) * 100)) : 100;
-    const splitterMeter = active ? `<div class="splitter-meter" title="Couture-Splitter für die nächste Veredelung"><span class="splitter-orb">✦</span><span>${Number.isFinite(upgradeCost) ? `${shards}/${upgradeCost}` : shards} Splitter</span><span class="splitter-progress"><span style="width:${progress}%"></span></span></div>` : '';
+    const splitterMeter = inspected ? `<div class="splitter-meter" title="Couture-Splitter für die nächste Veredelung"><span class="splitter-orb">✦</span><span>${Number.isFinite(upgradeCost) ? `${shards}/${upgradeCost}` : shards} Splitter</span><span class="splitter-progress"><span style="width:${progress}%"></span></span></div>` : '';
+    const switchButton = inspected && !inspectedIsActive
+      ? `<div class="ability-actions"><button type="button" onclick="setActiveSeal('${inspectedId}')" ${switchCooldown > 0 || coutureOpening || coutureUpgrading ? 'disabled' : ''}>${switchCooldown > 0 ? `Anlegen in ${formatClock(switchCooldown)}` : 'Aktiv anlegen'}</button></div>`
+      : '';
+    const activeStatus = inspected
+      ? inspectedIsActive
+        ? `<div class="ability-status">Aktiv angelegt${switchCooldown > 0 ? `<br>Nächster Badge-Wechsel in ${formatClock(switchCooldown)}` : ''}</div>`
+        : `<div class="ability-status">Nur angeschaut. Aktiv ist weiterhin ${escapeHtml(SEAL_BY_ID[currentProfile.activeSeal]?.name || 'kein Badge')}.</div>`
+      : '';
     activeCard.classList.toggle('upgrading', coutureUpgrading);
-    activeCard.innerHTML = active
-      ? `${sealBadgeHTML(active.id, currentProfile)}<div class="couture-active-meta"><strong>${escapeHtml(active.name)}</strong><br>${escapeHtml(active.rarity)} · ${GLOW_NAMES[glow]}${switchCooldown > 0 ? `<div class="ability-status">Badge-Wechsel wieder in ${formatClock(switchCooldown)}</div>` : ''}${splitterMeter}${abilityPanelHTML(active.id, glow)}</div>`
+    activeCard.innerHTML = inspected
+      ? `${sealBadgeHTML(inspected.id, currentProfile)}<div class="couture-active-meta"><strong>${escapeHtml(inspected.name)}</strong><br>${escapeHtml(inspected.rarity)} · ${GLOW_NAMES[glow]}${activeStatus}${switchButton}${splitterMeter}${abilityPanelHTML(inspected.id, glow, { interactive: inspectedIsActive })}</div>`
       : `<span class="seal-badge icon-only">💎</span><div class="couture-active-meta"><strong>Couture-Vorschau</strong><br>Kisten öffnen erst ab 100.000 Coins Wochen-Beststand.</div>`;
   }
   const galleryHtml = currentProfile.seals?.length
     ? `<div class="seal-gallery">${currentProfile.seals.map(id => {
         const seal = SEAL_BY_ID[id];
         const active = id === currentProfile.activeSeal ? ' active' : '';
-        const blocked = id !== currentProfile.activeSeal && switchCooldown > 0;
-        const title = blocked
-          ? `${seal.name} · Wechsel wieder in ${formatClock(switchCooldown)}`
-          : seal.name;
-        return `<button class="seal-tile ${seal.rarity}${active}" type="button" onclick="setActiveSeal('${id}')" title="${escapeHtml(title)}" ${blocked ? 'disabled' : ''}>${sealBadgeHTML(id, currentProfile, { iconOnly: true })}</button>`;
+        const viewing = id === inspectedId && id !== currentProfile.activeSeal ? ' viewing' : '';
+        const title = `${seal.name}${active ? ' · aktiv angelegt' : id === inspectedId ? ' · angeschaut' : ''}`;
+        return `<button class="seal-tile ${seal.rarity}${active}${viewing}" type="button" onclick="inspectCoutureSeal('${id}')" title="${escapeHtml(title)}">${sealBadgeHTML(id, currentProfile, { iconOnly: true })}</button>`;
       }).join('')}</div>`
     : `<div class="seal-gallery">${SEAL_DEFS.map(seal =>
         `<button class="seal-tile locked-preview ${seal.rarity}" type="button" disabled title="${escapeHtml(`${seal.name} · Vorschau`)}">${sealBadgeHTML(seal.id, { seals: [], activeSeal: '', sealGlow: {} }, { iconOnly: true })}</button>`
@@ -8922,7 +8953,7 @@ async function revealCoutureBoxResult(result, options = {}) {
   const ability = SEAL_ABILITIES[result.sealId];
   const glow = sealLevel(result.sealId);
   const abilityInfo = ability
-    ? `<div class="ability-panel"><div class="ability-title">${escapeHtml(ability.title)}</div>${escapeHtml(ability.short)}<div class="ability-status">Jetzt: ${escapeHtml(ability.levels[Math.min(glow, 3)] || ability.levels[0])}${glow < 3 ? `<br>Nächste Veredelung: ${escapeHtml(ability.levels[glow + 1])}` : ''}</div><div class="ability-actions"><button type="button" onclick="setActiveSeal('${result.sealId}')">Aktivieren</button></div></div>`
+    ? `<div class="ability-panel"><div class="ability-title">${escapeHtml(ability.title)}</div>${escapeHtml(ability.short)}<div class="ability-status">Jetzt: ${escapeHtml(ability.levels[Math.min(glow, 3)] || ability.levels[0])}${glow < 3 ? `<br>Nächste Veredelung: ${escapeHtml(ability.levels[glow + 1])}` : ''}</div><div class="ability-actions"><button type="button" onclick="inspectCoutureSeal('${result.sealId}')">Im Tresor ansehen</button></div></div>`
     : '';
   recentlyRevealedSealId = result.sealId || '';
   ticker.textContent = `${String(result.rarity || '').toUpperCase()} DROP`;
@@ -9099,6 +9130,7 @@ async function setActiveSeal(sealId) {
   currentProfile.abilityState = cleanupTransientAbilityState(abilityState());
   currentProfile.abilityState.activeSealChangedAt = changedAt;
   currentProfile.activeSeal = sealId;
+  coutureInspectedSealId = sealId;
   profileCache[playerName] = currentProfile;
   localStorage.setItem(`kaesino_profile_${playerName}`, JSON.stringify(currentProfile));
   applyTurboVisualState();
@@ -9131,7 +9163,12 @@ async function setActiveSeal(sealId) {
 }
 
 async function upgradeActiveSeal() {
-  const sealId = currentProfile.activeSeal;
+  const sealId = inspectedCoutureSealId();
+  if (sealId && sealId !== currentProfile.activeSeal) {
+    setCoutureError('Zum Veredeln muss dieses Badge aktiv angelegt sein.');
+    setResult('💎 Zum Veredeln erst aktiv anlegen.', '');
+    return;
+  }
   const upgradeCost = sealUpgradeCost(sealId);
   if (coutureUpgrading || !sealId || !Number.isFinite(upgradeCost) || (currentProfile.sealShards || 0) < upgradeCost) return;
   if (!kasinoApiAvailable()) {
